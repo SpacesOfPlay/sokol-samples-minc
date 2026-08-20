@@ -1,0 +1,104 @@
+# Publishes live-demo/ to GitHub Pages. The wasm is built here, not
+# committed — set Settings > Pages > Source to "GitHub Actions".
+name: pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Downloaded, not piped to bash: a piped script shares stdin with
+      # its own source.
+      - name: install minc
+        run: |
+          curl -fsSL https://minc.dev/install -o "$RUNNER_TEMP/install.sh"
+          bash "$RUNNER_TEMP/install.sh" < /dev/null
+          echo "$HOME/.minc" >> "$GITHUB_PATH"
+
+      - run: minc --version
+
+      # samples/LIST_WASM.txt is the wasm census the publisher ran: every
+      # stem in it built AND survived a headless run there.
+      # LIST_WASM_WGPU.txt is the WebGPU census — those build a second
+      # artifact with the backend pairing prepended (@gpu "webgpu" +
+      # SOKOL_WGPU, exactly what the sapp_pre_wgpu shim does). A failed
+      # build fails the job — the gallery links are a fixed list, and a
+      # missing .wasm is a dead link. cwd is the repo root so the samples'
+      # sibling-module imports resolve against samples/.
+      - name: build live-demo
+        run: |
+          while read -r stem; do
+            [ -n "$stem" ] || continue
+            echo "--- $stem"
+            minc "samples/$stem.mc" --target wasm -DSOKOL_TRACE_HOOKS -o "live-demo/$stem.wasm"
+          done < samples/LIST_WASM.txt
+          while read -r stem; do
+            [ -n "$stem" ] || continue
+            echo "--- $stem (webgpu)"
+            printf '@gpu "webgpu"\n@define "SOKOL_WGPU"\n' > "samples/__wgpu_$stem.mc"
+            cat "samples/$stem.mc" >> "samples/__wgpu_$stem.mc"
+            minc "samples/__wgpu_$stem.mc" --target wasm -DSOKOL_TRACE_HOOKS -o "live-demo/$stem.wgpu.wasm"
+            rm "samples/__wgpu_$stem.mc"
+          done < samples/LIST_WASM_WGPU.txt
+
+      # The samples pin their own wasm hosts (they ship in samples/ so the
+      # dist never depends on which host the user's minc install carries);
+      # the gallery serves those same pinned copies. data/ sits beside the
+      # pages so the samples' relative sokol_fetch paths resolve over HTTP.
+      - name: stage hosts + assets
+        run: |
+          cp samples/sokol_wasm_host.js live-demo/
+          cp samples/sokol_wgpu_host.js live-demo/
+          cp samples/sokol_wasm_audio_worklet.js live-demo/
+          cp -R data live-demo/data
+
+      # index.html's list is hand-written (it carries the per-sample
+      # descriptions, caveats and backend flags). Fail the job rather than
+      # publish a dead link, or a sample the gallery never links to. Flags
+      # sit on the item's `id:` line — the parse depends on that.
+      - name: check the gallery lists exactly what was built
+        run: |
+          grep "id: '" live-demo/index.html | grep -v "only: 'wgpu'" \
+            | sed "s/.*id: '\([^']*\)'.*/\1/" | LC_ALL=C sort > /tmp/listed_gl
+          grep "id: '" live-demo/index.html | grep -e "wgpu: true" -e "only: 'wgpu'" \
+            | sed "s/.*id: '\([^']*\)'.*/\1/" | LC_ALL=C sort > /tmp/listed_wgpu
+          for w in live-demo/*.wasm; do basename "$w" .wasm; done \
+            | grep -v '\.wgpu$' | LC_ALL=C sort > /tmp/built_gl
+          for w in live-demo/*.wgpu.wasm; do basename "$w" .wgpu.wasm; done \
+            | LC_ALL=C sort > /tmp/built_wgpu
+          diff /tmp/listed_gl /tmp/built_gl \
+            || { echo "index.html vs LIST_WASM.txt (< listed, > built)"; exit 1; }
+          diff /tmp/listed_wgpu /tmp/built_wgpu \
+            || { echo "index.html wgpu flags vs LIST_WASM_WGPU.txt (< listed, > built)"; exit 1; }
+
+      - run: ls -l live-demo
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: live-demo
+
+  deploy:
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

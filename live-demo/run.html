@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png" href="sokol_icon.png">
+<title>sokol-samples-minc</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #161926; --line: #2b3145; --fg: #c8cee0; --dim: #9aa0b8;
+  --faint: #6d7490; --link: #7fb3ff;
+  --mono: 'Cascadia Mono', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+}
+html, body { height: 100%; }
+body {
+  background: var(--bg); color: var(--dim); font-family: var(--mono);
+  font-size: 12px; display: flex; flex-direction: column;
+}
+#bar {
+  display: flex; align-items: center; gap: 1em;
+  padding: .7em 1.2em; border-bottom: 1px solid var(--line);
+}
+#bar a { color: var(--link); text-decoration: none; }
+#bar a:hover { text-decoration: underline; }
+#name { color: var(--fg); }
+#src { margin-left: auto; }
+/* The sample owns the whole area below the bar: sokol_app reads the
+   canvas drawing-buffer size, so the canvas is the window. */
+main { flex: 1; min-height: 0; position: relative; }
+#canvas { display: block; width: 100%; height: 100%; outline: none; background: #000; }
+#status {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  color: var(--faint); text-align: center; pointer-events: none;
+}
+#status.err {
+  color: #e2938d; max-width: 60em; text-align: left; white-space: pre-wrap;
+  pointer-events: auto;
+}
+</style>
+</head>
+<body>
+<div id="bar">
+  <a href="index.html">&larr; samples</a>
+  <span id="name"></span>
+  <a id="src" href="https://github.com/SpacesOfPlay/sokol-samples-minc/tree/main/samples">source</a>
+</div>
+<main>
+  <canvas id="canvas"></canvas>
+  <div id="status">loading…</div>
+</main>
+<script>
+// Gallery runner: run.html?app=<name>, &backend=wgpu for the WebGPU
+// build. The pages workflow puts <name>.wasm / <name>.wgpu.wasm beside
+// this file. Both hosts share the window.sokolWasm API.
+const params = new URLSearchParams(location.search);
+const app = params.get('app');
+const wgpu = params.get('backend') === 'wgpu';
+const statusEl = document.getElementById('status');
+
+function fail(msg) {
+    statusEl.className = 'err';
+    statusEl.textContent = msg;
+    statusEl.style.display = '';   // a late error must undo the hide below
+}
+window.addEventListener('error', e => fail('error: ' + ((e.error && (e.error.stack || e.error.message)) || e.message)));
+window.addEventListener('unhandledrejection', e => fail('error: ' + ((e.reason && (e.reason.stack || e.reason.message)) || e.reason)));
+
+if (!app || !/^[a-zA-Z0-9_-]+$/.test(app)) {
+    document.getElementById('name').textContent = '-';
+    fail('missing or invalid ?app=<name> in the URL. Pick one from the samples list.');
+} else if (wgpu && !navigator.gpu) {
+    document.getElementById('name').textContent = app.replace(/_sapp$/, '').replace(/_/g, '-');
+    fail('This build needs WebGPU, which this browser does not offer.\n' +
+         'Chrome, Edge and recent Safari/Firefox support it.');
+} else {
+    const display = app.replace(/_sapp$/, '').replace(/_/g, '-') + (wgpu ? ' (webgpu)' : '');
+    document.title = display + ' - sokol-samples-minc';
+    document.getElementById('name').textContent = display;
+    document.getElementById('src').href =
+        'https://github.com/SpacesOfPlay/sokol-samples-minc/blob/main/samples/' + app + '.mc';
+    const host = document.createElement('script');
+    host.src = wgpu ? 'sokol_wgpu_host.js' : 'sokol_wasm_host.js';
+    host.onload = async () => {
+        try {
+            // Preload the audio worklet; audio-free samples leave the
+            // context suspended. sokol_fetch requests go over HTTP,
+            // data/ sits beside this page.
+            await window.sokolWasm.preloadAudioWorklet({ sampleRate: 44100 });
+            // The GLES3 host's runAuto probes for a .threads.wasm variant;
+            // the WebGPU host runs the named artifact directly.
+            if (wgpu) { await window.sokolWasm.run(app + '.wgpu.wasm'); }
+            else { await window.sokolWasm.runAuto(app); }
+            statusEl.style.display = 'none';
+        } catch (e) {
+            console.error(e);
+            fail('error: ' + (e.message || e));
+        }
+    };
+    host.onerror = () => fail('error: could not load ' + host.src);
+    document.body.appendChild(host);
+}
+</script>
+</body>
+</html>

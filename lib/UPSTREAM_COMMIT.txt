@@ -1,0 +1,3 @@
+upstream:  https://github.com/erincatto/box3d
+sha:       23861418d877fdd97990f35645e845e44a7eb9ec
+date:      2026-07-21

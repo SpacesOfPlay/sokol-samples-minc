@@ -1,0 +1,13 @@
+# This dist is LF-only. Without this, a Windows clone with
+# core.autocrlf=true checks every text file out as CRLF and commits it
+# back that way. Written by transminc's publish.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.ico binary
+*.wasm binary
+*.dll binary
+*.exe binary
+*.obj binary
+*.a binary
+*.lib binary

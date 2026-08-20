@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<title>sokol-samples-minc web samples</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #161926; --panel: #1d2131; --line: #2b3145;
+  --fg: #c8cee0; --dim: #9aa0b8; --faint: #6d7490; --link: #7fb3ff;
+  --mono: 'Cascadia Mono', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+}
+body {
+  background: var(--bg); color: var(--dim); font-family: var(--mono);
+  font-size: 13px; line-height: 1.65; padding: 2.5em 1.5em 4em;
+}
+main { max-width: 72em; margin: 0 auto; }
+h1 { color: var(--fg); font-size: 20px; font-weight: 600; letter-spacing: -.01em; }
+.lede { margin-top: .6em; max-width: 62em; }
+.lede a, footer a { color: var(--link); text-decoration: none; }
+.lede a:hover, footer a:hover { text-decoration: underline; }
+h2 {
+  color: var(--fg); font-size: 13px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .12em; margin: 2.5em 0 .2em; padding-bottom: .5em;
+  border-bottom: 1px solid var(--line);
+}
+.cat-note { color: var(--faint); margin-bottom: 1em; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15em, 1fr)); gap: .6em; }
+.card {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: 5px; overflow: hidden;
+}
+.card:hover { border-color: #45507a; background: #222739; }
+/* Thumbnails are 4:3 captures of the native build; reserve the box so a
+   missing image doesn't reflow the grid. */
+.card .thumb {
+  display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover;
+  background: #0d101a; border-bottom: 1px solid var(--line);
+}
+.card .thumb.missing { display: none; }
+.card .text { padding: .55em .9em .7em; }
+.card .name { color: var(--fg); display: block; }
+/* One link per backend build of the sample. */
+.card .backends { display: block; margin-top: .3em; font-size: 12px; }
+.card .backends a { color: var(--link); text-decoration: none; }
+.card .backends a:hover { text-decoration: underline; }
+.card .backends .sep { color: var(--faint); padding: 0 .35em; }
+.card .note {
+  display: block; color: var(--faint); font-size: 11px; margin-top: .35em;
+  padding-left: .9em; text-indent: -.9em;
+}
+.card .note::before { content: '! '; color: #d8a657; }
+footer { margin-top: 3.5em; padding-top: 1.2em; border-top: 1px solid var(--line);
+         color: var(--faint); font-size: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>sokol-samples-minc web samples</h1>
+  <p class="lede">
+    The <a href="https://github.com/floooh/sokol-samples">sokol-samples</a>
+    transpiled to the <a href="https://minc.dev">minc</a> language, compiled
+    to WebAssembly. No emscripten, no C toolchain. The same sample source
+    builds for Windows (D3D11/OpenGL), Linux (OpenGL), macOS (Metal/OpenGL)
+    and the web (WebGL2/WebGPU). sokol-shdc shaders were ported to minc
+    <code>@shader</code> functions, which emit GLSL ES or WGSL here and
+    HLSL/MSL/GLSL on the native builds. The compute/storage tier is WebGPU-only.
+  </p>
+  <p class="lede">
+    Click a sample to run it; the browser Back button returns here.
+    Sources are in
+    <a href="https://github.com/SpacesOfPlay/sokol-samples-minc/tree/main/samples">samples/</a>.
+  </p>
+  <div id="cats"></div>
+  <footer>
+    Built from <a href="https://github.com/SpacesOfPlay/sokol-samples-minc">sokol-samples-minc</a>.
+  </footer>
+</main>
+<script>
+// One entry per samples/LIST_WASM.txt stem. `note` records where the
+// browser behaves differently from the desktop build. The pages workflow
+// fails if this list drifts from what it built.
+const CATS = [
+  { name: 'basics', blurb: 'Buffers, the first triangle, cubes and shapes', items: [
+    { id: 'clear_sapp', wgpu: true },
+    { id: 'triangle_sapp', wgpu: true },
+    { id: 'triangle_bufferless_sapp', wgpu: true },
+    { id: 'quad_sapp', wgpu: true },
+    { id: 'bufferoffsets_sapp', wgpu: true },
+    { id: 'cube_sapp', wgpu: true },
+    { id: 'vertexindexbuffer_sapp', wgpu: true },
+    { id: 'noninterleaved_sapp', wgpu: true },
+    { id: 'texcube_sapp', wgpu: true },
+    { id: 'shapes_sapp', wgpu: true },
+    { id: 'shapes_transform_sapp', wgpu: true },
+    { id: 'primtypes_sapp', wgpu: true },
+  ]},
+  { name: 'textures', blurb: 'Texture types, dynamic updates, async loading', items: [
+    { id: 'arraytex_sapp', wgpu: true },
+    { id: 'tex3d_sapp', wgpu: true },
+    { id: 'dyntex_sapp', wgpu: true },
+    { id: 'dyntex3d_sapp', wgpu: true },
+    { id: 'mipmap_sapp', wgpu: true },
+    { id: 'miprender_sapp', wgpu: true },
+    { id: 'uvwrap_sapp', wgpu: true },
+    { id: 'loadpng_sapp', wgpu: true },
+    { id: 'cubemap_jpeg_sapp', wgpu: true },
+    { id: 'writeimage_sapp', wgpu: true },
+    { id: 'pixelformats_sapp', wgpu: true },
+  ]},
+  { name: 'render passes', blurb: 'Offscreen targets, MSAA, sRGB, shadows', items: [
+    { id: 'offscreen_sapp', wgpu: true },
+    { id: 'offscreen_msaa_sapp', wgpu: true },
+    { id: 'mrt_sapp', wgpu: true },
+    { id: 'mrt_pixelformats_sapp', wgpu: true },
+    { id: 'cubemaprt_sapp', wgpu: true },
+    { id: 'layerrender_sapp', wgpu: true },
+    { id: 'framebuffer_sapp' },
+    { id: 'letterbox_sapp', wgpu: true },
+    { id: 'ilbm_sapp' },
+    { id: 'hdr_sapp', wgpu: true },
+    { id: 'srgb_sapp', wgpu: true },
+    { id: 'srgb_msaa_sapp', wgpu: true },
+    { id: 'srgb_offscreen_sapp', wgpu: true },
+    { id: 'shadows_sapp', wgpu: true },
+    { id: 'shadows_depthtex_sapp', wgpu: true },
+    { id: 'vertextexture_sapp', wgpu: true },
+    { id: 'compositemode_sapp', wgpu: true,
+      note: 'Web and macOS are the two platforms that support this.' },
+  ]},
+  { name: 'pipelines & app', blurb: 'Blend states, instancing, shader effects, audio, drag’n’drop', items: [
+    { id: 'blend_sapp', wgpu: true },
+    { id: 'blend_op_sapp', wgpu: true },
+    { id: 'blend_playground_sapp', wgpu: true },
+    { id: 'instancing_sapp', wgpu: true },
+    { id: 'drawex_sapp', wgpu: true },
+    { id: 'drawcallperf_sapp', wgpu: true },
+    { id: 'shared_bindings_sapp', wgpu: true },
+    { id: 'uniformtypes_sapp', wgpu: true },
+    { id: 'mandelbrot_sapp', wgpu: true },
+    { id: 'sdf_sapp', wgpu: true },
+    { id: 'droptest_sapp', wgpu: true,
+      note: 'Drop a file onto the canvas.' },
+    { id: 'icon_sapp', wgpu: true },
+    { id: 'box3d_simple_sapp', wgpu: true },
+    { id: 'saudio_sapp', wgpu: true,
+      note: 'Click or press a key first; browsers unlock audio on input.' },
+  ]},
+  { name: 'sokol_gl', blurb: 'Immediate-mode rendering', items: [
+    { id: 'sgl_sapp', wgpu: true },
+    { id: 'sgl_lines_sapp', wgpu: true },
+    { id: 'sgl_points_sapp', wgpu: true },
+    { id: 'sgl_context_sapp', wgpu: true },
+    { id: 'sgl_boing_sapp', wgpu: true },
+  ]},
+  { name: 'sokol_debugtext', blurb: 'Font rendering', items: [
+    { id: 'debugtext_sapp', wgpu: true },
+    { id: 'debugtext_printf_sapp', wgpu: true },
+    { id: 'debugtext_userfont_sapp', wgpu: true },
+    { id: 'debugtext_context_sapp', wgpu: true },
+    { id: 'debugtext_layers_sapp', wgpu: true },
+  ]},
+  { name: 'dear imgui', blurb: 'Dear ImGui, transpiled', items: [
+    { id: 'cimgui_sapp', wgpu: true },
+    { id: 'imgui_images_sapp', wgpu: true },
+    { id: 'imgui_perf_sapp', wgpu: true },
+    { id: 'imgui_usercallback_sapp', wgpu: true },
+  ]},
+  { name: 'sokol_spine', blurb: '2D skeletal animation: the spine-c runtime, transpiled', items: [
+    { id: 'spine_simple_sapp', wgpu: true },
+    { id: 'spine_layers_sapp', wgpu: true },
+    { id: 'spine_contexts_sapp', wgpu: true },
+    { id: 'spine_inspector_sapp', wgpu: true },
+    { id: 'spine_skinsets_sapp', wgpu: true },
+    { id: 'spine_switch_skinsets_sapp', wgpu: true },
+  ]},
+  { name: 'compute & storage, webgpu only', blurb: 'Compute shaders, storage buffers and storage images', items: [
+    { id: 'instancing_compute_sapp', only: 'wgpu' },
+    { id: 'computeboids_sapp', only: 'wgpu' },
+    { id: 'imageblur_sapp', only: 'wgpu' },
+    { id: 'write_storageimage_sapp', only: 'wgpu' },
+    { id: 'instancing_pull_sapp', only: 'wgpu' },
+    { id: 'vertexpull_sapp', only: 'wgpu' },
+    { id: 'sbufoffset_sapp', only: 'wgpu' },
+    { id: 'sbuftex_sapp', only: 'wgpu' },
+    { id: 'customresolve_sapp', only: 'wgpu' },
+  ]},
+];
+
+const cats = document.getElementById('cats');
+for (const cat of CATS) {
+  const h = document.createElement('h2');
+  h.textContent = cat.name;
+  cats.appendChild(h);
+  if (cat.blurb) {
+    const p = document.createElement('p');
+    p.className = 'cat-note';
+    p.textContent = cat.blurb;
+    cats.appendChild(p);
+  }
+  const grid = document.createElement('div');
+  grid.className = 'grid';
+  for (const it of cat.items) {
+    // Backends this sample runs on: every card has webgl2 unless it is
+    // wgpu-only; `wgpu: true` adds the WebGPU build as a second link.
+    const hasGl = it.only !== 'wgpu';
+    const hasWgpu = it.wgpu === true || it.only === 'wgpu';
+    const defaultHref = hasGl ? ('run.html?app=' + it.id)
+                              : ('run.html?app=' + it.id + '&backend=wgpu');
+    const card = document.createElement('div');
+    card.className = 'card';
+    const thumbLink = document.createElement('a');
+    thumbLink.href = defaultHref;
+    const img = document.createElement('img');
+    img.className = 'thumb';
+    img.loading = 'lazy';
+    img.alt = '';
+    img.src = 'thumbs/' + it.id + '.jpg';
+    img.onerror = () => { img.classList.add('missing'); };
+    thumbLink.appendChild(img);
+    card.appendChild(thumbLink);
+    const text = document.createElement('div');
+    text.className = 'text';
+    const name = document.createElement('a');
+    name.className = 'name';
+    name.href = defaultHref;
+    name.textContent = it.id.replace(/_sapp$/, '').replace(/_/g, '-');
+    text.appendChild(name);
+    const backends = document.createElement('span');
+    backends.className = 'backends';
+    if (hasGl) {
+      const a = document.createElement('a');
+      a.href = 'run.html?app=' + it.id;
+      a.textContent = 'webgl2';
+      backends.appendChild(a);
+    }
+    if (hasGl && hasWgpu) {
+      const sep = document.createElement('span');
+      sep.className = 'sep';
+      sep.textContent = '·';
+      backends.appendChild(sep);
+    }
+    if (hasWgpu) {
+      const a = document.createElement('a');
+      a.href = 'run.html?app=' + it.id + '&backend=wgpu';
+      a.textContent = 'webgpu';
+      backends.appendChild(a);
+    }
+    text.appendChild(backends);
+    if (it.note) {
+      const note = document.createElement('span');
+      note.className = 'note';
+      note.textContent = it.note;
+      text.appendChild(note);
+    }
+    card.appendChild(text);
+    grid.appendChild(card);
+  }
+  cats.appendChild(grid);
+}
+</script>
+</body>
+</html>

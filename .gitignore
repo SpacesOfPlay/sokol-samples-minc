@@ -1,0 +1,14 @@
+# Ignore extensionless files dropped in the repo root
+/*
+!/*/
+!/*.*
+
+build/
+*.exe
+*.wasm
+
+# live-demo staging
+live-demo/data/
+live-demo/sokol_wasm_host.js
+live-demo/sokol_wgpu_host.js
+live-demo/sokol_wasm_audio_worklet.js
