@@ -47,22 +47,11 @@ import thread;
 when os(windows) { str EXE_SUFFIX = ".exe"; }
 when os(linux) || os(macos) { str EXE_SUFFIX = ""; }
 
-void out(str s) {
-    write(stdout(), s.data, s.len);
-    return;
-}
-
-void say(str s) {
-    out(s);
-    write(stdout(), "\n", 1);
-    return;
-}
-
 // "<dir>/<name><ext>", without leaking the joined name.
 string join_named(str dir, str name, str ext) {
     string base = str_concat(name, ext);
     defer free(base);
-    return path_join(dir, str_from(base.data, base.len));
+    return path_join(dir, base);
 }
 
 // Native runs read data/ relative to the cwd; the browser fetches it
@@ -78,14 +67,13 @@ void stage_web_data() {
         defer free(src);
         string dst = path_join("build/web/data", files.items[i]);
         defer free(dst);
-        ignore file_copy(str_from(src.data, src.len), str_from(dst.data, dst.len));
+        ignore file_copy(src, dst);
     }
     return;
 }
 
 void die(str s) {
-    write(stderr(), s.data, s.len);
-    write(stderr(), "\n", 1);
+    eprint("{}\n", s);
     exit(1);
     return;
 }
@@ -95,9 +83,8 @@ void die(str s) {
 string find_minc() {
     string env = env_get("MINC");
     if env.len > 0 {
-        str e = str_from(env.data, env.len);
-        if path_is_dir(e) {
-            string cand = join_named(e, "minc", EXE_SUFFIX);
+        if path_is_dir(env) {
+            string cand = join_named(env, "minc", EXE_SUFFIX);
             free(env);
             return cand;
         }
@@ -110,7 +97,7 @@ string find_minc() {
     free(onpath);
 
     string local = str_concat("./minc", EXE_SUFFIX);
-    if path_exists(str_from(local.data, local.len)) { return local; }
+    if path_exists(local) { return local; }
     free(local);
 
     string none = { .data = null, .len = 0 };
@@ -120,10 +107,10 @@ string find_minc() {
 // "cube_sapp" -> "samples/cube_sapp.mc"; a path ending in .mc is
 // taken as given.
 string resolve_source(str arg) {
-    if str_ends_with(arg, ".mc") { return str_concat(arg, ""); }
+    if str_ends_with(arg, ".mc") { return string(arg); }
     string base = str_concat(arg, ".mc");
     defer free(base);
-    return path_join("samples", str_from(base.data, base.len));
+    return path_join("samples", base);
 }
 
 // --gl: build the sample against GL 3.3 core instead of the platform
@@ -146,7 +133,7 @@ string exe_named(str name) {
     if !g_gl { return join_named("build", name, EXE_SUFFIX); }
     string gl = str_concat(name, "_gl");
     defer free(gl);
-    return join_named("build", str_from(gl.data, gl.len), EXE_SUFFIX);
+    return join_named("build", gl, EXE_SUFFIX);
 }
 
 // Write build/<name>_gl.mc = `@gpu "opengl"` + the sample, and return
@@ -158,7 +145,7 @@ string gl_source(str srcp, str name) {
     defer free(fd.data);
     string body = str_concat("@gpu \"opengl\"\n", str_from(fd.data, cast(i32, fd.len)));
     defer free(body);
-    ignore file_write_str(str_from(dst.data, dst.len), str_from(body.data, body.len));
+    ignore file_write_str(dst, body);
     return dst;
 }
 
@@ -167,24 +154,22 @@ string gl_source(str srcp, str name) {
 i32 build_one(str cc, str stem) {
     string src = resolve_source(stem);
     defer free(src);
-    str srcp = str_from(src.data, src.len);
+    str srcp = src;
     if !path_exists(srcp) {
-        out("no such sample: ");
-        say(srcp);
+        eprint("no such sample: {}\n", srcp);
         return 1;
     }
     str name = path_stem(srcp);
     string glsrc = { .data = null, .len = 0 };
     if g_gl {
         glsrc = gl_source(srcp, name);
-        srcp = str_from(glsrc.data, glsrc.len);
+        srcp = glsrc;
     }
     defer free(glsrc);
     string exe = exe_named(name);
     defer free(exe);
-    out("building ");
-    say(name);
-    ProcCmd c = { .args = { cc, srcp, "-o", str_from(exe.data, exe.len) } };
+    print("building {}\n", name);
+    ProcCmd c = { .args = { cc, srcp, "-o", exe } };
     if g_gl { proc_arg(&c, "-DSOKOL_GLCORE"); }
     if !g_no_trace { proc_arg(&c, "-DSOKOL_TRACE_HOOKS"); }
     ProcResult r = proc_run(&c);
@@ -199,24 +184,24 @@ i32 build_one(str cc, str stem) {
 i32 build_one_quiet(str cc, str stem) {
     string src = resolve_source(stem);
     defer free(src);
-    str srcp = str_from(src.data, src.len);
+    str srcp = src;
     if !path_exists(srcp) { return 1; }
     str name = path_stem(srcp);
     string glsrc = { .data = null, .len = 0 };
     if g_gl {
         glsrc = gl_source(srcp, name);
-        srcp = str_from(glsrc.data, glsrc.len);
+        srcp = glsrc;
     }
     defer free(glsrc);
     string exe = exe_named(name);
     defer free(exe);
-    ProcCmd c = { .args = { cc, srcp, "-o", str_from(exe.data, exe.len) } };
+    ProcCmd c = { .args = { cc, srcp, "-o", exe } };
     if g_gl { proc_arg(&c, "-DSOKOL_GLCORE"); }
     if !g_no_trace { proc_arg(&c, "-DSOKOL_TRACE_HOOKS"); }
     c.capture = true;
     ProcResult r = proc_run(&c);
     i32 rc = r.exit_code;
-    if rc != 0 && r.out.len > 0 { out(str_from(r.out.data, r.out.len)); }
+    if rc != 0 && r.out.len > 0 { print("{}", r.out); }
     proc_result_free(&r);
     return rc;
 }
@@ -232,37 +217,34 @@ void list_samples() {
     string lst = read_list();
     defer free(lst);
     if lst.len == 0 {
-        say("samples/LIST.txt missing; dist is incomplete");
+        print("samples/LIST.txt missing; dist is incomplete\n");
         return;
     }
-    say("samples (run one with `minc run <name>`):");
-    out(str_from(lst.data, lst.len));
+    print("samples (run one with `minc run <name>`):\n{}", lst);
     return;
 }
 
 void list_wasm_samples() {
     FileData fd = file_read("samples/LIST_WASM.txt");
     if fd.data == null {
-        say("samples/LIST_WASM.txt missing; dist is incomplete");
+        print("samples/LIST_WASM.txt missing; dist is incomplete\n");
         return;
     }
     string lst = { .data = fd.data, .len = fd.len };
     defer free(lst);
-    say("wasm-capable samples (run one with `minc wasm <name>`):");
-    out(str_from(lst.data, lst.len));
+    print("wasm-capable samples (run one with `minc wasm <name>`):\n{}", lst);
     return;
 }
 
 void list_wgpu_samples() {
     FileData fd = file_read("samples/LIST_WASM_WGPU.txt");
     if fd.data == null {
-        say("samples/LIST_WASM_WGPU.txt missing; dist is incomplete");
+        print("samples/LIST_WASM_WGPU.txt missing; dist is incomplete\n");
         return;
     }
     string lst = { .data = fd.data, .len = fd.len };
     defer free(lst);
-    say("WebGPU-capable samples (run one with `minc wasm <name> --wgpu`):");
-    out(str_from(lst.data, lst.len));
+    print("WebGPU-capable samples (run one with `minc wasm <name> --wgpu`):\n{}", lst);
     return;
 }
 
@@ -311,31 +293,26 @@ void run_all_worker(void* arg) {
         if build_one_quiet(_run_all.cc, stem) != 0 {
             ignore atomic_add(&_run_all.failed, 1);
             mutex_lock(&_run_all.say_lock);
-            print("  [{}/{}] ", i + 1, _run_all.count);
-            out("FAILED TO BUILD: ");
-            say(stem);
+            print("  [{}/{}] FAILED TO BUILD: {}\n", i + 1, _run_all.count, stem);
             mutex_unlock(&_run_all.say_lock);
             continue;
         }
 
         string exe = exe_named(stem);
         defer free(exe);
-        str exep = str_from(exe.data, exe.len);
 
         mutex_lock(&_run_all.say_lock);
-        print("  [{}/{}] ", i + 1, _run_all.count);
-        say(stem);
+        print("  [{}/{}] {}\n", i + 1, _run_all.count, stem);
         mutex_unlock(&_run_all.say_lock);
 
-        ProcCmd c = { .args = { exep } };
+        ProcCmd c = { .args = { exe } };
         if _run_all.seconds > 0 { c.timeout_ms = _run_all.seconds * 1000; }
         ProcResult r = proc_run(&c);
         // timeout is from --seconds
         if !r.spawned || (r.exit_code != 0 && !r.timed_out) {
             ignore atomic_add(&_run_all.failed, 1);
             mutex_lock(&_run_all.say_lock);
-            out("      FAILED: ");
-            say(stem);
+            print("      FAILED: {}\n", stem);
             mutex_unlock(&_run_all.say_lock);
         }
         proc_result_free(&r);
@@ -379,20 +356,18 @@ i32 main() {
 
     if str_equal(verb, "clean") {
         ignore dir_remove("build");
-        say("clean.");
+        print("clean.\n");
         return 0;
     }
 
     string minc = find_minc();
     defer free(minc);
     if minc.len == 0 {
-        say("");
-        say("minc compiler not found.");
-        say("Install it:  powershell -c \"irm minc.dev/install.ps1 | iex\"");
-        say("or set MINC (see install_minc.md).");
+        print("\nminc compiler not found.\n"
+              "Install it:  powershell -c \"irm minc.dev/install.ps1 | iex\"\n"
+              "or set MINC (see install_minc.md).\n");
         die("See README.md (Quickstart) and LICENSE.md.");
     }
-    str cc = str_from(minc.data, minc.len);
 
     if !path_exists("samples/LIST.txt") {
         die("missing samples/LIST.txt; dist is incomplete");
@@ -414,10 +389,10 @@ i32 main() {
         stage_web_data();
         string src = resolve_source(target);
         defer free(src);
-        str srcp = str_from(src.data, src.len);
+        str srcp = src;
         if !path_exists(srcp) {
-            out("no such sample: ");
-            die(srcp);
+            eprint("no such sample: {}\n", srcp);
+            exit(1);
         }
         str name = path_stem(target);
         // --wgpu: prepend @gpu "webgpu" + SOKOL_WGPU, build a
@@ -431,37 +406,36 @@ i32 main() {
             defer free(body);
             string tmp_name = str_concat("samples/__wgpu_", name);
             defer free(tmp_name);
-            wgpu_src = str_concat(str_from(tmp_name.data, tmp_name.len), ".mc");
+            wgpu_src = str_concat(tmp_name, ".mc");
             string paired = str_concat("@gpu \"webgpu\"
 @define \"SOKOL_WGPU\"
 ",
-                                       str_from(body.data, body.len));
+                                       body);
             defer free(paired);
-            if !file_write_str(str_from(wgpu_src.data, wgpu_src.len),
-                               str_from(paired.data, paired.len)) {
+            if !file_write_str(wgpu_src,
+                               paired) {
                 die("cannot write wgpu temp source");
             }
-            srcp = str_from(wgpu_src.data, wgpu_src.len);
+            srcp = wgpu_src;
         }
-        string out_stem = str_concat(name, "");
+        string out_stem = string(name);
         if use_wgpu { free(out_stem); out_stem = str_concat(name, "_wgpu"); }
         defer free(out_stem);
-        string wasm_out = join_named("build/web", str_from(out_stem.data, out_stem.len), ".wasm");
+        string wasm_out = join_named("build/web", out_stem, ".wasm");
         defer free(wasm_out);
-        out("building + serving ");
-        out(name);
-        if use_wgpu { say(" for the web (WebGPU)..."); }
-        else { say(" for the web (wasm)..."); }
+        print("building + serving {}", name);
+        if use_wgpu { print(" for the web (WebGPU)...\n"); }
+        else { print(" for the web (wasm)...\n"); }
         ProcCmd c = { .args = {
-            cc, "run", "--target", "wasm", srcp,
-            "-o", str_from(wasm_out.data, wasm_out.len)
+            minc, "run", "--target", "wasm", srcp,
+            "-o", wasm_out
         } };
         if no_run { proc_arg(&c, "--no-browser"); }
         ProcResult r = proc_run(&c);
         i32 wrc = r.exit_code;
         proc_result_free(&r);
         if use_wgpu {
-            ignore file_remove(str_from(wgpu_src.data, wgpu_src.len));
+            ignore file_remove(wgpu_src);
             free(wgpu_src);
         }
         return wrc;
@@ -471,7 +445,7 @@ i32 main() {
         string lst = read_list();
         // held for the whole run: the stems point into it
         defer free(lst);
-        str rest = str_from(lst.data, lst.len);
+        str rest = lst;
         while rest.len > 0 && _run_all.count < RUN_ALL_MAX {
             str line = rest;
             i32 nl = str_find_byte(rest, 10);
@@ -489,7 +463,7 @@ i32 main() {
         if _run_all.count == 0 { die("nothing to run"); }
 
         _run_all.seconds = seconds;
-        _run_all.cc = cc;
+        _run_all.cc = minc;
         mutex_init(&_run_all.say_lock);
         if jobs > _run_all.count { jobs = _run_all.count; }
         if seconds > 0 {
@@ -520,7 +494,7 @@ i32 main() {
         defer free(lst);
         i32 fails = 0;
         i32 total = 0;
-        str rest = str_from(lst.data, lst.len);
+        str rest = lst;
         while rest.len > 0 {
             str line = rest;
             i32 nl = str_find_byte(rest, 10);
@@ -533,26 +507,24 @@ i32 main() {
             line = str_trim(line);
             if line.len == 0 { continue; }
             total++;
-            if build_one(cc, line) != 0 { fails++; }
+            if build_one(minc, line) != 0 { fails++; }
         }
         if fails > 0 {
-            out("FAILED: ");
-            say("some samples did not build");
+            print("FAILED: some samples did not build\n");
             return 1;
         }
-        say("all samples built.");
+        print("all samples built.\n");
         return 0;
     }
 
-    i32 rc = build_one(cc, target);
+    i32 rc = build_one(minc, target);
     if rc != 0 { die("minc compile failed"); }
 
     if str_equal(verb, "run") {
         str name = path_stem(target);
         string exe = exe_named(name);
         defer free(exe);
-        str exep = str_from(exe.data, exe.len);
-        ProcCmd runc = { .args = { exep } };
+        ProcCmd runc = { .args = { exe } };
         ProcResult rr = proc_run(&runc);
         rc = rr.exit_code;
         proc_result_free(&rr);
