@@ -22,8 +22,10 @@ drawex_sapp
 droptest_sapp
 dyntex_sapp
 dyntex3d_sapp
+framebuffer_sapp
 hdr_sapp
 icon_sapp
+ilbm_sapp
 imageblur_sapp
 imgui_images_sapp
 imgui_perf_sapp

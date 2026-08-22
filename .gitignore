@@ -6,6 +6,7 @@
 build/
 *.exe
 *.wasm
+__wgpu*.mc
 
 # live-demo staging
 live-demo/data/

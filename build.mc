@@ -33,10 +33,10 @@
 
 @minc_min_version "0.9.11"
 
-// minc 0.9.9 ignores the above tag, this will force an error.
+// minc 0.9.10 ignores the above tag, this will force an error.
 // remove at some point in future.
 when !defined(MINC_VERSION) || MINC_VERSION < 9011 {
-    minc_0_9_10_or_newer_required please_update_minc;
+    minc_0_9_11_or_newer_required please_update_minc;
 }
 
 import process;
