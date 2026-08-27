@@ -1,4 +1,4 @@
-// sokol_time
+// sokol_time : transpiled from sokol_time.h
 import sokol_all;
 
 // sokol_time
@@ -9,9 +9,7 @@ when os(windows) {
     }
 }
 
-
 when os(ios) {
-type __arr_u64_2 = u64[2];
 struct timespec {
     i64 tv_sec;
     i64 tv_nsec;
@@ -179,7 +177,7 @@ u64 stm_laptime(u64* last_time) {
 // first number is frame duration in ns, second number is tolerance in ns,
 // the resulting min/max values must not overlap!
 private {
-__arr_u64_2[10] _stm_refresh_rates = {
+u64:[10][2] _stm_refresh_rates = {
     {16666667, 1000000},
     {13888889, 250000},
     {13333333, 250000},
@@ -229,7 +227,6 @@ f64 stm_ns(u64 ticks) {
 }
 
 when os(linux) {
-type __arr_u64_2 = u64[2];
 struct timespec {
     i64 tv_sec;
     i64 tv_nsec;
@@ -394,7 +391,7 @@ u64 stm_laptime(u64* last_time) {
 // first number is frame duration in ns, second number is tolerance in ns,
 // the resulting min/max values must not overlap!
 private {
-__arr_u64_2[10] _stm_refresh_rates = {
+u64:[10][2] _stm_refresh_rates = {
     {16666667, 1000000},
     {13888889, 250000},
     {13333333, 250000},
@@ -444,7 +441,6 @@ f64 stm_ns(u64 ticks) {
 }
 
 when os(macos) {
-type __arr_u64_2 = u64[2];
 struct timespec {
     i64 tv_sec;
     i64 tv_nsec;
@@ -612,7 +608,7 @@ u64 stm_laptime(u64* last_time) {
 // first number is frame duration in ns, second number is tolerance in ns,
 // the resulting min/max values must not overlap!
 private {
-__arr_u64_2[10] _stm_refresh_rates = {
+u64:[10][2] _stm_refresh_rates = {
     {16666667, 1000000},
     {13888889, 250000},
     {13333333, 250000},
@@ -672,7 +668,6 @@ f64 emscripten_get_now() {
     return cast(f64, clock()) / 1000000.0;
 }
 
-type __arr_u64_2 = u64[2];
 /*-- IMPLEMENTATION ----------------------------------------------------------*/
 struct _stm_state_t {
     u32 initialized;
@@ -824,7 +819,7 @@ u64 stm_laptime(u64* last_time) {
 // first number is frame duration in ns, second number is tolerance in ns,
 // the resulting min/max values must not overlap!
 private {
-__arr_u64_2[10] _stm_refresh_rates = {
+u64:[10][2] _stm_refresh_rates = {
     {16666667, 1000000},
     {13888889, 250000},
     {13333333, 250000},
@@ -952,7 +947,6 @@ type LPRECT = RECT*;
 type errno_t = i32;
 type handle_type = i64;
 type DPI_AWARENESS_CONTEXT_T = void*;
-type __arr_u64_2 = u64[2];
 struct LARGE_INTEGER {
     i64 QuadPart;
 }
@@ -1342,7 +1336,7 @@ u64 stm_laptime(u64* last_time) {
 // first number is frame duration in ns, second number is tolerance in ns,
 // the resulting min/max values must not overlap!
 private {
-__arr_u64_2[10] _stm_refresh_rates = {
+u64:[10][2] _stm_refresh_rates = {
     {16666667, 1000000},
     {13888889, 250000},
     {13333333, 250000},

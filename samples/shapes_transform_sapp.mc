@@ -65,7 +65,6 @@ enum __enum_ATTR_shapes_position {
     __shim_end = 255,
 }
 
-type __arr_f32_4 = f32[4];
 // Replaces the sokol-shdc generated shapes-transform-sapp.glsl.h.
 struct vs_params_t {
     f32 draw_mode;
@@ -96,7 +95,7 @@ void init() {
     state.pass_action = sg_pass_action{
         .colors[0] = {.load_action = SG_LOADACTION_CLEAR, .clear_value = {0.0f, 0.0f, 0.0f, 1.0f}},
     };
-    noinit u16[16384] indices;
+    noinit u16[16 * 1024] indices;
     var shp = sshape_state_t{
         .vertices = sshape_buffer_state_t{.buffer = sshape_range_t{&init__vertices, sizeof(init__vertices)}},
         .indices = sshape_buffer_state_t{.buffer = sshape_range_t{&indices, sizeof(indices)}},

@@ -187,7 +187,7 @@ state_t state = state_t{
     },
     .ui = {.filter_size = 1, .iterations = 2},
 };
-u8[262144] file_buffer;
+u8[256 * 1024] file_buffer;
 }
 
 private {

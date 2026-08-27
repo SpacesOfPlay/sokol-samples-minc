@@ -67,7 +67,7 @@ private struct state_t {
     sg_pass_action pass_action;
     sg_pipeline pip;
     sg_bindings bind;
-    u8[262144] file_buffer;
+    u8[256 * 1024] file_buffer;
 }
 
 struct vertex_t {

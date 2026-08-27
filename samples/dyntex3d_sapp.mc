@@ -81,7 +81,7 @@ private struct state_t {
 
 private {
 state_t state = state_t{.width_height = 16, .immutable = false};
-u32[196608] pixels;
+u32[3 * 256 * 256] pixels;
 }
 
 private {

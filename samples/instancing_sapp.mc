@@ -61,8 +61,8 @@ private struct state_t {
     sg_bindings bind;
     f32 ry;
     i32 cur_num_particles;
-    vec3_t[524288] pos;
-    vec3_t[524288] vel;
+    vec3_t[512 * 1024] pos;
+    vec3_t[512 * 1024] vel;
 }
 
 private {

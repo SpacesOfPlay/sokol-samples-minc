@@ -35,9 +35,9 @@ private struct state_t {
         bool failed;
     } load_status;
     struct {
-        u8[4096] atlas;
-        u8[131072] skeleton;
-        u8[524288] image;
+        u8[4 * 1024] atlas;
+        u8[128 * 1024] skeleton;
+        u8[512 * 1024] image;
     } buffers;
 }
 

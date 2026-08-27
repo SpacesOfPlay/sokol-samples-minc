@@ -90,8 +90,8 @@ private struct state_t {
     sg_bindings bind;
     f32 ry;
     i32 cur_num_particles;
-    sb_instance_t[524288] inst;
-    vec3_t[524288] vel;
+    sb_instance_t[512 * 1024] inst;
+    vec3_t[512 * 1024] vel;
 }
 
 private { state_t state; }

@@ -247,7 +247,7 @@ private struct state_t {
     struct {
         sfetch_error_t error;
         bool qoi_decode_failed;
-        u8[786432] buf;
+        u8[768 * 1024] buf;
     } file;
 }
 

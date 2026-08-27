@@ -76,7 +76,6 @@ enum __enum_ATTR_offscreen_in_pos {
     __shim_end = 255,
 }
 
-type __arr_f32_4 = f32[4];
 // Replaces the sokol-shdc generated miprender-sapp.glsl.h.
 struct vs_params_t {
     mat44_t mvp;
@@ -341,5 +340,5 @@ sapp_desc __sapp_sample_main() {
 }
 private {
 u8[98304] init__vertices;
-u16[12288] init__indices;
+u16[12 * 1024] init__indices;
 }

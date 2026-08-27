@@ -1,4 +1,4 @@
-// sokol_app_imgui
+// sokol_app_imgui : transpiled from sokol_app_imgui.h
 import sokol_all;
 import imgui;
 

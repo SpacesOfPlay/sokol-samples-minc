@@ -51,7 +51,6 @@ enum __enum_ATTR_uvwrap_pos {
     __shim_end = 255,
 }
 
-type __arr_u32_8 = u32[8];
 // Replaces the sokol-shdc generated uvwrap-sapp.glsl.h.
 struct vs_params_t {
     f32[2] offset;
@@ -79,7 +78,7 @@ void init() {
     u32 R = 0xFF0000FF;
     u32 G = 0xFF00FF00;
     u32 B = 0xFFFF0000;
-    __arr_u32_8[8] test_pixels = {
+    u32:[8][8] test_pixels = {
         {R, R, R, R, G, G, G, G},
         {R, o, o, o, o, o, o, G},
         {R, o, o, o, o, o, o, G},

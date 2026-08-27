@@ -87,7 +87,6 @@ enum __enum_ATTR_uniformtypes_position {
     __shim_end = 255,
 }
 
-type __arr_f32_4 = f32[4];
 // Replaces the sokol-shdc generated uniformtypes-sapp.glsl.h.
 struct vs_params_t {
     f32[2] offset;
@@ -98,7 +97,7 @@ struct vs_params_t {
     i32 i1;
     u8[12] _pad_36;
     i32[4] i4;
-    __arr_f32_4[10] pal;
+    f32:[10][4] pal;
     i32[3] i3;
     u8[4] _pad_tail;
 }

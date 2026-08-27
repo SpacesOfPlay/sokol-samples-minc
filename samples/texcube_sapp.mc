@@ -120,7 +120,7 @@ void init() {
         .data = sg_range{&indices, sizeof(indices)},
         .label = "texcube-indices",
     });
-    u32[16] pixels = {
+    u32[4 * 4] pixels = {
         0xFFFFFFFF, 0xFF000000, 0xFFFFFFFF, 0xFF000000, 0xFF000000, 0xFFFFFFFF, 0xFF000000,
         0xFFFFFFFF, 0xFFFFFFFF, 0xFF000000, 0xFFFFFFFF, 0xFF000000, 0xFF000000, 0xFFFFFFFF,
         0xFF000000, 0xFFFFFFFF,

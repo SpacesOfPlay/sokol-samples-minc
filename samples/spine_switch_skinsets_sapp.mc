@@ -20,7 +20,6 @@ sapp_desc sokol_main() {
    stbi_shim.mc over lib/png.mc + lib/jpeg.mc (RGBA8). Extern-included:
    declarations register, nothing emits. */
 type stbi_uc = u8;
-type __arr_void_8 = u8*[8];
 struct load_status_t {
     bool loaded;
     sspine_range data;
@@ -37,15 +36,15 @@ private struct state_t {
         load_status_t skeleton;
     } load_status;
     struct {
-        u8[16384] atlas;
-        u8[307200] skeleton;
-        u8[524288] image;
+        u8[16 * 1024] atlas;
+        u8[300 * 1024] skeleton;
+        u8[512 * 1024] image;
     } buffers;
 }
 
 private { state_t state; }
 private {
-__arr_void_8[3] skins = {
+u8*:[3][8] skins = {
     {
         "skin-base", "accessories/backpack", "clothes/dress-blue", "eyelids/girly",
         "eyes/eyes-blue", "hair/blue", "legs/boots-pink", "nose/long",

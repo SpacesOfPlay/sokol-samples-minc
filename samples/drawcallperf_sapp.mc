@@ -77,7 +77,6 @@ enum __enum_ATTR_drawcallperf_in_pos {
     __shim_end = 255,
 }
 
-type __arr_u32_8 = u32[8];
 // Replaces the sokol-shdc generated drawcallperf-sapp.glsl.h.
 struct vs_per_frame_t {
     mat44_t viewproj;
@@ -177,7 +176,7 @@ void init() {
         .usage = sg_buffer_usage{.index_buffer = true},
         .data = sg_range{&init__indices, sizeof(init__indices)},
     });
-    noinit __arr_u32_8[8] pixels;
+    noinit u32:[8][8] pixels;
     for i32 i = 0; i < 3; i++ {
         u32 color;
         switch i {

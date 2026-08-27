@@ -1,5 +1,5 @@
 # Publishes live-demo/ to GitHub Pages. The wasm is built here, not
-# committed — set Settings > Pages > Source to "GitHub Actions".
+# committed; set Settings > Pages > Source to "GitHub Actions".
 name: pages
 
 on:
@@ -22,8 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Downloaded, not piped to bash: a piped script shares stdin with
-      # its own source.
+      # Downloaded, not piped: a piped script shares stdin with its source.
       - name: install minc
         run: |
           curl -fsSL https://minc.dev/install -o "$RUNNER_TEMP/install.sh"
@@ -32,14 +31,11 @@ jobs:
 
       - run: minc --version
 
-      # samples/LIST_WASM.txt is the wasm census the publisher ran: every
-      # stem in it built AND survived a headless run there.
-      # LIST_WASM_WGPU.txt is the WebGPU census — those build a second
-      # artifact with the backend pairing prepended (@gpu "webgpu" +
-      # SOKOL_WGPU, exactly what the sapp_pre_wgpu shim does). A failed
-      # build fails the job — the gallery links are a fixed list, and a
-      # missing .wasm is a dead link. cwd is the repo root so the samples'
-      # sibling-module imports resolve against samples/.
+      # LIST_WASM.txt is the wasm census the publisher ran: every stem in
+      # it built and survived a headless run. LIST_WASM_WGPU.txt is the
+      # WebGPU census, built again with -D SOKOL_WGPU so the shaders come
+      # out as WGSL. A failed build fails the job: the gallery links are a
+      # fixed list, and a missing .wasm is a dead link.
       - name: build live-demo
         run: |
           while read -r stem; do
@@ -50,16 +46,12 @@ jobs:
           while read -r stem; do
             [ -n "$stem" ] || continue
             echo "--- $stem (webgpu)"
-            printf '@gpu "webgpu"\n@define "SOKOL_WGPU"\n' > "samples/__wgpu_$stem.mc"
-            cat "samples/$stem.mc" >> "samples/__wgpu_$stem.mc"
-            minc "samples/__wgpu_$stem.mc" --target wasm -DSOKOL_TRACE_HOOKS -o "live-demo/$stem.wgpu.wasm"
-            rm "samples/__wgpu_$stem.mc"
+            minc "samples/$stem.mc" --target wasm -DSOKOL_WGPU -DSOKOL_TRACE_HOOKS -o "live-demo/$stem.wgpu.wasm"
           done < samples/LIST_WASM_WGPU.txt
 
-      # The samples pin their own wasm hosts (they ship in samples/ so the
-      # dist never depends on which host the user's minc install carries);
-      # the gallery serves those same pinned copies. data/ sits beside the
-      # pages so the samples' relative sokol_fetch paths resolve over HTTP.
+      # The samples ship their own wasm hosts rather than depend on the
+      # one in a user's minc install; the gallery serves those copies.
+      # data/ sits beside the pages for the sokol_fetch paths.
       - name: stage hosts + assets
         run: |
           cp samples/sokol_wasm_host.js live-demo/
@@ -67,10 +59,9 @@ jobs:
           cp samples/sokol_wasm_audio_worklet.js live-demo/
           cp -R data live-demo/data
 
-      # index.html's list is hand-written (it carries the per-sample
-      # descriptions, caveats and backend flags). Fail the job rather than
-      # publish a dead link, or a sample the gallery never links to. Flags
-      # sit on the item's `id:` line — the parse depends on that.
+      # index.html's list is hand-written. Fail the job rather than publish
+      # a dead link, or a sample nothing links to. The parse below needs
+      # the flags on the item's `id:` line.
       - name: check the gallery lists exactly what was built
         run: |
           grep "id: '" live-demo/index.html | grep -v "only: 'wgpu'" \

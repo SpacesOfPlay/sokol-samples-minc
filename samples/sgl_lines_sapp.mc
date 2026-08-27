@@ -11,7 +11,6 @@ sapp_desc sokol_main() {
     return d;
 }
 
-type __arr_f32_6 = f32[6];
 private struct state_t {
     sg_pass_action pass_action;
     sgl_pipeline depth_test_pip;
@@ -182,7 +181,7 @@ sapp_desc __sapp_sample_main() {
 }
 private {
 u32 xorshift32__x = 0x12345678;
-__arr_f32_6[1024] hairball__ring;
+f32:[1024][6] hairball__ring;
 u32 hairball__head = 0;
 u32 frame__frame_count = 0;
 }

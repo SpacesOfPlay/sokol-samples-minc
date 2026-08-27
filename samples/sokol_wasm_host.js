@@ -708,23 +708,44 @@ SOKOL.makeImports = function() {
                 // only plain-number ones
                 const slot = BigInt(slot_id);
                 const path = readCStr(path_cstr);
+                // Chunked streaming needs HEAD and Range support. Fallback:
+                // download the whole file once, keep it per path, and serve
+                // the chunks from that copy.
+                const fullDownload = () => {
+                    if (!SOKOL._sfetchBodies) SOKOL._sfetchBodies = new Map();
+                    const body = fetch(path, { method: 'GET' }).then((r) => {
+                        if (!r.ok) throw { status: r.status };
+                        return r.arrayBuffer();
+                    });
+                    SOKOL._sfetchBodies.set(path, body);
+                    body.then((data) => {
+                        SOKOL.instance.exports.sfetch_emsc_head_response(slot, BigInt(data.byteLength));
+                    }).catch((err) => {
+                        SOKOL._sfetchBodies.delete(path);
+                        if (err && err.status) {
+                            SOKOL.instance.exports.sfetch_emsc_failed_http_status(slot, BigInt(err.status));
+                        } else {
+                            console.error(`sokol_fetch: GET ${path} failed with: `, err);
+                            SOKOL.instance.exports.sfetch_emsc_failed_other(slot);
+                        }
+                    });
+                };
+                const cached = SOKOL._sfetchBodies && SOKOL._sfetchBodies.get(path);
+                if (cached) {
+                    cached.then((data) => {
+                        SOKOL.instance.exports.sfetch_emsc_head_response(slot, BigInt(data.byteLength));
+                    }).catch(() => {
+                        SOKOL.instance.exports.sfetch_emsc_failed_other(slot);
+                    });
+                    return;
+                }
                 fetch(path, { method: 'HEAD' }).then((response) => {
-                    if (!response.ok) {
-                        SOKOL.instance.exports.sfetch_emsc_failed_http_status(slot, BigInt(response.status));
-                        return;
-                    }
-                    const len = response.headers.get('Content-Length');
                     // a range request needs the total size up front; without
                     // Content-Length there is nothing to chunk against
-                    if (len === null) {
-                        SOKOL.instance.exports.sfetch_emsc_failed_other(slot);
-                    } else {
-                        SOKOL.instance.exports.sfetch_emsc_head_response(slot, BigInt(len));
-                    }
-                }).catch((err) => {
-                    console.error(`sokol_fetch: HEAD ${path} failed with: `, err);
-                    SOKOL.instance.exports.sfetch_emsc_failed_other(slot);
-                });
+                    const len = response.ok ? response.headers.get('Content-Length') : null;
+                    if (len === null) { fullDownload(); return; }
+                    SOKOL.instance.exports.sfetch_emsc_head_response(slot, BigInt(len));
+                }).catch(() => fullDownload());
             }),
 
             // bytes_to_read != 0 asks for a range, otherwise the whole file
@@ -737,6 +758,28 @@ SOKOL.makeImports = function() {
                 const want = Number(bytes_to_read);
                 const dst = Number(buf_ptr);
                 const cap = Number(buf_size);
+                const deliver = (bytes, rangeAdvance) => {
+                    if (bytes.length > cap) {
+                        SOKOL.instance.exports.sfetch_emsc_failed_buffer_too_small(slot);
+                        return;
+                    }
+                    // re-read the view: the heap may have grown while the
+                    // request was in flight, detaching any earlier buffer
+                    new Uint8Array(memory.buffer).set(bytes, dst);
+                    SOKOL.instance.exports.sfetch_emsc_get_response(slot, BigInt(rangeAdvance), BigInt(bytes.length));
+                };
+                const sliceFromCache = (data) => {
+                    const full = new Uint8Array(data);
+                    const chunk = full.subarray(off, Math.min(off + want, full.length));
+                    deliver(chunk, chunk.length);
+                };
+                const cached = want > 0 && SOKOL._sfetchBodies && SOKOL._sfetchBodies.get(path);
+                if (cached) {
+                    cached.then(sliceFromCache).catch(() => {
+                        SOKOL.instance.exports.sfetch_emsc_failed_other(slot);
+                    });
+                    return;
+                }
                 const headers = new Headers();
                 if (want > 0) headers.append('Range', `bytes=${off}-${off + want - 1}`);
                 fetch(path, { method: 'GET', headers }).then((response) => {
@@ -744,17 +787,15 @@ SOKOL.makeImports = function() {
                         SOKOL.instance.exports.sfetch_emsc_failed_http_status(slot, BigInt(response.status));
                         return;
                     }
-                    return response.arrayBuffer().then((data) => {
-                        const bytes = new Uint8Array(data);
-                        if (bytes.length > cap) {
-                            SOKOL.instance.exports.sfetch_emsc_failed_buffer_too_small(slot);
-                            return;
-                        }
-                        // re-read the view: the heap may have grown while the
-                        // request was in flight, detaching any earlier buffer
-                        new Uint8Array(memory.buffer).set(bytes, dst);
-                        SOKOL.instance.exports.sfetch_emsc_get_response(slot, BigInt(want), BigInt(bytes.length));
-                    });
+                    if (want > 0 && response.status !== 206) {
+                        // the server ignored the Range header and sent the
+                        // whole file; keep the body and slice chunks from it
+                        if (!SOKOL._sfetchBodies) SOKOL._sfetchBodies = new Map();
+                        const body = response.arrayBuffer();
+                        SOKOL._sfetchBodies.set(path, body);
+                        return body.then(sliceFromCache);
+                    }
+                    return response.arrayBuffer().then((data) => deliver(new Uint8Array(data), want));
                 }).catch((err) => {
                     console.error(`sokol_fetch: GET ${path} failed with: `, err);
                     SOKOL.instance.exports.sfetch_emsc_failed_other(slot);

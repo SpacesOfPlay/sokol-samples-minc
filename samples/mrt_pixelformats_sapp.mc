@@ -109,7 +109,6 @@ enum __enum_UB_offscreen_params {
     __shim_end = 255,
 }
 
-type __arr_f32_4 = f32[4];
 // Replaces the sokol-shdc generated mrt-pixelformats-sapp.glsl.h.
 struct offscreen_params_t {
     mat44_t mvp;

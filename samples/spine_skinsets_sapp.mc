@@ -35,20 +35,20 @@ struct grid_cell_t {
 private struct state_t {
     sspine_atlas atlas;
     sspine_skeleton skeleton;
-    sspine_instance[128] instances;
+    sspine_instance[16 * 8] instances;
     sg_pass_action pass_action;
     f32 t;
     u32 t_count;
-    grid_cell_t[128] grid;
+    grid_cell_t[16 * 8] grid;
     struct {
         load_status_t atlas;
         load_status_t skeleton;
         bool failed;
     } load_status;
     struct {
-        u8[16384] atlas;
-        u8[307200] skeleton;
-        u8[524288] image;
+        u8[16 * 1024] atlas;
+        u8[300 * 1024] skeleton;
+        u8[512 * 1024] image;
     } buffers;
 }
 

@@ -81,7 +81,6 @@ enum __enum_ATTR_red_pos {
     __shim_end = 255,
 }
 
-type __arr_u32_4 = u32[4];
 // Replaces the sokol-shdc generated shared-bindings-sapp.glsl.h.
 struct vs_params_t {
     mat44_t mvp;
@@ -193,7 +192,7 @@ void init() {
                 shd = sokol_make_shader(&shared_bindings_sapp_vs_shader, &shared_bindings_sapp_fs_blue_shader);
             }
         }
-        noinit __arr_u32_4[4] pixels;
+        noinit u32:[4][4] pixels;
         for i32 y = 0; y < 4; y++ {
             for i32 x = 0; x < 4; x++ {
                 pixels[y][x] = ((x ^ y) & 1) != 0 ? color : 0xFF000000;

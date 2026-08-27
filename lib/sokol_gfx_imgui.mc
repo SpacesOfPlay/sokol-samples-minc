@@ -1,4 +1,4 @@
-// sokol_gfx_imgui
+// sokol_gfx_imgui : transpiled from sokol_gfx_imgui.h
 import sokol_all;
 import imgui;
 
@@ -69,7 +69,6 @@ enum _sgimgui_cmd_t {
     _SGIMGUI_CMD_POP_DEBUG_GROUP = 63,
 }
 
-type __arr__sgimgui_str_t_16 = _sgimgui_str_t[16];
 /*
     sgimgui_allocator_t
 
@@ -127,7 +126,7 @@ struct _sgimgui_shader_t {
     _sgimgui_str_t cs_entry;
     _sgimgui_str_t cs_d3d11_target;
     _sgimgui_str_t[32] glsl_texture_sampler_name;
-    __arr__sgimgui_str_t_16[8] glsl_uniform_name;
+    _sgimgui_str_t:[8][16] glsl_uniform_name;
     _sgimgui_str_t[16] attr_glsl_name;
     _sgimgui_str_t[16] attr_hlsl_sem_name;
     sg_shader_desc desc;

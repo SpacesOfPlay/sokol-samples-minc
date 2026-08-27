@@ -11,7 +11,6 @@ sapp_desc sokol_main() {
     return d;
 }
 
-type __arr_u32_8 = u32[8];
 private struct state_t {
     sg_pass_action pass_action;
     sg_view tex_view;
@@ -26,7 +25,7 @@ void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
     __dbgui_setup();
     sgl_setup(&sgl_desc_t{.logger = sgl_logger_t{.func = slog_func}});
-    noinit __arr_u32_8[8] pixels;
+    noinit u32:[8][8] pixels;
     for i32 y = 0; y < 8; y++ {
         for i32 x = 0; x < 8; x++ {
             pixels[y][x] = cast(u32, ((y ^ x) & 1) != 0 ? 0xFFFFFFFF : 0xFF000000);

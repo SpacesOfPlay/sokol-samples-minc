@@ -12,7 +12,6 @@ sapp_desc sokol_main() {
     return d;
 }
 
-type __arr_u32_320 = u32[320];
 private struct state_t {
     sfb_framebuffer fb;
     f32 time;
@@ -20,7 +19,7 @@ private struct state_t {
 
 private {
 state_t state;
-__arr_u32_320[256] pixels;
+u32:[256][320] pixels;
 
 void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});

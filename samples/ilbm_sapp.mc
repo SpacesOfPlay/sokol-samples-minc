@@ -50,7 +50,7 @@ u8*[10] artists = {
 // no color cycling is intended for these images
 bool[10] allow_color_cyling = {false, false, false, false, false, false, false, true, true, true};
 state_t state;
-u8[131072] file_buffer;
+u8[128 * 1024] file_buffer;
 }
 
 private {

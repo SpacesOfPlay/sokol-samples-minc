@@ -1,5 +1,4 @@
-// sokol_fetch
-
+// sokol_fetch : transpiled from sokol_fetch.h
 
 when os(linux) || os(macos) || os(ios) {
 struct _sfetch_FILE;
@@ -52,24 +51,24 @@ enum _sfetch_state_t {
     _SFETCH_STATE_FAILED = 6,
 }
 
-type pthread_t = void*;
+type _sfetch_pthread_t = void*;
 type FILE = _sfetch_FILE;
 /* file handle abstraction */
 type _sfetch_file_handle_t = void*;
 type _sfetch_thread_func_t = fn(void*): void*;
-struct pthread_mutex_t {
+struct _sfetch_pthread_mutex_t {
     u8[72] opaque;
 }
 
-struct pthread_cond_t {
+struct _sfetch_pthread_cond_t {
     u8[96] opaque;
 }
 
-struct pthread_mutexattr_t {
+struct _sfetch_pthread_mutexattr_t {
     u8[8] opaque;
 }
 
-struct pthread_condattr_t {
+struct _sfetch_pthread_condattr_t {
     u8[8] opaque;
 }
 
@@ -167,12 +166,12 @@ struct _sfetch_path_t {
 
 /* a thread with incoming and outgoing message queue syncing */
 struct _sfetch_thread_t {
-    void* thread;
-    pthread_cond_t incoming_cond;
-    pthread_mutex_t incoming_mutex;
-    pthread_mutex_t outgoing_mutex;
-    pthread_mutex_t running_mutex;
-    pthread_mutex_t stop_mutex;
+    _sfetch_pthread_t thread;
+    _sfetch_pthread_cond_t incoming_cond;
+    _sfetch_pthread_mutex_t incoming_mutex;
+    _sfetch_pthread_mutex_t outgoing_mutex;
+    _sfetch_pthread_mutex_t running_mutex;
+    _sfetch_pthread_mutex_t stop_mutex;
     bool stop_requested;
     bool valid;
 }
@@ -1499,109 +1498,109 @@ bool _sfetch_file_read(_sfetch_file_handle_t h, u32 offset, u32 num_bytes, void*
 }
 
 bool _sfetch_thread_init(_sfetch_thread_t* thread, _sfetch_thread_func_t thread_func, void* thread_arg) {
-    noinit pthread_mutexattr_t attr;
-    pthread_mutexattr_init(&attr);
-    pthread_mutex_init(&thread.incoming_mutex, &attr);
-    pthread_mutexattr_destroy(&attr);
-    pthread_mutexattr_init(&attr);
-    pthread_mutex_init(&thread.outgoing_mutex, &attr);
-    pthread_mutexattr_destroy(&attr);
-    pthread_mutexattr_init(&attr);
-    pthread_mutex_init(&thread.running_mutex, &attr);
-    pthread_mutexattr_destroy(&attr);
-    pthread_mutexattr_init(&attr);
-    pthread_mutex_init(&thread.stop_mutex, &attr);
-    pthread_mutexattr_destroy(&attr);
-    noinit pthread_condattr_t cond_attr;
-    pthread_condattr_init(&cond_attr);
-    pthread_cond_init(&thread.incoming_cond, &cond_attr);
-    pthread_condattr_destroy(&cond_attr);
-    pthread_mutex_lock(&thread.running_mutex);
-    i32 res = pthread_create(&thread.thread, null, thread_func, thread_arg);
+    noinit _sfetch_pthread_mutexattr_t attr;
+    _sfetch_pthread_mutexattr_init(&attr);
+    _sfetch_pthread_mutex_init(&thread.incoming_mutex, &attr);
+    _sfetch_pthread_mutexattr_destroy(&attr);
+    _sfetch_pthread_mutexattr_init(&attr);
+    _sfetch_pthread_mutex_init(&thread.outgoing_mutex, &attr);
+    _sfetch_pthread_mutexattr_destroy(&attr);
+    _sfetch_pthread_mutexattr_init(&attr);
+    _sfetch_pthread_mutex_init(&thread.running_mutex, &attr);
+    _sfetch_pthread_mutexattr_destroy(&attr);
+    _sfetch_pthread_mutexattr_init(&attr);
+    _sfetch_pthread_mutex_init(&thread.stop_mutex, &attr);
+    _sfetch_pthread_mutexattr_destroy(&attr);
+    noinit _sfetch_pthread_condattr_t cond_attr;
+    _sfetch_pthread_condattr_init(&cond_attr);
+    _sfetch_pthread_cond_init(&thread.incoming_cond, &cond_attr);
+    _sfetch_pthread_condattr_destroy(&cond_attr);
+    _sfetch_pthread_mutex_lock(&thread.running_mutex);
+    i32 res = _sfetch_pthread_create(&thread.thread, null, thread_func, thread_arg);
     thread.valid = 0 == res;
-    pthread_mutex_unlock(&thread.running_mutex);
+    _sfetch_pthread_mutex_unlock(&thread.running_mutex);
     return thread.valid;
 }
 
 void _sfetch_thread_request_stop(_sfetch_thread_t* thread) {
-    pthread_mutex_lock(&thread.stop_mutex);
+    _sfetch_pthread_mutex_lock(&thread.stop_mutex);
     thread.stop_requested = true;
-    pthread_mutex_unlock(&thread.stop_mutex);
+    _sfetch_pthread_mutex_unlock(&thread.stop_mutex);
 }
 
 bool _sfetch_thread_stop_requested(_sfetch_thread_t* thread) {
-    pthread_mutex_lock(&thread.stop_mutex);
+    _sfetch_pthread_mutex_lock(&thread.stop_mutex);
     bool stop_requested = thread.stop_requested;
-    pthread_mutex_unlock(&thread.stop_mutex);
+    _sfetch_pthread_mutex_unlock(&thread.stop_mutex);
     return stop_requested;
 }
 
 void _sfetch_thread_join(_sfetch_thread_t* thread) {
     if thread.valid != 0 {
-        pthread_mutex_lock(&thread.incoming_mutex);
+        _sfetch_pthread_mutex_lock(&thread.incoming_mutex);
         _sfetch_thread_request_stop(thread);
-        pthread_cond_signal(&thread.incoming_cond);
-        pthread_mutex_unlock(&thread.incoming_mutex);
-        pthread_join(thread.thread, null);
+        _sfetch_pthread_cond_signal(&thread.incoming_cond);
+        _sfetch_pthread_mutex_unlock(&thread.incoming_mutex);
+        _sfetch_pthread_join(thread.thread, null);
         thread.valid = false;
     }
-    pthread_mutex_destroy(&thread.stop_mutex);
-    pthread_mutex_destroy(&thread.running_mutex);
-    pthread_mutex_destroy(&thread.incoming_mutex);
-    pthread_mutex_destroy(&thread.outgoing_mutex);
-    pthread_cond_destroy(&thread.incoming_cond);
+    _sfetch_pthread_mutex_destroy(&thread.stop_mutex);
+    _sfetch_pthread_mutex_destroy(&thread.running_mutex);
+    _sfetch_pthread_mutex_destroy(&thread.incoming_mutex);
+    _sfetch_pthread_mutex_destroy(&thread.outgoing_mutex);
+    _sfetch_pthread_cond_destroy(&thread.incoming_cond);
 }
 
 /* called when the thread-func is entered, this blocks the thread func until
    the _sfetch_thread_t object is fully initialized
 */
 void _sfetch_thread_entered(_sfetch_thread_t* thread) {
-    pthread_mutex_lock(&thread.running_mutex);
+    _sfetch_pthread_mutex_lock(&thread.running_mutex);
 }
 
 /* called by the thread-func right before it is left */
 void _sfetch_thread_leaving(_sfetch_thread_t* thread) {
-    pthread_mutex_unlock(&thread.running_mutex);
+    _sfetch_pthread_mutex_unlock(&thread.running_mutex);
 }
 
 void _sfetch_thread_enqueue_incoming(_sfetch_thread_t* thread, _sfetch_ring_t* incoming, _sfetch_ring_t* src) {
     if _sfetch_ring_empty(src) == 0 {
-        pthread_mutex_lock(&thread.incoming_mutex);
+        _sfetch_pthread_mutex_lock(&thread.incoming_mutex);
         while !_sfetch_ring_full(incoming) && !_sfetch_ring_empty(src) {
             _sfetch_ring_enqueue(incoming, _sfetch_ring_dequeue(src));
         }
-        pthread_cond_signal(&thread.incoming_cond);
-        pthread_mutex_unlock(&thread.incoming_mutex);
+        _sfetch_pthread_cond_signal(&thread.incoming_cond);
+        _sfetch_pthread_mutex_unlock(&thread.incoming_mutex);
     }
 }
 
 u32 _sfetch_thread_dequeue_incoming(_sfetch_thread_t* thread, _sfetch_ring_t* incoming) {
-    pthread_mutex_lock(&thread.incoming_mutex);
+    _sfetch_pthread_mutex_lock(&thread.incoming_mutex);
     while _sfetch_ring_empty(incoming) && !thread.stop_requested {
-        pthread_cond_wait(&thread.incoming_cond, &thread.incoming_mutex);
+        _sfetch_pthread_cond_wait(&thread.incoming_cond, &thread.incoming_mutex);
     }
     u32 item = 0;
     if thread.stop_requested == 0 {
         item = _sfetch_ring_dequeue(incoming);
     }
-    pthread_mutex_unlock(&thread.incoming_mutex);
+    _sfetch_pthread_mutex_unlock(&thread.incoming_mutex);
     return item;
 }
 
 void _sfetch_thread_enqueue_outgoing(_sfetch_thread_t* thread, _sfetch_ring_t* outgoing, u32 item) {
-    pthread_mutex_lock(&thread.outgoing_mutex);
+    _sfetch_pthread_mutex_lock(&thread.outgoing_mutex);
     if _sfetch_ring_full(outgoing) == 0 {
         _sfetch_ring_enqueue(outgoing, item);
     }
-    pthread_mutex_unlock(&thread.outgoing_mutex);
+    _sfetch_pthread_mutex_unlock(&thread.outgoing_mutex);
 }
 
 void _sfetch_thread_dequeue_outgoing(_sfetch_thread_t* thread, _sfetch_ring_t* outgoing, _sfetch_ring_t* dst) {
-    pthread_mutex_lock(&thread.outgoing_mutex);
+    _sfetch_pthread_mutex_lock(&thread.outgoing_mutex);
     while !_sfetch_ring_full(dst) && !_sfetch_ring_empty(outgoing) {
         _sfetch_ring_enqueue(dst, _sfetch_ring_dequeue(outgoing));
     }
-    pthread_mutex_unlock(&thread.outgoing_mutex);
+    _sfetch_pthread_mutex_unlock(&thread.outgoing_mutex);
 }
 
 // ██     ██ ██ ███    ██ ██████   ██████  ██     ██ ███████
@@ -6352,9 +6351,6 @@ when os(windows) {
         i32 ReadFile(HANDLE h, void* buf, DWORD n, DWORD* got, void* ovl);
         HANDLE CreateEventA(void* sa, i32 manual, i32 initial, u8* name);
         i32 SetEvent(HANDLE ev);
-        // i64 handle on purpose: matches lib/file.mc's declaration of
-        // the same import (cross-module extern signatures must agree)
-        u32 WaitForSingleObject(i64 h, u32 ms);
         void InitializeCriticalSection(CRITICAL_SECTION* cs);
         void DeleteCriticalSection(CRITICAL_SECTION* cs);
         void EnterCriticalSection(CRITICAL_SECTION* cs);
@@ -6362,9 +6358,19 @@ when os(windows) {
         HANDLE CreateThread(void* sa, u64 stack, LPTHREAD_START_ROUTINE start, void* arg, DWORD flags, DWORD* tid);
     }
 
+    // Bound under a local name rather than declared as the public
+    // `WaitForSingleObject`: this shim is concatenated into the
+    // sample's own unit, and sokol_audio brings in ext_wasapi's
+    // declaration of the same import with a `void*` handle. Two public
+    // externs for one symbol have to agree on the signature, and these
+    // cannot — so nothing here claims the public name. (plmpeg is the
+    // first sample to use sokol_fetch and sokol_audio together.)
+    extern "kernel32.dll" u32 _sfetch_wait_single(i64 h, u32 ms)
+        from "WaitForSingleObject";
+
     // the prelude macros WaitForSingleObject call sites onto this
     u32 _sfetch_win32_wait(HANDLE h, u32 ms) {
-        return WaitForSingleObject(cast(i64, h), ms);
+        return _sfetch_wait_single(cast(i64, h), ms);
     }
 }
 
@@ -6409,38 +6415,38 @@ import file;
 import str;
 
 private {
-    // pthread_mutex_t is 72 bytes, Mutex is 64; pthread_cond_t is 96,
+    // _sfetch_pthread_mutex_t is 72 bytes, Mutex is 64; _sfetch_pthread_cond_t is 96,
     // Semaphore is 80. Both blobs are the larger of the pair, so the
     // reinterpret is in bounds. Kept as functions rather than inline
     // casts so the pairing is stated once.
-    Mutex* _sfetch_mtx(pthread_mutex_t* m) { return cast(Mutex*, m); }
-    Semaphore* _sfetch_sem(pthread_cond_t* c) { return cast(Semaphore*, c); }
+    Mutex* _sfetch_mtx(_sfetch_pthread_mutex_t* m) { return cast(Mutex*, m); }
+    Semaphore* _sfetch_sem(_sfetch_pthread_cond_t* c) { return cast(Semaphore*, c); }
 }
 
 // --- mutex ----------------------------------------------------------
 // The attr calls carry nothing sokol uses (it initializes and destroys
 // a default attr around every init), so they are accepted and dropped.
 
-i32 pthread_mutexattr_init(pthread_mutexattr_t* attr) { ignore attr; return 0; }
-i32 pthread_mutexattr_destroy(pthread_mutexattr_t* attr) { ignore attr; return 0; }
+i32 _sfetch_pthread_mutexattr_init(_sfetch_pthread_mutexattr_t* attr) { ignore attr; return 0; }
+i32 _sfetch_pthread_mutexattr_destroy(_sfetch_pthread_mutexattr_t* attr) { ignore attr; return 0; }
 
-i32 pthread_mutex_init(pthread_mutex_t* m, pthread_mutexattr_t* attr) {
+i32 _sfetch_pthread_mutex_init(_sfetch_pthread_mutex_t* m, _sfetch_pthread_mutexattr_t* attr) {
     ignore attr;
     mutex_init(_sfetch_mtx(m));
     return 0;
 }
 
-i32 pthread_mutex_destroy(pthread_mutex_t* m) {
+i32 _sfetch_pthread_mutex_destroy(_sfetch_pthread_mutex_t* m) {
     mutex_destroy(_sfetch_mtx(m));
     return 0;
 }
 
-i32 pthread_mutex_lock(pthread_mutex_t* m) {
+i32 _sfetch_pthread_mutex_lock(_sfetch_pthread_mutex_t* m) {
     mutex_lock(_sfetch_mtx(m));
     return 0;
 }
 
-i32 pthread_mutex_unlock(pthread_mutex_t* m) {
+i32 _sfetch_pthread_mutex_unlock(_sfetch_pthread_mutex_t* m) {
     mutex_unlock(_sfetch_mtx(m));
     return 0;
 }
@@ -6457,26 +6463,26 @@ i32 pthread_mutex_unlock(pthread_mutex_t* m) {
 // the caller's while-loop, which re-tests the predicate. A condvar's
 // atomic unlock-and-wait is not needed for that shape.
 
-i32 pthread_condattr_init(pthread_condattr_t* attr) { ignore attr; return 0; }
-i32 pthread_condattr_destroy(pthread_condattr_t* attr) { ignore attr; return 0; }
+i32 _sfetch_pthread_condattr_init(_sfetch_pthread_condattr_t* attr) { ignore attr; return 0; }
+i32 _sfetch_pthread_condattr_destroy(_sfetch_pthread_condattr_t* attr) { ignore attr; return 0; }
 
-i32 pthread_cond_init(pthread_cond_t* c, pthread_condattr_t* attr) {
+i32 _sfetch_pthread_cond_init(_sfetch_pthread_cond_t* c, _sfetch_pthread_condattr_t* attr) {
     ignore attr;
     sem_init(_sfetch_sem(c), 0);
     return 0;
 }
 
-i32 pthread_cond_destroy(pthread_cond_t* c) {
+i32 _sfetch_pthread_cond_destroy(_sfetch_pthread_cond_t* c) {
     sem_destroy(_sfetch_sem(c));
     return 0;
 }
 
-i32 pthread_cond_signal(pthread_cond_t* c) {
+i32 _sfetch_pthread_cond_signal(_sfetch_pthread_cond_t* c) {
     sem_signal(_sfetch_sem(c));
     return 0;
 }
 
-i32 pthread_cond_wait(pthread_cond_t* c, pthread_mutex_t* m) {
+i32 _sfetch_pthread_cond_wait(_sfetch_pthread_cond_t* c, _sfetch_pthread_mutex_t* m) {
     mutex_unlock(_sfetch_mtx(m));
     sem_wait(_sfetch_sem(c));
     mutex_lock(_sfetch_mtx(m));
@@ -6485,18 +6491,18 @@ i32 pthread_cond_wait(pthread_cond_t* c, pthread_mutex_t* m) {
 
 // --- thread ---------------------------------------------------------
 
-// pthread_t is one pointer-sized slot holding the minc Thread handle,
+// _sfetch_pthread_t is one pointer-sized slot holding the minc Thread handle,
 // so the struct field is a plain void* and &field is where the handle
 // goes.
-i32 pthread_create(void** t, void* attr, _sfetch_thread_func_t start, void* arg) {
+i32 _sfetch_pthread_create(void** t, void* attr, _sfetch_thread_func_t start, void* arg) {
     ignore attr;
     // minc's entry point returns void; sokol's returns void* and the
-    // value is never read (pthread_join is passed a null retval).
+    // value is never read (_sfetch_pthread_join is passed a null retval).
     thread_create(cast(Thread*, t), cast(fn(void*): void, start), arg);
     return 0;
 }
 
-i32 pthread_join(void* t, void** retval) {
+i32 _sfetch_pthread_join(void* t, void** retval) {
     ignore retval;
     thread_join(cast(Thread*, &t));
     return 0;

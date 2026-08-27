@@ -1,4 +1,4 @@
-// sokol_framebuffer
+// sokol_framebuffer : transpiled from sokol_framebuffer.h
 import sokol_all;
 
 // sokol_framebuffer.h shaders as minc @shader functions, replacing

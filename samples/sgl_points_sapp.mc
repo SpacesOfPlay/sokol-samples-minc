@@ -10,8 +10,11 @@
 // there and nowhere else. Linux already defaults to GLCORE, and forcing
 // it on wasm selects desktop-GL code paths that GLES3 cannot link
 // (_sg_gl_texture_target's GL_TEXTURE_2D_MULTISAMPLE).
+//
+// sokol_all maps this to SOKOL_GLCORE, so the backend and the @shader
+// dialect cannot drift apart.
 when os(windows) {
-    @define "SOKOL_GLCORE"
+    @gpu "opengl"
 }
 
 import dbgui;

@@ -267,7 +267,6 @@ enum __enum_ATTR_shadow_instanced_pos {
     __shim_end = 255,
 }
 
-type __arr_f32_4 = f32[4];
 /*
     Quick'n'dirty Maya-style camera. Include after vecmath.h
     and sokol_app.h
@@ -382,8 +381,8 @@ private struct state_t {
     struct {
         i32 num_boxes;
         i32 num_balls;
-        instdata_t[513] boxes;
-        instdata_t[513] balls;
+        instdata_t[1024 / 2 + 1] boxes;
+        instdata_t[1024 / 2 + 1] balls;
     } inst_data;
 }
 

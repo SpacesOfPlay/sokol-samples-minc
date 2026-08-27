@@ -152,9 +152,6 @@ i32 __b3_ftell(void* f) {
     return cast(i32, fp.pos);
 }
 
-// (`rewind` is -D mapped to __b3_rewind in every config, but no box3d
-// code path calls it; the shim is omitted until one does.)
-
 // char IO used by __b3_fprintf / __b3_vfscanf below.
 i32 __b3_fgetc(void* f) {
     B3File* fp = cast(B3File*, f);
@@ -187,13 +184,9 @@ i32 fopen_s(void** f, u8* name, u8* mode) {
 }
 
 // --- math helpers ---------------------------------------------------
-// One entry point the math module does not carry, over roundf.
 f32 remainderf(f32 x, f32 y) { return x - y * roundf(x / y); }
 
-// strncpy_s over a -D rename (`strncpy_s=__b3_strncpy_s`), so one
-// unconditional definition serves every target: native minc already
-// carries a strncpy_s, and defining ours conditionally just to dodge
-// that collision cost the dist a platform arm.
+// strncpy_s over a -D rename (`strncpy_s=__b3_strncpy_s`).
 i32 __b3_strncpy_s(u8* dst, u64 dstSize, u8* src, u64 count) {
     if dst == null || dstSize == 0 { return 22; }
     u64 i = 0;
@@ -215,8 +208,7 @@ i32 __b3_fprintf(void* f, u8* fmt, ...) {
     return n;
 }
 
-// fscanf_s subset — %d and %f over whitespace-delimited text, which is
-// the whole surface box3d's height-field format uses.
+// fscanf_s subset : %d and %f over whitespace-delimited text.
 private {
 
 bool __b3_scan_ws(i32 c) {
@@ -233,8 +225,6 @@ i32 __b3_scan_skip_ws(void* f) {
 }
 
 i32 fscanf_s(void* f, u8* fmt, ...) { return __b3_vfscanf(f, fmt, &...); }
-// Non-MSVC arm of B3_FILE_SCAN (the _MSC_VER gate maps to os(windows)
-// at transpile time, so macOS/linux amalgams call plain fscanf).
 i32 fscanf(void* f, u8* fmt, ...)   { return __b3_vfscanf(f, fmt, &...); }
 
 i32 __b3_vfscanf(void* f, u8* fmt, &... ap) {
@@ -336,6 +326,12 @@ void _mm_prefetch(u8* addr, i32 hint) {
     prefetch(addr);
 }
 
+// Spin-wait relax hint over the cpu_pause builtin.
+// (x64 pause, arm64 yield, wasm no-op)
+void _mm_pause() {
+    cpu_pause();
+}
+
 i64 __popcnt64(u64 v) {
     i32 lo = popcount(cast(i32, v & 0xFFFFFFFF));
     i32 hi = popcount(cast(i32, v >> 32));
@@ -360,6 +356,38 @@ u8 _BitScanForward64(u32* index, u64 mask) {
         *index = cast(u32, 32 + ctz(cast(i32, hi)));
     }
     return 1;
+}
+
+u8 _BitScanReverse64(u32* index, u64 mask) {
+    if mask == 0 { return 0; }
+    u32 hi = cast(u32, mask >> 32);
+    if hi != 0 {
+        *index = cast(u32, 63 - clz(cast(i32, hi)));
+    } else {
+        u32 lo = cast(u32, mask & 0xFFFFFFFF);
+        *index = cast(u32, 31 - clz(cast(i32, lo)));
+    }
+    return 1;
+}
+
+// MSVC 64x64 -> 128 multiply. Returns the low half, stores the high
+// half through hi_product.
+u64 _umul128(u64 a, u64 b, u64* hi_product) {
+    u64 ha = a >> 32;
+    u64 hb = b >> 32;
+    u64 la = a & 0xFFFFFFFF;
+    u64 lb = b & 0xFFFFFFFF;
+    u64 rh = ha * hb;
+    u64 rm0 = ha * lb;
+    u64 rm1 = hb * la;
+    u64 rl = la * lb;
+    u64 t = rl + (rm0 << 32);
+    u64 c = 0;
+    if t < rl { c = 1; }
+    u64 lo = t + (rm1 << 32);
+    if lo < t { c = c + 1; }
+    *hi_product = rh + (rm0 >> 32) + (rm1 >> 32) + c;
+    return lo;
 }
 
 // SSE2 helpers used by box3d's SIMD paths. __m128i maps to int4;

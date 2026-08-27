@@ -93,7 +93,6 @@ enum __enum_ATTR_shapes_pos {
     __shim_end = 255,
 }
 
-type __arr_vec3_t_2 = vec3_t[2];
 // Replaces the sokol-shdc generated cubemaprt-sapp.glsl.h.
 struct shape_uniforms_t {
     mat44_t mvp;
@@ -307,7 +306,7 @@ void frame() {
         mat44_t trans = mat44_translation(0.0f, 0.0f, app.shapes[i].radius);
         app.shapes[i].model = mat44_mul_mat44(mat44_mul_mat44(scale, trans), rot);
     }
-    __arr_vec3_t_2[6] center_and_up;
+    vec3_t:[6][2] center_and_up;
     when defined(SOKOL_METAL) || defined(SOKOL_D3D11) || defined(SOKOL_WGPU) {
         center_and_up = {
             {{.x = 1.0f, .y = 0.0f, .z = 0.0f}, {.x = 0.0f, .y = -1.0f, .z = 0.0f}},

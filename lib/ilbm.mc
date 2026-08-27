@@ -1,4 +1,4 @@
-// ilbm
+// ilbm : transpiled from ilbm.c
 
 // simple IFF ILBM loader (https://en.wikipedia.org/wiki/ILBM)
 struct ilbm_range_t {
@@ -25,7 +25,7 @@ struct ilbm_t {
     i32 num_ranges;
     i32 num_colors;
     ilbm_color_range_t[16] ranges;
-    u32[256] colors;
+    u32[1 << 8] colors;
     ilbm_range_t pixels;
 }
 

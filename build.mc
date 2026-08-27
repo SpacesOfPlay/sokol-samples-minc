@@ -12,11 +12,13 @@
 //   minc run <s> --no-trace  drop sokol's trace hooks (on by default;
 //                            they feed the sokol-gfx debug windows)
 //   minc build <sample>      compile only
-//   minc build all           compile every sample in samples/LIST.txt
+//   minc build all           compile every sample in samples/LIST.txt,
+//                            several compilers at once
+//   minc build all --jobs 4  ... how many (default: the machine's cores,
+//                            bounded)
 //   minc wasm <sample>       build for the browser + serve it (WebGL2)
 //   minc wasm <s> --wgpu     ... against WebGPU instead (needs a
-//                            WebGPU-capable browser; the flag pairs
-//                            @gpu "webgpu" with -D SOKOL_WGPU)
+//                            WebGPU-capable browser)
 //   minc wasm <s> --no-run   build + serve without opening the browser
 //   minc wasm                list the wasm-capable samples (LIST_WASM.txt)
 //   minc wasm --wgpu         list the WebGPU-capable ones (LIST_WASM_WGPU.txt)
@@ -28,15 +30,14 @@
 // Samples fetch their assets from data/ relative to this folder, so
 // run them from here.
 //
-// The minc compiler is taken from MINC, then PATH, then this folder.
-// Install minc from https://minc.dev.
+// The compiler is taken from MINC, then PATH, then this folder
+// (install: https://minc.dev).
 
-@minc_min_version "0.9.11"
+@minc_min_version "0.9.12"
 
-// minc 0.9.10 ignores the above tag, this will force an error.
-// remove at some point in future.
-when !defined(MINC_VERSION) || MINC_VERSION < 9011 {
-    minc_0_9_11_or_newer_required please_update_minc;
+// Older minc ignores the tag above; this forces an error instead.
+when !defined(MINC_VERSION) || MINC_VERSION < 9012 {
+    minc_0_9_12_or_newer_required please_update_minc;
 }
 
 import process;
@@ -47,16 +48,14 @@ import thread;
 when os(windows) { str EXE_SUFFIX = ".exe"; }
 when os(linux) || os(macos) { str EXE_SUFFIX = ""; }
 
-// "<dir>/<name><ext>", without leaking the joined name.
 string join_named(str dir, str name, str ext) {
     string base = str_concat(name, ext);
     defer free(base);
     return path_join(dir, base);
 }
 
-// Native runs read data/ relative to the cwd; the browser fetches it
-// over HTTP from the dev server, which serves the .wasm's own directory.
-// Mirror data/ into build/web/ so the same relative paths resolve there.
+// The dev server serves the .wasm's own directory, so mirror data/
+// into build/web/ for the same relative paths to resolve there.
 void stage_web_data() {
     if !path_is_dir("data") { return; }
     ignore dir_create("build/web/data");
@@ -78,8 +77,7 @@ void die(str s) {
     return;
 }
 
-// MINC first (an install dir or the binary itself), then PATH, then a
-// binary sitting next to this script.
+// MINC (install dir or binary), then PATH, then this folder.
 string find_minc() {
     string env = env_get("MINC");
     if env.len > 0 {
@@ -113,15 +111,10 @@ string resolve_source(str arg) {
     return path_join("samples", base);
 }
 
-// --gl: build the sample against GL 3.3 core instead of the platform
-// default. Two things are needed: -D SOKOL_GLCORE selects backend, and
-// `@gpu "opengl"` makes the @shader functions emit GLSL to match.
-// The pragma has to be in the source, so the sample is copied with that
-// line prepended.
-//
-// Useful on Windows (default D3D11) and macOS (default Metal, and Apple
-// caps GL at 4.1 core); on Linux GL is already the default, so --gl is
-// a no-op there.
+// --gl: build against GL 3.3 core instead of the platform default.
+// -D SOKOL_GLCORE selects the backend, and sokol_all maps that to
+// `@gpu "opengl"` so the @shader functions emit GLSL to match. A
+// no-op on Linux, where GL is already the default.
 bool g_gl;
 
 // Trace hooks are ON by default.
@@ -136,19 +129,6 @@ string exe_named(str name) {
     return join_named("build", gl, EXE_SUFFIX);
 }
 
-// Write build/<name>_gl.mc = `@gpu "opengl"` + the sample, and return
-// its path. Caller frees.
-string gl_source(str srcp, str name) {
-    string dst = join_named("build", name, "_gl.mc");
-    FileData fd = file_read(srcp);
-    if fd.data == null { return dst; }
-    defer free(fd.data);
-    string body = str_concat("@gpu \"opengl\"\n", str_from(fd.data, cast(i32, fd.len)));
-    defer free(body);
-    ignore file_write_str(dst, body);
-    return dst;
-}
-
 // Compile samples/<stem>.mc -> build/<stem><EXE_SUFFIX>. Returns the
 // compiler's exit code.
 i32 build_one(str cc, str stem) {
@@ -160,12 +140,6 @@ i32 build_one(str cc, str stem) {
         return 1;
     }
     str name = path_stem(srcp);
-    string glsrc = { .data = null, .len = 0 };
-    if g_gl {
-        glsrc = gl_source(srcp, name);
-        srcp = glsrc;
-    }
-    defer free(glsrc);
     string exe = exe_named(name);
     defer free(exe);
     print("building {}\n", name);
@@ -178,21 +152,18 @@ i32 build_one(str cc, str stem) {
     return rc;
 }
 
-// build_one, without the running commentary; `run all` wants its own
-// [i/N] line per sample, not the compiler's. Output is captured and
-// printed only if the build fails.
-i32 build_one_quiet(str cc, str stem) {
+// build_one without the printing: the callers print their own [i/N]
+// line per sample. Diagnostics are handed back so a parallel caller
+// can print them under its own lock. *log is empty on success;
+// caller frees.
+i32 build_one_capture(str cc, str stem, string* log) {
+    log.data = null;
+    log.len = 0;
     string src = resolve_source(stem);
     defer free(src);
     str srcp = src;
     if !path_exists(srcp) { return 1; }
     str name = path_stem(srcp);
-    string glsrc = { .data = null, .len = 0 };
-    if g_gl {
-        glsrc = gl_source(srcp, name);
-        srcp = glsrc;
-    }
-    defer free(glsrc);
     string exe = exe_named(name);
     defer free(exe);
     ProcCmd c = { .args = { cc, srcp, "-o", exe } };
@@ -201,16 +172,51 @@ i32 build_one_quiet(str cc, str stem) {
     c.capture = true;
     ProcResult r = proc_run(&c);
     i32 rc = r.exit_code;
-    if rc != 0 && r.out.len > 0 { print("{}", r.out); }
+    if rc != 0 && r.out.len > 0 { *log = string(r.out); }
     proc_result_free(&r);
     return rc;
 }
 
-// The published sample census, one stem per line.
+// build_one_capture, printing the diagnostics itself.
+i32 build_one_quiet(str cc, str stem) {
+    string log = { .data = null, .len = 0 };
+    i32 rc = build_one_capture(cc, stem, &log);
+    if log.len > 0 { print("{}", log); }
+    free(log);
+    return rc;
+}
+
+// The sample list, one stem per line.
 string read_list() {
     FileData fd = file_read("samples/LIST.txt");
     string s = { .data = fd.data, .len = fd.len };
     return s;
+}
+
+const i32 MAX_SAMPLES = 256;
+
+// Split the list into stems, one per non-empty line. The stems point
+// into `lst`, so it has to outlive them. Returns the count, or -1 if
+// the list is longer than `max`.
+i32 parse_stem_list(str lst, str* stems, i32 max) {
+    i32 n = 0;
+    str rest = lst;
+    while rest.len > 0 {
+        str line = rest;
+        i32 nl = str_find_byte(rest, 10);
+        if nl >= 0 {
+            line = str_from(rest.data, nl);
+            rest = str_from(rest.data + nl + 1, rest.len - nl - 1);
+        } else {
+            rest = str_from(rest.data, 0);
+        }
+        line = str_trim(line);
+        if line.len == 0 { continue; }
+        if n >= max { return -1; }
+        *(stems + n) = line;
+        n++;
+    }
+    return n;
 }
 
 void list_samples() {
@@ -248,7 +254,7 @@ void list_wgpu_samples() {
     return;
 }
 
-// Non-negative integer from a CLI argument; -1 if it is not one.
+// Non-negative integer, or -1 if the argument is not one.
 i32 str_to_i32(str s) {
     if s.len == 0 { return -1; }
     i32 v = 0;
@@ -262,16 +268,13 @@ i32 str_to_i32(str s) {
 
 // --- `run all`: every sample, a few windows at a time -----------------
 //
-// proc_run blocks until the child exits, and the process module has no
-// spawn/poll pair, so the pool is threads: each worker takes the next
-// stem and blocks in proc_run until you close that window, then takes
-// another. Four on screen at once by default.
+// proc_run blocks until the child exits, so the pool is threads: each
+// worker takes the next stem and blocks until you close that window.
+// Four on screen at once by default.
 //
 
-const i32 RUN_ALL_MAX = 256;
-
 struct RunAll {
-    str[RUN_ALL_MAX] stems;
+    str[MAX_SAMPLES] stems;
     i32 count;
     i32 next;        // atomic cursor into stems
     i32 failed;      // atomic
@@ -320,13 +323,64 @@ void run_all_worker(void* arg) {
     return;
 }
 
+// --- `build all`: every sample, several compilers at once -------------
+//
+// The jobs share nothing: each writes its own build/<stem>, and the
+// compiler only reads samples/ and lib/. Same thread pool as
+// `run all`, one worker per job.
+//
+// The default is one job per core, bounded: a single minc can hold
+// most of a gigabyte on the largest sample. `--jobs N` overrides.
+//
+
+const i32 BUILD_ALL_MAX_JOBS = 12;
+
+struct BuildAll {
+    str[MAX_SAMPLES] stems;
+    i32 count;
+    i32 next;        // atomic cursor into stems
+    i32 done;        // atomic; numbers the lines in completion order
+    i32 failed;      // atomic
+    str cc;
+    Mutex say_lock;  // one line of output at a time
+}
+
+private { BuildAll _build_all; }
+
+void build_all_worker(void* arg) {
+    ignore arg;
+    while true {
+        i32 i = atomic_add(&_build_all.next, 1);
+        if i >= _build_all.count { break; }
+        str stem = _build_all.stems[i];
+
+        string log = { .data = null, .len = 0 };
+        i32 rc = build_one_capture(_build_all.cc, stem, &log);
+        // Numbered as they finish, not as they were queued: the order
+        // is whatever the pool produces.
+        i32 n = atomic_add(&_build_all.done, 1) + 1;
+
+        mutex_lock(&_build_all.say_lock);
+        if rc == 0 {
+            print("  [{}/{}] {}\n", n, _build_all.count, stem);
+        } else {
+            ignore atomic_add(&_build_all.failed, 1);
+            print("  [{}/{}] FAILED: {}\n", n, _build_all.count, stem);
+            if log.len > 0 { print("{}", log); }
+        }
+        mutex_unlock(&_build_all.say_lock);
+        free(log);
+    }
+    return;
+}
+
 i32 main() {
     i32 argc = get_argc();
     str verb = "run";
     str target = "";
     bool no_run = false;
     bool use_wgpu = false;
-    i32 jobs = 4;
+    i32 jobs = 0;   // 0: unset - `run all` and `build all` differ
     i32 seconds = 0;
 
     for i32 i = 1; i < argc; i++ {
@@ -395,29 +449,9 @@ i32 main() {
             exit(1);
         }
         str name = path_stem(target);
-        // --wgpu: prepend @gpu "webgpu" + SOKOL_WGPU, build a
-        // _wgpu-suffixed artifact. The temp source sits in samples/ so
-        // sibling imports resolve.
-        string wgpu_src = { .data = null, .len = 0 };
-        if use_wgpu {
-            FileData sfd = file_read(srcp);
-            if sfd.data == null { die("cannot read sample source"); }
-            string body = { .data = sfd.data, .len = sfd.len };
-            defer free(body);
-            string tmp_name = str_concat("samples/__wgpu_", name);
-            defer free(tmp_name);
-            wgpu_src = str_concat(tmp_name, ".mc");
-            string paired = str_concat("@gpu \"webgpu\"
-@define \"SOKOL_WGPU\"
-",
-                                       body);
-            defer free(paired);
-            if !file_write_str(wgpu_src,
-                               paired) {
-                die("cannot write wgpu temp source");
-            }
-            srcp = wgpu_src;
-        }
+        // --wgpu: -D SOKOL_WGPU selects the WebGPU backend, and
+        // sokol_all maps it to `@gpu "webgpu"` so the shaders come
+        // out as WGSL. The artifact gets a _wgpu suffix.
         string out_stem = string(name);
         if use_wgpu { free(out_stem); out_stem = str_concat(name, "_wgpu"); }
         defer free(out_stem);
@@ -430,14 +464,11 @@ i32 main() {
             minc, "run", "--target", "wasm", srcp,
             "-o", wasm_out
         } };
+        if use_wgpu { proc_arg(&c, "-DSOKOL_WGPU"); }
         if no_run { proc_arg(&c, "--no-browser"); }
         ProcResult r = proc_run(&c);
         i32 wrc = r.exit_code;
         proc_result_free(&r);
-        if use_wgpu {
-            ignore file_remove(wgpu_src);
-            free(wgpu_src);
-        }
         return wrc;
     }
 
@@ -445,26 +476,15 @@ i32 main() {
         string lst = read_list();
         // held for the whole run: the stems point into it
         defer free(lst);
-        str rest = lst;
-        while rest.len > 0 && _run_all.count < RUN_ALL_MAX {
-            str line = rest;
-            i32 nl = str_find_byte(rest, 10);
-            if nl >= 0 {
-                line = str_from(rest.data, nl);
-                rest = str_from(rest.data + nl + 1, rest.len - nl - 1);
-            } else {
-                rest = str_from(rest.data, 0);
-            }
-            line = str_trim(line);
-            if line.len == 0 { continue; }
-            _run_all.stems[_run_all.count] = line;
-            _run_all.count++;
-        }
+        i32 rn = parse_stem_list(lst, &_run_all.stems[0], MAX_SAMPLES);
+        if rn < 0 { die("samples/LIST.txt is longer than this driver can hold"); }
+        _run_all.count = rn;
         if _run_all.count == 0 { die("nothing to run"); }
 
         _run_all.seconds = seconds;
         _run_all.cc = minc;
         mutex_init(&_run_all.say_lock);
+        if jobs == 0 { jobs = 4; }   // how many windows share the screen
         if jobs > _run_all.count { jobs = _run_all.count; }
         if seconds > 0 {
             print("running {} sample(s), {} at a time, {}s each\n",
@@ -491,26 +511,30 @@ i32 main() {
 
     if str_equal(verb, "build") && str_equal(target, "all") {
         string lst = read_list();
+        // held for the whole build: the stems point into it
         defer free(lst);
-        i32 fails = 0;
-        i32 total = 0;
-        str rest = lst;
-        while rest.len > 0 {
-            str line = rest;
-            i32 nl = str_find_byte(rest, 10);
-            if nl >= 0 {
-                line = str_from(rest.data, nl);
-                rest = str_from(rest.data + nl + 1, rest.len - nl - 1);
-            } else {
-                rest = str_from(rest.data, 0);
-            }
-            line = str_trim(line);
-            if line.len == 0 { continue; }
-            total++;
-            if build_one(minc, line) != 0 { fails++; }
-        }
-        if fails > 0 {
-            print("FAILED: some samples did not build\n");
+        i32 bn = parse_stem_list(lst, &_build_all.stems[0], MAX_SAMPLES);
+        if bn < 0 { die("samples/LIST.txt is longer than this driver can hold"); }
+        _build_all.count = bn;
+        if _build_all.count == 0 { die("nothing to build"); }
+
+        if jobs == 0 { jobs = cpu_count(); }
+        if jobs > BUILD_ALL_MAX_JOBS { jobs = BUILD_ALL_MAX_JOBS; }
+        if jobs > _build_all.count { jobs = _build_all.count; }
+        if jobs < 1 { jobs = 1; }
+
+        _build_all.cc = minc;
+        mutex_init(&_build_all.say_lock);
+        print("building {} sample(s), {} at a time\n", _build_all.count, jobs);
+
+        Thread[BUILD_ALL_MAX_JOBS] pool;
+        for i32 t = 0; t < jobs; t++ { thread_create(&pool[t], build_all_worker, null); }
+        for i32 t = 0; t < jobs; t++ { thread_join(&pool[t]); }
+        mutex_destroy(&_build_all.say_lock);
+
+        if _build_all.failed > 0 {
+            print("FAILED: {} of {} sample(s) did not build\n",
+                  _build_all.failed, _build_all.count);
             return 1;
         }
         print("all samples built.\n");

@@ -22,6 +22,8 @@ drawex_sapp
 droptest_sapp
 dyntex_sapp
 dyntex3d_sapp
+fontstash_layers_sapp
+fontstash_sapp
 framebuffer_sapp
 hdr_sapp
 icon_sapp
@@ -45,6 +47,7 @@ noninterleaved_sapp
 offscreen_msaa_sapp
 offscreen_sapp
 pixelformats_sapp
+plmpeg_sapp
 primtypes_sapp
 quad_sapp
 saudio_sapp

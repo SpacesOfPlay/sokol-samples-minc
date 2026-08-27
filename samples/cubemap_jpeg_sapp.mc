@@ -188,7 +188,7 @@ void cam_handle_event(camera_t* cam, sapp_event* ev) {
 }
 private {
 state_t state;
-u8[16777216] iobuffer;
+u8[2048 * 2048 * 4] iobuffer;
 }
 
 private {

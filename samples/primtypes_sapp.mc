@@ -86,12 +86,12 @@ private struct state_t {
     f32 rx;
     f32 ry;
     f32 point_size;
-    vertex_t[1024] vertices;
+    vertex_t[32 * 32] vertices;
     struct {
-        u16[1984] lines;
-        u16[992] line_strip;
-        u16[2883] triangles;
-        u16[2046] triangle_strip;
+        u16[32 * (32 - 1) * 2] lines;
+        u16[32 * (32 - 1)] line_strip;
+        u16[(32 - 1) * (32 - 1) * 3] triangles;
+        u16[32 * (32 - 1) * 2 + (32 - 1) * 2] triangle_strip;
     } indices;
 }
 

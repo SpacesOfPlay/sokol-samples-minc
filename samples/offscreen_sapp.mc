@@ -82,7 +82,6 @@ enum __enum_ATTR_offscreen_position {
     __shim_end = 255,
 }
 
-type __arr_f32_4 = f32[4];
 // Replaces the sokol-shdc generated offscreen-sapp.glsl.h.
 struct vs_params_t {
     mat44_t mvp;

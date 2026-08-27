@@ -838,8 +838,6 @@ when !(defined(IMPLEMENTATION_MODE)) {
 }
 when !(defined(IMPLEMENTATION_MODE)) {
 }
-type __arr_u8_257 = u8[257];
-type __arr_b3ContactRegister_6 = b3ContactRegister[6];
 /// Version numbering scheme.
 /// See https://semver.org/
 struct b3Version {
@@ -3365,7 +3363,7 @@ struct b3GeometryRegistry {
 struct b3RecTag {
     u64 key;
     u64 id;
-    u8[65] queryName;
+    u8[64 + 1] queryName;
 }
 
 /**
@@ -5107,7 +5105,7 @@ struct b3RecReader {
     b3RecPlayer* owner;
     b3SurfaceMaterial* matScratch;
     i32 matScratchCap;
-    __arr_u8_257[4] stringBuffers;
+    u8:[4][256 + 1] stringBuffers;
     i32 nextString;
     b3RegistrySlot* slots;
     i32 slotCount;
@@ -10204,18 +10202,15 @@ u64 vt_quadratic(u16 displacement) {
 // This function is used when we scan four buckets at a time while iterating and relies on compiler intrinsics wherever
 // possible.
 i32 vt_first_nonzero_uint16(u64 val) {
-    i32 result = 0;
-    u32 half;
-    memcpy(&half, &val, cast(u64, sizeof(u32)));
-    if half == 0 {
-        result += 2;
+    u32 result;
+    u16 endian_checker = 0x0001;
+    if *cast(u8*, &endian_checker) != 0 {
+        _BitScanForward64(&result, val);
+    } else {
+        _BitScanReverse64(&result, val);
+        result = 63 - result;
     }
-    u16 quarter;
-    memcpy(&quarter, cast(u8*, &val) + result * sizeof(u16), cast(u64, sizeof(u16)));
-    if quarter == 0 {
-        result += 1;
-    }
-    return result;
+    return cast(i32, result / 16);
 }
 // When the bucket count is zero, setting the metadata pointer to point to a VT_EMPTY placeholder, rather than NULL,
 // allows us to avoid checking for a zero bucket count during insertion and lookup.
@@ -10238,21 +10233,7 @@ u64 vt_hash_integer(u64 key) {
 // * We do not handle endianness, so the result will differ depending on the platform.
 // * We omit the code optimized for 32-bit platforms.
 void vt_wymum(u64* a, u64* b) {
-    u64 ha = *a >> 32;
-    u64 hb = *b >> 32;
-    var la = cast(u32, *a);
-    var lb = cast(u32, *b);
-    u64 rh = ha * hb;
-    u64 rm0 = ha * lb;
-    u64 rm1 = hb * la;
-    u64 rl = la * lb;
-    u64 t = rl + (rm0 << 32);
-    var c = cast(u64, t < rl);
-    u64 lo = t + (rm1 << 32);
-    c += cast(u64, lo < t);
-    u64 hi = rh + (rm0 >> 32) + (rm1 >> 32) + c;
-    *a = lo;
-    *b = hi;
+    *a = _umul128(*a, *b, b);
 }
 
 u64 vt_wymix(u64 a, u64 b) {
@@ -11082,7 +11063,7 @@ bool b3MeshMap_evict(b3MeshMap* table, u64 bucket) {
         }
         prev = next;
     }
-    table.metadata[prev] = cast(u16, table.metadata[prev] & ~0x07FF | table.metadata[bucket] & 0x07FF);
+    table.metadata[prev] = cast(u16, cast(i32, table.metadata[prev]) & ~0x07FF | table.metadata[bucket] & 0x07FF);
     u64 empty;
     u16 displacement;
     if b3MeshMap_find_first_empty(table, home_bucket, &empty, &displacement) == 0 {
@@ -11091,7 +11072,7 @@ bool b3MeshMap_evict(b3MeshMap* table, u64 bucket) {
     prev = b3MeshMap_find_insert_location_in_chain(table, home_bucket, displacement);
     table.buckets[empty] = table.buckets[bucket];
     table.metadata[empty] = table.metadata[bucket] & 0xF000 | table.metadata[prev] & 0x07FF;
-    table.metadata[prev] = cast(u16, table.metadata[prev] & ~0x07FF | displacement);
+    table.metadata[prev] = cast(u16, cast(i32, table.metadata[prev]) & ~0x07FF | displacement);
     return true;
 }
 
@@ -11165,7 +11146,7 @@ b3MeshMap_itr b3MeshMap_insert_raw(b3MeshMap* table, b3MeshData* key, i32* val, 
     table.buckets[empty].key = key;
     table.buckets[empty].val = *val;
     table.metadata[empty] = hashfrag | table.metadata[prev] & 0x07FF;
-    table.metadata[prev] = cast(u16, table.metadata[prev] & ~0x07FF | displacement);
+    table.metadata[prev] = cast(u16, cast(i32, table.metadata[prev]) & ~0x07FF | displacement);
     ++table.key_count;
     var itr = b3MeshMap_itr{
         table.buckets + empty, table.metadata + empty, table.metadata + table.buckets_mask + 1,
@@ -11304,7 +11285,7 @@ bool b3MeshMap_erase_itr_raw(b3MeshMap* table, b3MeshMap_itr itr) {
         bucket = itr.home_bucket + vt_quadratic(table.metadata[bucket] & 0x07FF) & table.buckets_mask;
         if (table.metadata[bucket] & 0x07FF) == 0x07FF {
             table.buckets[itr_bucket] = table.buckets[bucket];
-            table.metadata[itr_bucket] = cast(u16, table.metadata[itr_bucket] & ~0xF000 | table.metadata[bucket] & 0xF000);
+            table.metadata[itr_bucket] = cast(u16, cast(i32, table.metadata[itr_bucket]) & ~0xF000 | table.metadata[bucket] & 0xF000);
             table.metadata[prev] |= 0x07FF;
             table.metadata[bucket] = 0x0000;
             if bucket > itr_bucket {
@@ -12010,7 +11991,7 @@ bool b3MaterialMap_evict(b3MaterialMap* table, u64 bucket) {
         }
         prev = next;
     }
-    table.metadata[prev] = cast(u16, table.metadata[prev] & ~0x07FF | table.metadata[bucket] & 0x07FF);
+    table.metadata[prev] = cast(u16, cast(i32, table.metadata[prev]) & ~0x07FF | table.metadata[bucket] & 0x07FF);
     u64 empty;
     u16 displacement;
     if b3MaterialMap_find_first_empty(table, home_bucket, &empty, &displacement) == 0 {
@@ -12019,7 +12000,7 @@ bool b3MaterialMap_evict(b3MaterialMap* table, u64 bucket) {
     prev = b3MaterialMap_find_insert_location_in_chain(table, home_bucket, displacement);
     table.buckets[empty] = table.buckets[bucket];
     table.metadata[empty] = table.metadata[bucket] & 0xF000 | table.metadata[prev] & 0x07FF;
-    table.metadata[prev] = cast(u16, table.metadata[prev] & ~0x07FF | displacement);
+    table.metadata[prev] = cast(u16, cast(i32, table.metadata[prev]) & ~0x07FF | displacement);
     return true;
 }
 
@@ -12093,7 +12074,7 @@ b3MaterialMap_itr b3MaterialMap_insert_raw(b3MaterialMap* table, b3SurfaceMateri
     table.buckets[empty].key = key;
     table.buckets[empty].val = *val;
     table.metadata[empty] = hashfrag | table.metadata[prev] & 0x07FF;
-    table.metadata[prev] = cast(u16, table.metadata[prev] & ~0x07FF | displacement);
+    table.metadata[prev] = cast(u16, cast(i32, table.metadata[prev]) & ~0x07FF | displacement);
     ++table.key_count;
     var itr = b3MaterialMap_itr{
         table.buckets + empty, table.metadata + empty, table.metadata + table.buckets_mask + 1,
@@ -12232,7 +12213,7 @@ bool b3MaterialMap_erase_itr_raw(b3MaterialMap* table, b3MaterialMap_itr itr) {
         bucket = itr.home_bucket + vt_quadratic(table.metadata[bucket] & 0x07FF) & table.buckets_mask;
         if (table.metadata[bucket] & 0x07FF) == 0x07FF {
             table.buckets[itr_bucket] = table.buckets[bucket];
-            table.metadata[itr_bucket] = cast(u16, table.metadata[itr_bucket] & ~0xF000 | table.metadata[bucket] & 0xF000);
+            table.metadata[itr_bucket] = cast(u16, cast(i32, table.metadata[itr_bucket]) & ~0xF000 | table.metadata[bucket] & 0xF000);
             table.metadata[prev] |= 0x07FF;
             table.metadata[bucket] = 0x0000;
             if bucket > itr_bucket {
@@ -13171,7 +13152,7 @@ b3ContactData b3Contact_GetData(b3ContactId contactId) {
     return data;
 }
 private {
-__arr_b3ContactRegister_6[6] s_registers;
+b3ContactRegister:[6][6] s_registers;
 bool s_initialized = false;
 
 void b3AddType(b3ShapeType type1, b3ShapeType type2) {
@@ -13915,7 +13896,7 @@ bool b3AnyTrueW(b3FloatW mask) {
 
 // component-wise returns mask ? b : a
 b3FloatW b3BlendW(b3FloatW a, b3FloatW b, b3FloatW mask) {
-    return or4(and4(mask, b), andnot4(mask, a));
+    return select4(mask, b, a);
 }
 
 b3FloatW b3Dot3W(b3FloatW ax, b3FloatW ay, b3FloatW az, b3FloatW bx, b3FloatW by, b3FloatW bz) {
@@ -15128,7 +15109,7 @@ void b3PrepareContacts_Convex(b3SolverBlock block, b3StepContext* context) {
                 b3FloatW wDotB = wRnBx * wMvBx + wRnBy * wMvBy + wRnBz * wMvBz;
                 b3FloatW wKNormal = wMassSum + wDotA + wDotB;
                 b3FloatW wKMask = cmpgt4(wKNormal, splat4(0.0f));
-                cp.normalMasses = or4(and4(wKMask, splat4(1.0f) / wKNormal), andnot4(wKMask, splat4(0.0f)));
+                cp.normalMasses = select4(wKMask, splat4(1.0f) / wKNormal, splat4(0.0f));
                 b3FloatW wVrAx = wVAx + (wWAy * wRAz - wWAz * wRAy);
                 b3FloatW wVrAy = wVAy + (wWAz * wRAx - wWAx * wRAz);
                 b3FloatW wVrAz = wVAz + (wWAx * wRAy - wWAy * wRAx);
@@ -15258,12 +15239,12 @@ void b3PrepareContacts_Convex(b3SolverBlock block, b3StepContext* context) {
             b3FloatW wKxy = wRtA1x * wMtA2x + wRtA1y * wMtA2y + wRtA1z * wMtA2z + (wRtB1x * wMtB2x + wRtB1y * wMtB2y + wRtB1z * wMtB2z);
             b3FloatW wDet2 = wKxx * wKyy - wKxy * wKxy;
             b3FloatW wNeg2 = cmpgt4(splat4(0.0f), wDet2);
-            b3FloatW wAbs2 = or4(and4(wNeg2, xor4(wDet2, splat4(-0.0f))), andnot4(wNeg2, wDet2));
+            b3FloatW wAbs2 = select4(wNeg2, xor4(wDet2, splat4(-0.0f)), wDet2);
             b3FloatW wMask2 = cmpgt4(wAbs2, splat4(1000.0f * FLT_MIN));
             b3FloatW wInvDet2 = splat4(1.0f) / wDet2;
-            constraint.tangentMass.cxx = or4(and4(wMask2, wInvDet2 * wKyy), andnot4(wMask2, splat4(0.0f)));
-            constraint.tangentMass.cxy = or4(and4(wMask2, xor4(wInvDet2, splat4(-0.0f)) * wKxy), andnot4(wMask2, splat4(0.0f)));
-            constraint.tangentMass.cyy = or4(and4(wMask2, wInvDet2 * wKxx), andnot4(wMask2, splat4(0.0f)));
+            constraint.tangentMass.cxx = select4(wMask2, wInvDet2 * wKyy, splat4(0.0f));
+            constraint.tangentMass.cxy = select4(wMask2, xor4(wInvDet2, splat4(-0.0f)) * wKxy, splat4(0.0f));
+            constraint.tangentMass.cyy = select4(wMask2, wInvDet2 * wKxx, splat4(0.0f));
             var wMfiX = float4{
                 manifold0.frictionImpulse.x, manifold1.frictionImpulse.x,
                 manifold2.frictionImpulse.x, manifold3.frictionImpulse.x,
@@ -15292,7 +15273,7 @@ void b3PrepareContacts_Convex(b3SolverBlock block, b3StepContext* context) {
             b3FloatW wTvz = wSxz * wNormalX + wSyz * wNormalY + wSzz * wNormalZ;
             b3FloatW wTwistK = wNormalX * wTvx + wNormalY * wTvy + wNormalZ * wTvz;
             b3FloatW wTwistMask = cmpgt4(wTwistK, splat4(0.0f));
-            constraint.twistMass = or4(and4(wTwistMask, splat4(1.0f) / wTwistK), andnot4(wTwistMask, splat4(0.0f)));
+            constraint.twistMass = select4(wTwistMask, splat4(1.0f) / wTwistK, splat4(0.0f));
             var wTwistImpulse = float4{
                 manifold0.twistImpulse, manifold1.twistImpulse, manifold2.twistImpulse,
                 manifold3.twistImpulse,
@@ -15303,7 +15284,7 @@ void b3PrepareContacts_Convex(b3SolverBlock block, b3StepContext* context) {
             b3FloatW wC1z = wSyx * wSzy - wSyy * wSzx;
             b3FloatW wDet3 = wSxx * wC1x + wSxy * wC1y + wSxz * wC1z;
             b3FloatW wNeg3 = cmpgt4(splat4(0.0f), wDet3);
-            b3FloatW wAbs3 = or4(and4(wNeg3, xor4(wDet3, splat4(-0.0f))), andnot4(wNeg3, wDet3));
+            b3FloatW wAbs3 = select4(wNeg3, xor4(wDet3, splat4(-0.0f)), wDet3);
             b3FloatW wMask3 = cmpgt4(wAbs3, splat4(1000.0f * FLT_MIN));
             b3FloatW wInvDet3 = splat4(1.0f) / wDet3;
             b3FloatW wC2x = wSzy * wSxz - wSzz * wSxy;
@@ -15311,12 +15292,12 @@ void b3PrepareContacts_Convex(b3SolverBlock block, b3StepContext* context) {
             b3FloatW wC3x = wSxy * wSyz - wSxz * wSyy;
             b3FloatW wC3y = wSxz * wSyx - wSxx * wSyz;
             b3FloatW wC3z = wSxx * wSyy - wSxy * wSyx;
-            constraint.rollingMass.cxx = or4(and4(wMask3, wInvDet3 * wC1x), andnot4(wMask3, splat4(0.0f)));
-            constraint.rollingMass.cxy = or4(and4(wMask3, wInvDet3 * wC2x), andnot4(wMask3, splat4(0.0f)));
-            constraint.rollingMass.cxz = or4(and4(wMask3, wInvDet3 * wC3x), andnot4(wMask3, splat4(0.0f)));
-            constraint.rollingMass.cyy = or4(and4(wMask3, wInvDet3 * wC2y), andnot4(wMask3, splat4(0.0f)));
-            constraint.rollingMass.cyz = or4(and4(wMask3, wInvDet3 * wC3y), andnot4(wMask3, splat4(0.0f)));
-            constraint.rollingMass.czz = or4(and4(wMask3, wInvDet3 * wC3z), andnot4(wMask3, splat4(0.0f)));
+            constraint.rollingMass.cxx = select4(wMask3, wInvDet3 * wC1x, splat4(0.0f));
+            constraint.rollingMass.cxy = select4(wMask3, wInvDet3 * wC2x, splat4(0.0f));
+            constraint.rollingMass.cxz = select4(wMask3, wInvDet3 * wC3x, splat4(0.0f));
+            constraint.rollingMass.cyy = select4(wMask3, wInvDet3 * wC2y, splat4(0.0f));
+            constraint.rollingMass.cyz = select4(wMask3, wInvDet3 * wC3y, splat4(0.0f));
+            constraint.rollingMass.czz = select4(wMask3, wInvDet3 * wC3z, splat4(0.0f));
             var wMriX = float4{
                 manifold0.rollingImpulse.x, manifold1.rollingImpulse.x, manifold2.rollingImpulse.x,
                 manifold3.rollingImpulse.x,
@@ -16689,30 +16670,30 @@ b3AxisQuery b3ComputeSeparatingAxis(b3HullData* hullA, b3HullData* hullB, b3Tran
             }
         }
     }
-    noinit f32[132] bFNx;
-    noinit f32[132] bFNy;
-    noinit f32[132] bFNz;
-    noinit f32[132] bWx;
-    noinit f32[132] bWy;
-    noinit f32[132] bWz;
+    noinit f32[128 + 4] bFNx;
+    noinit f32[128 + 4] bFNy;
+    noinit f32[128 + 4] bFNz;
+    noinit f32[128 + 4] bWx;
+    noinit f32[128 + 4] bWy;
+    noinit f32[128 + 4] bWz;
     i32 soaFaceCountB = faceCountB + 3 & ~3;
     f32* nxB = b3GetHullSoaNormals(hullB);
     f32* nyB = nxB + soaFaceCountB;
     f32* nzB = nyB + soaFaceCountB;
     b3NegativeTransformFromSoA(&R, xfB.p, nxB, nyB, nzB, soaFaceCountB, bFNx, bFNy, bFNz, false);
     b3NegativeTransformFromSoA(&R, xfB.p, vxB, vyB, vzB, soaVertexCountB, bWx, bWy, bWz, true);
-    noinit f32[132] bCx;
-    noinit f32[132] bCy;
-    noinit f32[132] bCz;
-    noinit f32[132] bDx;
-    noinit f32[132] bDy;
-    noinit f32[132] bDz;
-    noinit f32[132] bV0x;
-    noinit f32[132] bV0y;
-    noinit f32[132] bV0z;
-    noinit f32[132] bDCx;
-    noinit f32[132] bDCy;
-    noinit f32[132] bDCz;
+    noinit f32[128 + 4] bCx;
+    noinit f32[128 + 4] bCy;
+    noinit f32[128 + 4] bCz;
+    noinit f32[128 + 4] bDx;
+    noinit f32[128 + 4] bDy;
+    noinit f32[128 + 4] bDz;
+    noinit f32[128 + 4] bV0x;
+    noinit f32[128 + 4] bV0y;
+    noinit f32[128 + 4] bV0z;
+    noinit f32[128 + 4] bDCx;
+    noinit f32[128 + 4] bDCy;
+    noinit f32[128 + 4] bDCz;
     i32 halfEdgeCountB = hullB.edgeCount;
     b3HullHalfEdge* halfEdgesB = b3GetHullEdges(hullB);
     i32 nb = 0;
@@ -16737,19 +16718,19 @@ b3AxisQuery b3ComputeSeparatingAxis(b3HullData* hullA, b3HullData* hullB, b3Tran
         bDCz[nb] = bWz[v1] - bWz[v0];
         nb += 1;
     }
-    noinit f32[132] aN0x;
-    noinit f32[132] aN0y;
-    noinit f32[132] aN0z;
-    noinit f32[132] aN1x;
-    noinit f32[132] aN1y;
-    noinit f32[132] aN1z;
-    noinit f32[132] aDx;
-    noinit f32[132] aDy;
-    noinit f32[132] aDz;
-    noinit f32[132] aV0x;
-    noinit f32[132] aV0y;
-    noinit f32[132] aV0z;
-    noinit f32[132] aTol;
+    noinit f32[128 + 4] aN0x;
+    noinit f32[128 + 4] aN0y;
+    noinit f32[128 + 4] aN0z;
+    noinit f32[128 + 4] aN1x;
+    noinit f32[128 + 4] aN1y;
+    noinit f32[128 + 4] aN1z;
+    noinit f32[128 + 4] aDx;
+    noinit f32[128 + 4] aDy;
+    noinit f32[128 + 4] aDz;
+    noinit f32[128 + 4] aV0x;
+    noinit f32[128 + 4] aV0y;
+    noinit f32[128 + 4] aV0z;
+    noinit f32[128 + 4] aTol;
     i32 halfEdgeCountA = hullA.edgeCount;
     b3HullHalfEdge* halfEdgesA = b3GetHullEdges(hullA);
     i32 na = 0;
@@ -22900,7 +22881,7 @@ bool b3HullMap_evict(b3HullMap* table, u64 bucket) {
         }
         prev = next;
     }
-    table.metadata[prev] = cast(u16, table.metadata[prev] & ~0x07FF | table.metadata[bucket] & 0x07FF);
+    table.metadata[prev] = cast(u16, cast(i32, table.metadata[prev]) & ~0x07FF | table.metadata[bucket] & 0x07FF);
     u64 empty;
     u16 displacement;
     if b3HullMap_find_first_empty(table, home_bucket, &empty, &displacement) == 0 {
@@ -22909,7 +22890,7 @@ bool b3HullMap_evict(b3HullMap* table, u64 bucket) {
     prev = b3HullMap_find_insert_location_in_chain(table, home_bucket, displacement);
     table.buckets[empty] = table.buckets[bucket];
     table.metadata[empty] = table.metadata[bucket] & 0xF000 | table.metadata[prev] & 0x07FF;
-    table.metadata[prev] = cast(u16, table.metadata[prev] & ~0x07FF | displacement);
+    table.metadata[prev] = cast(u16, cast(i32, table.metadata[prev]) & ~0x07FF | displacement);
     return true;
 }
 
@@ -22983,7 +22964,7 @@ b3HullMap_itr b3HullMap_insert_raw(b3HullMap* table, b3HullData* key, i32* val, 
     table.buckets[empty].key = key;
     table.buckets[empty].val = *val;
     table.metadata[empty] = hashfrag | table.metadata[prev] & 0x07FF;
-    table.metadata[prev] = cast(u16, table.metadata[prev] & ~0x07FF | displacement);
+    table.metadata[prev] = cast(u16, cast(i32, table.metadata[prev]) & ~0x07FF | displacement);
     ++table.key_count;
     var itr = b3HullMap_itr{
         table.buckets + empty, table.metadata + empty, table.metadata + table.buckets_mask + 1,
@@ -23116,7 +23097,7 @@ bool b3HullMap_erase_itr_raw(b3HullMap* table, b3HullMap_itr itr) {
         bucket = itr.home_bucket + vt_quadratic(table.metadata[bucket] & 0x07FF) & table.buckets_mask;
         if (table.metadata[bucket] & 0x07FF) == 0x07FF {
             table.buckets[itr_bucket] = table.buckets[bucket];
-            table.metadata[itr_bucket] = cast(u16, table.metadata[itr_bucket] & ~0xF000 | table.metadata[bucket] & 0xF000);
+            table.metadata[itr_bucket] = cast(u16, cast(i32, table.metadata[itr_bucket]) & ~0xF000 | table.metadata[bucket] & 0xF000);
             table.metadata[prev] |= 0x07FF;
             table.metadata[bucket] = 0x0000;
             if bucket > itr_bucket {
@@ -26922,7 +26903,7 @@ bool b3VertexMap_evict(b3VertexMap* table, u64 bucket) {
         }
         prev = next;
     }
-    table.metadata[prev] = cast(u16, table.metadata[prev] & ~0x07FF | table.metadata[bucket] & 0x07FF);
+    table.metadata[prev] = cast(u16, cast(i32, table.metadata[prev]) & ~0x07FF | table.metadata[bucket] & 0x07FF);
     u64 empty;
     u16 displacement;
     if b3VertexMap_find_first_empty(table, home_bucket, &empty, &displacement) == 0 {
@@ -26931,7 +26912,7 @@ bool b3VertexMap_evict(b3VertexMap* table, u64 bucket) {
     prev = b3VertexMap_find_insert_location_in_chain(table, home_bucket, displacement);
     table.buckets[empty] = table.buckets[bucket];
     table.metadata[empty] = table.metadata[bucket] & 0xF000 | table.metadata[prev] & 0x07FF;
-    table.metadata[prev] = cast(u16, table.metadata[prev] & ~0x07FF | displacement);
+    table.metadata[prev] = cast(u16, cast(i32, table.metadata[prev]) & ~0x07FF | displacement);
     return true;
 }
 
@@ -27005,7 +26986,7 @@ b3VertexMap_itr b3VertexMap_insert_raw(b3VertexMap* table, u64 key, i32* val, bo
     table.buckets[empty].key = key;
     table.buckets[empty].val = *val;
     table.metadata[empty] = hashfrag | table.metadata[prev] & 0x07FF;
-    table.metadata[prev] = cast(u16, table.metadata[prev] & ~0x07FF | displacement);
+    table.metadata[prev] = cast(u16, cast(i32, table.metadata[prev]) & ~0x07FF | displacement);
     ++table.key_count;
     var itr = b3VertexMap_itr{
         table.buckets + empty, table.metadata + empty, table.metadata + table.buckets_mask + 1,
@@ -27144,7 +27125,7 @@ bool b3VertexMap_erase_itr_raw(b3VertexMap* table, b3VertexMap_itr itr) {
         bucket = itr.home_bucket + vt_quadratic(table.metadata[bucket] & 0x07FF) & table.buckets_mask;
         if (table.metadata[bucket] & 0x07FF) == 0x07FF {
             table.buckets[itr_bucket] = table.buckets[bucket];
-            table.metadata[itr_bucket] = cast(u16, table.metadata[itr_bucket] & ~0xF000 | table.metadata[bucket] & 0xF000);
+            table.metadata[itr_bucket] = cast(u16, cast(i32, table.metadata[itr_bucket]) & ~0xF000 | table.metadata[bucket] & 0xF000);
             table.metadata[prev] |= 0x07FF;
             table.metadata[bucket] = 0x0000;
             if bucket > itr_bucket {
@@ -28296,7 +28277,7 @@ bool b3EdgeMap_evict(b3EdgeMap* table, u64 bucket) {
         }
         prev = next;
     }
-    table.metadata[prev] = cast(u16, table.metadata[prev] & ~0x07FF | table.metadata[bucket] & 0x07FF);
+    table.metadata[prev] = cast(u16, cast(i32, table.metadata[prev]) & ~0x07FF | table.metadata[bucket] & 0x07FF);
     u64 empty;
     u16 displacement;
     if b3EdgeMap_find_first_empty(table, home_bucket, &empty, &displacement) == 0 {
@@ -28305,7 +28286,7 @@ bool b3EdgeMap_evict(b3EdgeMap* table, u64 bucket) {
     prev = b3EdgeMap_find_insert_location_in_chain(table, home_bucket, displacement);
     table.buckets[empty] = table.buckets[bucket];
     table.metadata[empty] = table.metadata[bucket] & 0xF000 | table.metadata[prev] & 0x07FF;
-    table.metadata[prev] = cast(u16, table.metadata[prev] & ~0x07FF | displacement);
+    table.metadata[prev] = cast(u16, cast(i32, table.metadata[prev]) & ~0x07FF | displacement);
     return true;
 }
 
@@ -28379,7 +28360,7 @@ b3EdgeMap_itr b3EdgeMap_insert_raw(b3EdgeMap* table, u64 key, i32* val, bool uni
     table.buckets[empty].key = key;
     table.buckets[empty].val = *val;
     table.metadata[empty] = hashfrag | table.metadata[prev] & 0x07FF;
-    table.metadata[prev] = cast(u16, table.metadata[prev] & ~0x07FF | displacement);
+    table.metadata[prev] = cast(u16, cast(i32, table.metadata[prev]) & ~0x07FF | displacement);
     ++table.key_count;
     var itr = b3EdgeMap_itr{
         table.buckets + empty, table.metadata + empty, table.metadata + table.buckets_mask + 1,
@@ -28518,7 +28499,7 @@ bool b3EdgeMap_erase_itr_raw(b3EdgeMap* table, b3EdgeMap_itr itr) {
         bucket = itr.home_bucket + vt_quadratic(table.metadata[bucket] & 0x07FF) & table.buckets_mask;
         if (table.metadata[bucket] & 0x07FF) == 0x07FF {
             table.buckets[itr_bucket] = table.buckets[bucket];
-            table.metadata[itr_bucket] = cast(u16, table.metadata[itr_bucket] & ~0xF000 | table.metadata[bucket] & 0xF000);
+            table.metadata[itr_bucket] = cast(u16, cast(i32, table.metadata[itr_bucket]) & ~0xF000 | table.metadata[bucket] & 0xF000);
             table.metadata[prev] |= 0x07FF;
             table.metadata[bucket] = 0x0000;
             if bucket > itr_bucket {
@@ -31721,7 +31702,7 @@ bool b3NameMap_evict(b3NameMap* table, u64 bucket) {
         }
         prev = next;
     }
-    table.metadata[prev] = cast(u16, table.metadata[prev] & ~0x07FF | table.metadata[bucket] & 0x07FF);
+    table.metadata[prev] = cast(u16, cast(i32, table.metadata[prev]) & ~0x07FF | table.metadata[bucket] & 0x07FF);
     u64 empty;
     u16 displacement;
     if b3NameMap_find_first_empty(table, home_bucket, &empty, &displacement) == 0 {
@@ -31730,7 +31711,7 @@ bool b3NameMap_evict(b3NameMap* table, u64 bucket) {
     prev = b3NameMap_find_insert_location_in_chain(table, home_bucket, displacement);
     table.buckets[empty] = table.buckets[bucket];
     table.metadata[empty] = table.metadata[bucket] & 0xF000 | table.metadata[prev] & 0x07FF;
-    table.metadata[prev] = cast(u16, table.metadata[prev] & ~0x07FF | displacement);
+    table.metadata[prev] = cast(u16, cast(i32, table.metadata[prev]) & ~0x07FF | displacement);
     return true;
 }
 
@@ -31804,7 +31785,7 @@ b3NameMap_itr b3NameMap_insert_raw(b3NameMap* table, u32 key, i32* val, bool uni
     table.buckets[empty].key = key;
     table.buckets[empty].val = *val;
     table.metadata[empty] = hashfrag | table.metadata[prev] & 0x07FF;
-    table.metadata[prev] = cast(u16, table.metadata[prev] & ~0x07FF | displacement);
+    table.metadata[prev] = cast(u16, cast(i32, table.metadata[prev]) & ~0x07FF | displacement);
     ++table.key_count;
     var itr = b3NameMap_itr{
         table.buckets + empty, table.metadata + empty, table.metadata + table.buckets_mask + 1,
@@ -31943,7 +31924,7 @@ bool b3NameMap_erase_itr_raw(b3NameMap* table, b3NameMap_itr itr) {
         bucket = itr.home_bucket + vt_quadratic(table.metadata[bucket] & 0x07FF) & table.buckets_mask;
         if (table.metadata[bucket] & 0x07FF) == 0x07FF {
             table.buckets[itr_bucket] = table.buckets[bucket];
-            table.metadata[itr_bucket] = cast(u16, table.metadata[itr_bucket] & ~0xF000 | table.metadata[bucket] & 0xF000);
+            table.metadata[itr_bucket] = cast(u16, cast(i32, table.metadata[itr_bucket]) & ~0xF000 | table.metadata[bucket] & 0xF000);
             table.metadata[prev] |= 0x07FF;
             table.metadata[bucket] = 0x0000;
             if bucket > itr_bucket {
@@ -39307,7 +39288,7 @@ bool b3GeometryHashMap_evict(b3GeometryHashMap* table, u64 bucket) {
         }
         prev = next;
     }
-    table.metadata[prev] = cast(u16, table.metadata[prev] & ~0x07FF | table.metadata[bucket] & 0x07FF);
+    table.metadata[prev] = cast(u16, cast(i32, table.metadata[prev]) & ~0x07FF | table.metadata[bucket] & 0x07FF);
     u64 empty;
     u16 displacement;
     if b3GeometryHashMap_find_first_empty(table, home_bucket, &empty, &displacement) == 0 {
@@ -39316,7 +39297,7 @@ bool b3GeometryHashMap_evict(b3GeometryHashMap* table, u64 bucket) {
     prev = b3GeometryHashMap_find_insert_location_in_chain(table, home_bucket, displacement);
     table.buckets[empty] = table.buckets[bucket];
     table.metadata[empty] = table.metadata[bucket] & 0xF000 | table.metadata[prev] & 0x07FF;
-    table.metadata[prev] = cast(u16, table.metadata[prev] & ~0x07FF | displacement);
+    table.metadata[prev] = cast(u16, cast(i32, table.metadata[prev]) & ~0x07FF | displacement);
     return true;
 }
 
@@ -39390,7 +39371,7 @@ b3GeometryHashMap_itr b3GeometryHashMap_insert_raw(b3GeometryHashMap* table, u64
     table.buckets[empty].key = key;
     table.buckets[empty].val = *val;
     table.metadata[empty] = hashfrag | table.metadata[prev] & 0x07FF;
-    table.metadata[prev] = cast(u16, table.metadata[prev] & ~0x07FF | displacement);
+    table.metadata[prev] = cast(u16, cast(i32, table.metadata[prev]) & ~0x07FF | displacement);
     ++table.key_count;
     var itr = b3GeometryHashMap_itr{
         table.buckets + empty, table.metadata + empty, table.metadata + table.buckets_mask + 1,
@@ -39529,7 +39510,7 @@ bool b3GeometryHashMap_erase_itr_raw(b3GeometryHashMap* table, b3GeometryHashMap
         bucket = itr.home_bucket + vt_quadratic(table.metadata[bucket] & 0x07FF) & table.buckets_mask;
         if (table.metadata[bucket] & 0x07FF) == 0x07FF {
             table.buckets[itr_bucket] = table.buckets[bucket];
-            table.metadata[itr_bucket] = cast(u16, table.metadata[itr_bucket] & ~0xF000 | table.metadata[bucket] & 0xF000);
+            table.metadata[itr_bucket] = cast(u16, cast(i32, table.metadata[itr_bucket]) & ~0xF000 | table.metadata[bucket] & 0xF000);
             table.metadata[prev] |= 0x07FF;
             table.metadata[bucket] = 0x0000;
             if bucket > itr_bucket {
@@ -40221,7 +40202,7 @@ bool b3RecTagMap_evict(b3RecTagMap* table, u64 bucket) {
         }
         prev = next;
     }
-    table.metadata[prev] = cast(u16, table.metadata[prev] & ~0x07FF | table.metadata[bucket] & 0x07FF);
+    table.metadata[prev] = cast(u16, cast(i32, table.metadata[prev]) & ~0x07FF | table.metadata[bucket] & 0x07FF);
     u64 empty;
     u16 displacement;
     if b3RecTagMap_find_first_empty(table, home_bucket, &empty, &displacement) == 0 {
@@ -40230,7 +40211,7 @@ bool b3RecTagMap_evict(b3RecTagMap* table, u64 bucket) {
     prev = b3RecTagMap_find_insert_location_in_chain(table, home_bucket, displacement);
     table.buckets[empty] = table.buckets[bucket];
     table.metadata[empty] = table.metadata[bucket] & 0xF000 | table.metadata[prev] & 0x07FF;
-    table.metadata[prev] = cast(u16, table.metadata[prev] & ~0x07FF | displacement);
+    table.metadata[prev] = cast(u16, cast(i32, table.metadata[prev]) & ~0x07FF | displacement);
     return true;
 }
 
@@ -40304,7 +40285,7 @@ b3RecTagMap_itr b3RecTagMap_insert_raw(b3RecTagMap* table, u64 key, u32* val, bo
     table.buckets[empty].key = key;
     table.buckets[empty].val = *val;
     table.metadata[empty] = hashfrag | table.metadata[prev] & 0x07FF;
-    table.metadata[prev] = cast(u16, table.metadata[prev] & ~0x07FF | displacement);
+    table.metadata[prev] = cast(u16, cast(i32, table.metadata[prev]) & ~0x07FF | displacement);
     ++table.key_count;
     var itr = b3RecTagMap_itr{
         table.buckets + empty, table.metadata + empty, table.metadata + table.buckets_mask + 1,
@@ -40443,7 +40424,7 @@ bool b3RecTagMap_erase_itr_raw(b3RecTagMap* table, b3RecTagMap_itr itr) {
         bucket = itr.home_bucket + vt_quadratic(table.metadata[bucket] & 0x07FF) & table.buckets_mask;
         if (table.metadata[bucket] & 0x07FF) == 0x07FF {
             table.buckets[itr_bucket] = table.buckets[bucket];
-            table.metadata[itr_bucket] = cast(u16, table.metadata[itr_bucket] & ~0xF000 | table.metadata[bucket] & 0xF000);
+            table.metadata[itr_bucket] = cast(u16, cast(i32, table.metadata[itr_bucket]) & ~0xF000 | table.metadata[bucket] & 0xF000);
             table.metadata[prev] |= 0x07FF;
             table.metadata[bucket] = 0x0000;
             if bucket > itr_bucket {
@@ -42403,7 +42384,7 @@ void b3RecComputeQueryBounds(b3RecDrawQuery* q) {
         count = 1;
     }
     b3Pos end = b3OffsetPos(q.origin, q.translation);
-    noinit b3Vec3[128] world;
+    noinit b3Vec3[2 * 64] world;
     i32 n = 0;
     for i32 i = 0; i < count; ++i {
         world[n++] = b3ToVec3(b3OffsetPos(q.origin, local[i]));
@@ -45164,7 +45145,7 @@ bool b3RecTagLookup_evict(b3RecTagLookup* table, u64 bucket) {
         }
         prev = next;
     }
-    table.metadata[prev] = cast(u16, table.metadata[prev] & ~0x07FF | table.metadata[bucket] & 0x07FF);
+    table.metadata[prev] = cast(u16, cast(i32, table.metadata[prev]) & ~0x07FF | table.metadata[bucket] & 0x07FF);
     u64 empty;
     u16 displacement;
     if b3RecTagLookup_find_first_empty(table, home_bucket, &empty, &displacement) == 0 {
@@ -45173,7 +45154,7 @@ bool b3RecTagLookup_evict(b3RecTagLookup* table, u64 bucket) {
     prev = b3RecTagLookup_find_insert_location_in_chain(table, home_bucket, displacement);
     table.buckets[empty] = table.buckets[bucket];
     table.metadata[empty] = table.metadata[bucket] & 0xF000 | table.metadata[prev] & 0x07FF;
-    table.metadata[prev] = cast(u16, table.metadata[prev] & ~0x07FF | displacement);
+    table.metadata[prev] = cast(u16, cast(i32, table.metadata[prev]) & ~0x07FF | displacement);
     return true;
 }
 
@@ -45247,7 +45228,7 @@ b3RecTagLookup_itr b3RecTagLookup_insert_raw(b3RecTagLookup* table, u64 key, u32
     table.buckets[empty].key = key;
     table.buckets[empty].val = *val;
     table.metadata[empty] = hashfrag | table.metadata[prev] & 0x07FF;
-    table.metadata[prev] = cast(u16, table.metadata[prev] & ~0x07FF | displacement);
+    table.metadata[prev] = cast(u16, cast(i32, table.metadata[prev]) & ~0x07FF | displacement);
     ++table.key_count;
     var itr = b3RecTagLookup_itr{
         table.buckets + empty, table.metadata + empty, table.metadata + table.buckets_mask + 1,
@@ -45386,7 +45367,7 @@ bool b3RecTagLookup_erase_itr_raw(b3RecTagLookup* table, b3RecTagLookup_itr itr)
         bucket = itr.home_bucket + vt_quadratic(table.metadata[bucket] & 0x07FF) & table.buckets_mask;
         if (table.metadata[bucket] & 0x07FF) == 0x07FF {
             table.buckets[itr_bucket] = table.buckets[bucket];
-            table.metadata[itr_bucket] = cast(u16, table.metadata[itr_bucket] & ~0xF000 | table.metadata[bucket] & 0xF000);
+            table.metadata[itr_bucket] = cast(u16, cast(i32, table.metadata[itr_bucket]) & ~0xF000 | table.metadata[bucket] & 0xF000);
             table.metadata[prev] |= 0x07FF;
             table.metadata[bucket] = 0x0000;
             if bucket > itr_bucket {
@@ -49344,6 +49325,7 @@ f32 b3IntersectRayTriangle(b3V32 rayStart, b3V32 rayDelta, b3V32 vertex1, b3V32 
 // these are useful for solver testing
 private {
 void b3Pause() {
+    _mm_pause();
 }
 
 // Integrate velocities, apply damping, and gyroscopic torque
@@ -50235,9 +50217,9 @@ void b3Solve(b3World* world, b3StepContext* stepContext) {
         }
         overflow.contactConstraints = cast(b3ContactConstraint*, b3StackAlloc(&world.stack, cast(i32, overflowCount * sizeof(b3ContactConstraint)), "overflow contacts"));
         overflow.manifoldConstraints = cast(b3ManifoldConstraint*, b3StackAlloc(&world.stack, cast(i32, overflowManifoldCount * sizeof(b3ManifoldConstraint)), "overflow manifolds"));
-        noinit b3WidePrepareSpan[25] widePrepareSpans;
-        noinit b3ContactPrepareSpan[25] contactPrepareSpans;
-        noinit b3JointPrepareSpan[25] jointPrepareSpans;
+        noinit b3WidePrepareSpan[24 + 1] widePrepareSpans;
+        noinit b3ContactPrepareSpan[24 + 1] contactPrepareSpans;
+        noinit b3JointPrepareSpan[24 + 1] jointPrepareSpans;
         {
             i32 wideBase = 0;
             i32 contactBase = 0;
@@ -52609,8 +52591,8 @@ f32 b3CollideTriangleFace(b3LocalManifold* manifold, i32 pointCapacity, b3Triang
     b3Vec3* hullPoints = b3GetHullPoints(hull);
     b3Plane refPlane = triangle.plane;
     i32 incFace = b3FindIncidentFace(hull, refPlane.normal, query.indexB);
-    noinit b3ClipVertex[128] buffer1;
-    noinit b3ClipVertex[128] buffer2;
+    noinit b3ClipVertex[2 * 64] buffer1;
+    noinit b3ClipVertex[2 * 64] buffer2;
     i32 pointCount = 0;
     b3HullFace* face = hullFaces + incFace;
     var hullEdgeIndex = cast(i32, face.edge);

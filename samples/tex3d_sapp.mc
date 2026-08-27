@@ -53,8 +53,6 @@ enum __enum_ATTR_cube_position {
     __shim_end = 255,
 }
 
-type __arr_u32_32 = u32[32];
-type __arr___arr_u32_32_32 = __arr_u32_32[32];
 // Replaces the sokol-shdc generated tex3d-sapp.glsl.h.
 struct vs_params_t {
     mat44_t mvp;
@@ -193,5 +191,5 @@ sapp_desc __sapp_sample_main() {
 }
 private {
 u32 xorshift32__x = 0x12345678;
-__arr___arr_u32_32_32[32] init__pixels;
+u32:[32][32][32] init__pixels;
 }

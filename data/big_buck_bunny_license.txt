@@ -1,0 +1,9 @@
+Big Buck Bunny
+(c) copyright 2008, Blender Foundation | peach.blender.org
+
+Licensed under the Creative Commons Attribution 3.0 Unported licence:
+https://creativecommons.org/licenses/by/3.0/
+
+Modified: a 45-second excerpt (1:00 to 1:45) of the 640x360 master,
+re-encoded to MPEG-1 video (512x288, 24 fps) with MP2 audio, the format
+pl_mpeg decodes.

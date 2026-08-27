@@ -69,7 +69,6 @@ enum __enum_ATTR_bg_position {
     __shim_end = 255,
 }
 
-type __arr_sg_pipeline_15 = sg_pipeline[15];
 // Replaces the sokol-shdc generated blend-sapp.glsl.h.
 struct bg_fs_params_t {
     f32 tick;
@@ -83,7 +82,7 @@ struct quad_vs_params_t {
 private struct state_t {
     sg_pass_action pass_action;
     sg_bindings bind;
-    __arr_sg_pipeline_15[15] pips;
+    sg_pipeline:[15][15] pips;
     sg_pipeline bg_pip;
     f32 r;
     quad_vs_params_t quad_vs_params;

@@ -26,7 +26,7 @@ enum loadstate_t {
 private struct state_t {
     loadstate_t load_state;
     i32 size;
-    u8[1048576] buffer;
+    u8[1024 * 1024] buffer;
 }
 
 private {

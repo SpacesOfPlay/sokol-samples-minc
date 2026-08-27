@@ -73,7 +73,6 @@ enum __enum_UB_vs_params {
     __shim_end = 255,
 }
 
-type __arr_u8_4 = u8[4];
 // Replaces the sokol-shdc generated sbuftex-sapp.glsl.h.
 struct vs_params_t {
     mat44_t mvp;
@@ -175,7 +174,7 @@ void init() {
         .storage_buffer = sg_buffer_view_desc{.buffer = cbuf},
         .label = "color-palette-view",
     });
-    __arr_u8_4[4] pixels = {
+    u8:[4][4] pixels = {
         {0xFF, 0xCC, 0x88, 0x44},
         {0xCC, 0x88, 0x44, 0xFF},
         {0x88, 0x44, 0xFF, 0xCC},

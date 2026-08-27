@@ -1,4 +1,4 @@
-// sokol_letterbox
+// sokol_letterbox : transpiled from sokol_letterbox.h
 import sokol_all;
 
 /*

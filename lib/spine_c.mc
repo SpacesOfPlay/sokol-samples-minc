@@ -1,4 +1,4 @@
-// spine_c
+// spine_c : transpiled from the spine-c runtime
 
 
 private {

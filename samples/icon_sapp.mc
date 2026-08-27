@@ -116,9 +116,9 @@ void fill_arrow_pixels(u32* pixels, u32 w, u32 h) {
 }
 
 void set_user_icon() {
-    noinit u32[256] small;
-    noinit u32[1024] medium;
-    noinit u32[4096] big;
+    noinit u32[16 * 16] small;
+    noinit u32[32 * 32] medium;
+    noinit u32[64 * 64] big;
     fill_arrow_pixels(small, 16, 16);
     fill_arrow_pixels(medium, 32, 32);
     fill_arrow_pixels(big, 64, 64);

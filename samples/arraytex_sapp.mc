@@ -64,8 +64,6 @@ enum __enum_ATTR_arraytex_position {
     __shim_end = 255,
 }
 
-type __arr_u32_16 = u32[16];
-type __arr___arr_u32_16_16 = __arr_u32_16[16];
 // Replaces the sokol-shdc generated arraytex-sapp.glsl.h.
 struct vs_params_t {
     mat44_t mvp;
@@ -233,4 +231,4 @@ sapp_desc __sapp_sample_main() {
         .logger = sapp_logger{.func = slog_func},
     };
 }
-private { __arr___arr_u32_16_16[3] init__pixels; }
+private { u32:[3][16][16] init__pixels; }

@@ -81,7 +81,6 @@ enum __enum_ATTR_cube_pos {
     __shim_end = 255,
 }
 
-type __arr_u32_8 = u32[8];
 // Replaces the sokol-shdc generated pixelformats-sapp.glsl.h.
 struct cube_vs_params_t {
     mat44_t mvp;
@@ -135,7 +134,7 @@ ImTextureRef imtexref(ImTextureID tex_id) {
     return ImTextureRef{._TexID = tex_id};
 }
 // a 'disabled' texture pattern with a cross
-__arr_u32_8[8] disabled_texture_pixels = {
+u32:[8][8] disabled_texture_pixels = {
     {0xFF0000FF, 0xFFCCCCCC, 0xFFCCCCCC, 0xFFCCCCCC, 0xFFCCCCCC, 0xFFCCCCCC, 0xFFCCCCCC, 0xFF0000FF},
     {0xFFCCCCCC, 0xFF0000FF, 0xFFCCCCCC, 0xFFCCCCCC, 0xFFCCCCCC, 0xFFCCCCCC, 0xFF0000FF, 0xFFCCCCCC},
     {0xFFCCCCCC, 0xFFCCCCCC, 0xFF0000FF, 0xFFCCCCCC, 0xFFCCCCCC, 0xFF0000FF, 0xFFCCCCCC, 0xFFCCCCCC},
@@ -487,7 +486,7 @@ image_and_views_t make_image_and_views(sg_image_desc* img_desc, bool has_tex_vie
     return res;
 }
 // generate checkerboard pixel values
-u8[1024] pixels;
+u8[8 * 8 * 16] pixels;
 
 void gen_pixels_8(u8 val) {
     u8* ptr = pixels;

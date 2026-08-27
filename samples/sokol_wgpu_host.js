@@ -693,25 +693,47 @@
   // saudio module (ported from the GLES3 host): sokol_audio's web backend.
   // sokol_fetch glue: requests start here, responses call the
   // _sfetch_emsc_* exports, bytes land in the caller's buffer.
+  // full-body fallback store for servers without HEAD or Range support
+  const _sfetchBodies = new Map();
   const sfetch = wrap({
     sfetch_js_send_head_request: (slot_id, path_cstr) => {
       const slot = BigInt(slot_id);
       const path = cstr(N(path_cstr));
+      // Chunked streaming needs HEAD and Range support. Fallback: download the whole file
+      // once, keep it per path, and serve the chunks from that copy.
+      const fullDownload = () => {
+        const body = fetch(path, { method: 'GET' }).then((r) => {
+          if (!r.ok) throw { status: r.status };
+          return r.arrayBuffer();
+        });
+        _sfetchBodies.set(path, body);
+        body.then((data) => {
+          if (exp) exp.sfetch_emsc_head_response(slot, BigInt(data.byteLength));
+        }).catch((err) => {
+          _sfetchBodies.delete(path);
+          if (!exp) return;
+          if (err && err.status) {
+            exp.sfetch_emsc_failed_http_status(slot, BigInt(err.status));
+          } else {
+            console.error(`sokol_fetch: GET ${path} failed with: `, err);
+            exp.sfetch_emsc_failed_other(slot);
+          }
+        });
+      };
+      const cached = _sfetchBodies.get(path);
+      if (cached) {
+        cached.then((data) => {
+          if (exp) exp.sfetch_emsc_head_response(slot, BigInt(data.byteLength));
+        }).catch(() => { if (exp) exp.sfetch_emsc_failed_other(slot); });
+        return;
+      }
       fetch(path, { method: 'HEAD' }).then((response) => {
-        if (!exp) return;
-        if (!response.ok) {
-          exp.sfetch_emsc_failed_http_status(slot, BigInt(response.status));
-          return;
-        }
-        const len = response.headers.get('Content-Length');
         // a range request needs the total size up front; without
         // Content-Length there is nothing to chunk against
-        if (len === null) exp.sfetch_emsc_failed_other(slot);
-        else exp.sfetch_emsc_head_response(slot, BigInt(len));
-      }).catch((err) => {
-        console.error(`sokol_fetch: HEAD ${path} failed with: `, err);
-        if (exp) exp.sfetch_emsc_failed_other(slot);
-      });
+        const len = response.ok ? response.headers.get('Content-Length') : null;
+        if (len === null) { fullDownload(); return; }
+        if (exp) exp.sfetch_emsc_head_response(slot, BigInt(len));
+      }).catch(() => fullDownload());
     },
     // bytes_to_read != 0 asks for a range, otherwise the whole file
     sfetch_js_send_get_request: (slot_id, path_cstr, offset, bytes_to_read, buf_ptr, buf_size) => {
@@ -719,6 +741,27 @@
       const path = cstr(N(path_cstr));
       const off = N(offset), want = N(bytes_to_read);
       const dst = N(buf_ptr), cap = N(buf_size);
+      const deliver = (bytes, rangeAdvance) => {
+        if (!exp) return;
+        if (bytes.length > cap) {
+          exp.sfetch_emsc_failed_buffer_too_small(slot);
+          return;
+        }
+        // re-read the view: the heap may have grown while the request
+        // was in flight, detaching any earlier buffer
+        new Uint8Array(memory.buffer).set(bytes, dst);
+        exp.sfetch_emsc_get_response(slot, BigInt(rangeAdvance), BigInt(bytes.length));
+      };
+      const sliceFromCache = (data) => {
+        const full = new Uint8Array(data);
+        const chunk = full.subarray(off, Math.min(off + want, full.length));
+        deliver(chunk, chunk.length);
+      };
+      const cached = want > 0 ? _sfetchBodies.get(path) : undefined;
+      if (cached) {
+        cached.then(sliceFromCache).catch(() => { if (exp) exp.sfetch_emsc_failed_other(slot); });
+        return;
+      }
       const headers = new Headers();
       if (want > 0) headers.append('Range', `bytes=${off}-${off + want - 1}`);
       fetch(path, { method: 'GET', headers }).then((response) => {
@@ -727,18 +770,14 @@
           exp.sfetch_emsc_failed_http_status(slot, BigInt(response.status));
           return;
         }
-        return response.arrayBuffer().then((data) => {
-          if (!exp) return;
-          const bytes = new Uint8Array(data);
-          if (bytes.length > cap) {
-            exp.sfetch_emsc_failed_buffer_too_small(slot);
-            return;
-          }
-          // re-read the view: the heap may have grown while the request
-          // was in flight, detaching any earlier buffer
-          new Uint8Array(memory.buffer).set(bytes, dst);
-          exp.sfetch_emsc_get_response(slot, BigInt(want), BigInt(bytes.length));
-        });
+        if (want > 0 && response.status !== 206) {
+          // the server ignored the Range header and sent the whole file;
+          // keep the body and slice chunks from it
+          const body = response.arrayBuffer();
+          _sfetchBodies.set(path, body);
+          return body.then(sliceFromCache);
+        }
+        return response.arrayBuffer().then((data) => deliver(new Uint8Array(data), want));
       }).catch((err) => {
         console.error(`sokol_fetch: GET ${path} failed with: `, err);
         if (exp) exp.sfetch_emsc_failed_other(slot);

@@ -5,9 +5,11 @@
 // For samples using shader features WebGL2 (GLSL ES 3.0) lacks:
 // multisample textures and sample_mask() are ES 3.1 / 3.2. Native
 // targets are unaffected.
+//
+// sokol_all maps this to SOKOL_WGPU, so the backend and the @shader
+// dialect cannot drift apart.
 when os(wasm) {
     @gpu "webgpu"
-    @define "SOKOL_WGPU"
 }
 
 import dbgui;

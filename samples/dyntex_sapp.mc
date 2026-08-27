@@ -74,7 +74,6 @@ enum __enum_ATTR_dyntex_position {
     __shim_end = 255,
 }
 
-type __arr_u32_64 = u32[64];
 // Replaces the sokol-shdc generated dyntex-sapp.glsl.h.
 struct vs_params_t {
     mat44_t mvp;
@@ -88,7 +87,7 @@ private struct state_t {
     f32 rx;
     f32 ry;
     i32 update_count;
-    __arr_u32_64[64] pixels;
+    u32:[64][64] pixels;
 }
 
 private { state_t state; }

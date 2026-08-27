@@ -74,7 +74,6 @@ enum __enum_BOX {
     NUM_SHAPES = 5,
 }
 
-type __arr_f32_4 = f32[4];
 // Replaces the sokol-shdc generated shapes-sapp.glsl.h.
 struct vs_params_t {
     mat44_t mvp;
@@ -116,7 +115,7 @@ void init() {
     state.shapes[SPHERE].pos = vec3(-2.0f, -1.0f, 0.0f);
     state.shapes[CYLINDER].pos = vec3(2.0f, -1.0f, 0.0f);
     state.shapes[TORUS].pos = vec3(0.0f, -1.0f, 0.0f);
-    noinit u16[16384] indices;
+    noinit u16[16 * 1024] indices;
     var shp = sshape_state_t{
         .vertices = sshape_buffer_state_t{.buffer = sshape_range_t{&init__vertices, sizeof(init__vertices)}},
         .indices = sshape_buffer_state_t{.buffer = sshape_range_t{&indices, sizeof(indices)}},

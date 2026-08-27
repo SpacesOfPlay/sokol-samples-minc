@@ -1,4 +1,4 @@
-// qoi
+// qoi : transpiled from qoi.h
 
 /*
 

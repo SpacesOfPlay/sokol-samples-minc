@@ -1,6 +1,4 @@
-// vecmath
-
-// vecmath : transpiled from libs/vecmath/vecmath.h
+// vecmath : transpiled from vecmath.h
 
 import math;
 

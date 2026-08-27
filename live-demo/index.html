@@ -107,6 +107,8 @@ const CATS = [
     { id: 'uvwrap_sapp', wgpu: true },
     { id: 'loadpng_sapp', wgpu: true },
     { id: 'cubemap_jpeg_sapp', wgpu: true },
+    { id: 'plmpeg_sapp', wgpu: true,
+      note: 'Click or press a key first; browsers unlock audio on input.' },
     { id: 'writeimage_sapp', wgpu: true },
     { id: 'pixelformats_sapp', wgpu: true },
   ]},
@@ -128,7 +130,7 @@ const CATS = [
     { id: 'shadows_depthtex_sapp', wgpu: true },
     { id: 'vertextexture_sapp', wgpu: true },
     { id: 'compositemode_sapp', wgpu: true,
-      note: 'Web and macOS are the two platforms that support this.' },
+      note: 'Supported on Web and macOS.' },
   ]},
   { name: 'pipelines & app', blurb: 'Blend states, instancing, shader effects, audio, drag’n’drop', items: [
     { id: 'blend_sapp', wgpu: true },
@@ -154,6 +156,10 @@ const CATS = [
     { id: 'sgl_points_sapp', wgpu: true },
     { id: 'sgl_context_sapp', wgpu: true },
     { id: 'sgl_boing_sapp', wgpu: true },
+  ]},
+  { name: 'sokol_fontstash', blurb: 'TrueType text: fontstash + stb_truetype, transpiled', items: [
+    { id: 'fontstash_sapp', wgpu: true },
+    { id: 'fontstash_layers_sapp', wgpu: true },
   ]},
   { name: 'sokol_debugtext', blurb: 'Font rendering', items: [
     { id: 'debugtext_sapp', wgpu: true },

@@ -1,4 +1,4 @@
-// sokol_shape
+// sokol_shape : transpiled from sokol_shape.h
 import sokol_all;
 
 enum __enum_SSHAPE_MIN_VERTEX_SIZE {
@@ -6,7 +6,6 @@ enum __enum_SSHAPE_MIN_VERTEX_SIZE {
     SSHAPE_MAX_VERTEX_SIZE = 24,
 }
 
-type __arr_f32_4 = f32[4];
 /*
     sshape_range_t is a pointer-size-pair struct used to pass memory
     blobs into sokol-shape. When initialized from a value type
@@ -20,7 +19,7 @@ struct sshape_range_t {
 
 // a 4x4 matrix wrapper struct
 struct sshape_mat4_t {
-    __arr_f32_4[4] m;
+    f32:[4][4] m;
 }
 
 // a struct for configuring optional vertex components
