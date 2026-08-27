@@ -803,23 +803,51 @@
       gain.gain.value = 1.0; node.connect(gain); gain.connect(_saCtx.destination);
       _saGain = gain; _saNode = node; _saBufFrames = bs;
 
+      // Back-pressure producer.
+      // Late audio is dropped.
       const bufDurS = bs / sr, targetLatencyS = Math.max(0.05, 2 * bufDurS);
-      let pushedTime = 0;
+      let pushedTime = _saCtx.currentTime;
+      let audioDebt = 0;
+      const isSilent = (heap, base, samples) => {
+        for (let i = 0; i < samples; i += 61) { if (heap[base + i] !== 0) return false; }
+        return true;
+      };
       const pullOne = () => {
         const ptr = exp._saudio_emsc_pull(bs); if (!ptr) return false;
+        if (audioDebt >= bufDurS) { audioDebt -= bufDurS; return true; }
         const samples = bs * nc, heap = new Float32Array(memory.buffer), base = N(ptr) >> 2;
         const copy = new Float32Array(samples); copy.set(heap.subarray(base, base + samples));
         _saNode.port.postMessage(copy); pushedTime += bufDurS; return true;
       };
       _saProducer = setInterval(() => {
         if (!_saNode || !_saCtx) return;
-        if (pushedTime < _saCtx.currentTime) pushedTime = _saCtx.currentTime;
+        if (pushedTime < _saCtx.currentTime) {
+          if (_saCtx.state === 'running') audioDebt = Math.min(4, audioDebt + (_saCtx.currentTime - pushedTime));
+          pushedTime = _saCtx.currentTime;
+        }
         let n = 0;
         while (pushedTime - _saCtx.currentTime < targetLatencyS && n < 8) { if (!pullOne()) break; n++; }
       }, Math.max(5, Math.floor(bufDurS * 1000 / 3)));
 
+      const flushStale = () => {
+        for (let n = 0; n < 64; n++) {
+          const ptr = exp._saudio_emsc_pull(bs);
+          if (!ptr) break;
+          if (isSilent(new Float32Array(memory.buffer), N(ptr) >> 2, bs * nc)) break;
+        }
+        if (_saNode) _saNode.port.postMessage('flush');
+        pushedTime = _saCtx ? _saCtx.currentTime : 0;
+        audioDebt = 0;
+      };
       const resume = () => { if (_saCtx && (_saCtx.state === 'suspended' || _saCtx.state === 'interrupted')) _saCtx.resume().catch(() => {}); };
-      resume(); _saCtx.onstatechange = resume;
+      let wasRunning = _saCtx.state === 'running';
+      resume();
+      _saCtx.onstatechange = () => {
+        const running = _saCtx && _saCtx.state === 'running';
+        if (running && !wasRunning) flushStale();
+        wasRunning = running;
+        resume();
+      };
       document.addEventListener('click', resume);
       document.addEventListener('touchend', resume);
       document.addEventListener('keydown', resume);

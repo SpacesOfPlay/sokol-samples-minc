@@ -843,12 +843,25 @@ SOKOL.makeImports = function() {
                 SOKOL._saudioNumChannels = nc;
 
                 // Producer with AudioContext-clock back-pressure.
+                // Late audio is dropped.
                 const bufferDurationS = bs / sr;
                 const targetLatencyS = Math.max(0.05, 2 * bufferDurationS);
-                let pushedTime = 0;
+                let pushedTime = SOKOL._saudioCtx.currentTime;
+                let audioDebt = 0;
+                const isSilent = (heap, base, samples) => {
+                    for (let i = 0; i < samples; i += 61) {
+                        if (heap[base + i] !== 0) return false;
+                    }
+                    return true;
+                };
                 const pullOne = () => {
                     const ptr = SOKOL.instance.exports._saudio_emsc_pull(bs);
                     if (!ptr) return false;
+                    if (audioDebt >= bufferDurationS) {
+                        // behind the clock by a full buffer: drop, not queue
+                        audioDebt = audioDebt - bufferDurationS;
+                        return true;
+                    }
                     const samples = bs * nc;
                     const heap = new Float32Array(SOKOL.instance.exports.memory.buffer);
                     const base = ptr >> 2;
@@ -863,7 +876,14 @@ SOKOL.makeImports = function() {
                     if (!SOKOL.instance || !SOKOL._saudioNode) return;
                     const ctx = SOKOL._saudioCtx;
                     if (!ctx) return;
-                    if (pushedTime < ctx.currentTime) pushedTime = ctx.currentTime;
+                    if (pushedTime < ctx.currentTime) {
+                        // the gap played as silence; drop that much audio so
+                        // the stream re-syncs instead of lagging forever
+                        if (ctx.state === 'running') {
+                            audioDebt = Math.min(4, audioDebt + (ctx.currentTime - pushedTime));
+                        }
+                        pushedTime = ctx.currentTime;
+                    }
                     let n = 0;
                     while (pushedTime - ctx.currentTime < targetLatencyS && n < 8) {
                         if (!pullOne()) break;
@@ -871,15 +891,35 @@ SOKOL.makeImports = function() {
                     }
                 }, periodMs);
 
-                // Resume on user gesture.
+                // Resume on user gesture. Audio queued while suspended is
+                // stale.
+                const flushStale = () => {
+                    if (SOKOL.instance) {
+                        for (let n = 0; n < 64; n++) {
+                            const ptr = SOKOL.instance.exports._saudio_emsc_pull(bs);
+                            if (!ptr) break;
+                            const heap = new Float32Array(SOKOL.instance.exports.memory.buffer);
+                            if (isSilent(heap, ptr >> 2, bs * nc)) break;
+                        }
+                    }
+                    if (SOKOL._saudioNode) SOKOL._saudioNode.port.postMessage('flush');
+                    pushedTime = SOKOL._saudioCtx ? SOKOL._saudioCtx.currentTime : 0;
+                    audioDebt = 0;
+                };
                 const resume = () => {
                     const ctx = SOKOL._saudioCtx;
                     if (ctx && (ctx.state === 'suspended' || ctx.state === 'interrupted')) {
                         ctx.resume().catch(() => {});
                     }
                 };
+                let wasRunning = SOKOL._saudioCtx.state === 'running';
                 resume();
-                SOKOL._saudioCtx.onstatechange = resume;
+                SOKOL._saudioCtx.onstatechange = () => {
+                    const running = SOKOL._saudioCtx && SOKOL._saudioCtx.state === 'running';
+                    if (running && !wasRunning) flushStale();
+                    wasRunning = running;
+                    resume();
+                };
                 document.addEventListener('click', resume);
                 document.addEventListener('touchend', resume);
                 document.addEventListener('keydown', resume);
