@@ -41,9 +41,6 @@ u8 _BitScanReverse(u32* index, u32 mask) {
     return 1;
 }
 
-bool isnan(f32 x) { return x != x; }
-bool isinf(f32 x) { return x == x && (x - x) != 0.0f; }
-
 // runtime support for box3d: a portable FILE* layer, MSVC atomic 
 // intrinsics, and math/string helpers.
 
@@ -74,7 +71,7 @@ void* __b3_fopen(u8* name, u8* mode) {
         fp.buf = null;
         fp.size = 0;
         fp.writing = 1;
-        return cast(void*, fp);
+        return fp;
     }
     // read: pull the whole file into a growing buffer, then drop the fd
     fp.fd = 0 - 1;
@@ -98,7 +95,7 @@ void* __b3_fopen(u8* name, u8* mode) {
     close(fd);
     fp.buf = buf;
     fp.size = len;
-    return cast(void*, fp);
+    return fp;
 }
 
 i32 __b3_fclose(void* f) {
@@ -106,7 +103,7 @@ i32 __b3_fclose(void* f) {
     if fp == null { return 0; }
     if fp.writing != 0 { close(fp.fd); }
     if fp.buf != null { free(fp.buf); }
-    free(cast(void*, fp));
+    free(fp);
     return 0;
 }
 

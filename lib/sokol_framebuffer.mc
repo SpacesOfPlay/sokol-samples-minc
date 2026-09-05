@@ -716,7 +716,7 @@ u8*[13] _sfb_log_messages = {
 void _sfb_log(_sfb_log_item_t log_item, u32 log_level, u8* msg, u32 line_nr) {
     if _sfb.desc.logger.func != null {
         u8* filename = null;
-        filename = "sokol_framebuffer.h";
+        filename = __file__;
         if null == msg {
             msg = _sfb_log_messages[log_item];
         }
@@ -743,7 +743,7 @@ void* _sfb_malloc(u64 size) {
         ptr = alloc(cast(i64, size));
     }
     if null == ptr {
-        _sfb_log(_SFB_LOGITEM_MALLOC_FAILED, 0, null, 4727);
+        _sfb_log(_SFB_LOGITEM_MALLOC_FAILED, 0, null, __line__);
     }
     return ptr;
 }
@@ -880,7 +880,7 @@ sfb_framebuffer _sfb_alloc_framebuffer() {
         res.id = _sfb_slot_alloc(&_sfb.pools.framebuffer_pool, &_sfb.pools.framebuffers[slot_index].slot, slot_index);
     } else {
         res.id = cast(u32, SFB_INVALID_ID);
-        _sfb_log(_SFB_LOGITEM_FRAMEBUFFER_POOL_EXHAUSTED, 1, null, 4728);
+        _sfb_log(_SFB_LOGITEM_FRAMEBUFFER_POOL_EXHAUSTED, 1, null, __line__);
     }
     return res;
 }
@@ -982,12 +982,12 @@ void _sfb_init_framebuffer(_sfb_framebuffer_t* fb, sfb_framebuffer_desc* desc) {
     assert(fb && fb.slot.state == SFB_RESOURCESTATE_ALLOC);
     assert(cast(i64, desc));
     if desc.width <= 0 {
-        _sfb_log(_SFB_LOGITEM_INVALID_FRAMEBUFFER_WIDTH, 1, null, 4728);
+        _sfb_log(_SFB_LOGITEM_INVALID_FRAMEBUFFER_WIDTH, 1, null, __line__);
         fb.slot.state = SFB_RESOURCESTATE_FAILED;
         return;
     }
     if desc.height <= 0 {
-        _sfb_log(_SFB_LOGITEM_INVALID_FRAMEBUFFER_HEIGHT, 1, null, 4728);
+        _sfb_log(_SFB_LOGITEM_INVALID_FRAMEBUFFER_HEIGHT, 1, null, __line__);
         fb.slot.state = SFB_RESOURCESTATE_FAILED;
         return;
     }
@@ -1043,22 +1043,22 @@ void _sfb_discard_all_resources() {
 
 bool _sfb_validate_update(_sfb_framebuffer_t* fb, sfb_update_desc* desc) {
     if fb == null {
-        _sfb_log(_SFB_LOGITEM_UPDATE_INVALID_FRAMEBUFFER_HANDLE, 1, null, 4728);
+        _sfb_log(_SFB_LOGITEM_UPDATE_INVALID_FRAMEBUFFER_HANDLE, 1, null, __line__);
         return false;
     }
     if fb.slot.state != SFB_RESOURCESTATE_VALID {
-        _sfb_log(_SFB_LOGITEM_UPDATE_FRAMEBUFFER_RESOURCESTATE_NOT_VALID, 1, null, 4728);
+        _sfb_log(_SFB_LOGITEM_UPDATE_FRAMEBUFFER_RESOURCESTATE_NOT_VALID, 1, null, __line__);
         return false;
     }
     if desc.pixels.ptr != null {
         if fb.format == SFB_FORMAT_PALETTE8 {
             if desc.pixels.size != cast(u64, fb.width * fb.height) {
-                _sfb_log(_SFB_LOGITEM_UPDATE_PIXEL_RANGE_SIZE_PALETTE8, 1, null, 4728);
+                _sfb_log(_SFB_LOGITEM_UPDATE_PIXEL_RANGE_SIZE_PALETTE8, 1, null, __line__);
                 return false;
             }
         } else {
             if desc.pixels.size != cast(u64, fb.width * fb.height * 4) {
-                _sfb_log(_SFB_LOGITEM_UPDATE_PIXEL_RANGE_SIZE_RGBA8, 1, null, 4728);
+                _sfb_log(_SFB_LOGITEM_UPDATE_PIXEL_RANGE_SIZE_RGBA8, 1, null, __line__);
                 return false;
             }
         }
@@ -1066,7 +1066,7 @@ bool _sfb_validate_update(_sfb_framebuffer_t* fb, sfb_update_desc* desc) {
     if desc.palette.ptr != null {
         if fb.format == SFB_FORMAT_PALETTE8 {
             if desc.palette.size != cast(u64, 256 * sizeof(u32)) {
-                _sfb_log(_SFB_LOGITEM_UPDATE_PALETTE_RANGE_SIZE, 1, null, 4728);
+                _sfb_log(_SFB_LOGITEM_UPDATE_PALETTE_RANGE_SIZE, 1, null, __line__);
                 return false;
             }
         }
@@ -1125,11 +1125,11 @@ void _sfb_destroy_samplers() {
 void _sfb_render(_sfb_framebuffer_t* fb, sfb_render_desc* desc) {
     assert(cast(i64, desc));
     if fb == null {
-        _sfb_log(_SFB_LOGITEM_RENDER_EX_INVALID_FRAMEBUFFER_HANDLE, 1, null, 4728);
+        _sfb_log(_SFB_LOGITEM_RENDER_EX_INVALID_FRAMEBUFFER_HANDLE, 1, null, __line__);
         return;
     }
     if fb.slot.state != SFB_RESOURCESTATE_VALID {
-        _sfb_log(_SFB_LOGITEM_RENDER_EX_FRAMEBUFFER_RESOURCESTATE_NOT_VALID, 1, null, 4728);
+        _sfb_log(_SFB_LOGITEM_RENDER_EX_FRAMEBUFFER_RESOURCESTATE_NOT_VALID, 1, null, __line__);
         return;
     }
     sg_pipeline pip = desc.pip.id != cast(u32, SG_INVALID_ID) ? desc.pip : fb.render_pip;

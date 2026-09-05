@@ -65,7 +65,7 @@ void init() {
 rgb_t compute_color(f32 t) {
     var i0 = cast(u8, cast(u8, t * 16.0f) % 16);
     var i1 = cast(u8, (i0 + 1) % 16);
-    f32 l = fmodf(t * 16.0f, 1.0f);
+    f32 l = fmod(t * 16.0f, 1.0f);
     rgb_t c0 = palette[i0];
     rgb_t c1 = palette[i1];
     return rgb_t{
@@ -75,16 +75,16 @@ rgb_t compute_color(f32 t) {
 
 void frame() {
     var frame_count = cast(i32, sapp_frame_count());
-    f32 angle = fmodf(cast(f32, frame_count), 360.0f);
+    f32 angle = fmod(cast(f32, frame_count), 360.0f);
     sgl_defaults();
     sgl_begin_points();
     f32 psize = 5.0f;
     for i32 i = 0; i < 300; i++ {
         f32 a = sgl_rad(angle + cast(f32, i));
-        rgb_t color = compute_color(fmodf(cast(f32, frame_count + i), 300.0f) / 300.0f);
-        f32 r = sinf(a * 4.0f);
-        f32 s = sinf(a);
-        f32 c = cosf(a);
+        rgb_t color = compute_color(fmod(cast(f32, frame_count + i), 300.0f) / 300.0f);
+        f32 r = sin(a * 4.0f);
+        f32 s = sin(a);
+        f32 c = cos(a);
         f32 x = s * r;
         f32 y = c * r;
         sgl_c3f(color.r, color.g, color.b);

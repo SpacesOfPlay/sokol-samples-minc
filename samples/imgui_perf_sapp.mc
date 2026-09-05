@@ -94,8 +94,8 @@ void frame() {
     for i32 i = 0; i < state.num_windows; i++ {
         f32 t = state.counter + cast(f32, i) * 2.0f;
         f32 r = cast(f32, i) / cast(f32, max_windows);
-        f32 x = fwidth * (0.5f + r * 0.5f * 0.75f * sinf(t * 0.05f));
-        f32 y = fheight * (0.5f + r * 0.5f * 0.75f * cosf(t * 0.05f));
+        f32 x = fwidth * (0.5f + r * 0.5f * 0.75f * sin(t * 0.05f));
+        f32 y = fheight * (0.5f + r * 0.5f * 0.75f * cos(t * 0.05f));
         noinit u8[64] name;
         snprintf(name, sizeof(name), "Hello ImGui %d", i);
         ImGui_SetNextWindowPos(ImVec2{x, y}, ImGuiCond_Always);

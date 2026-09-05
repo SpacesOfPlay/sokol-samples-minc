@@ -286,8 +286,8 @@ void blur(i32 flip, sg_view dst_simg_view, sg_view src_tex_view) {
     };
     var src_width = cast(f32, flip != 0 ? state.src_height : state.src_width);
     var src_height = cast(f32, flip != 0 ? state.src_width : state.src_height);
-    var num_workgroups_x = cast(i32, ceilf(src_width / cast(f32, cs_params.block_dim)));
-    var num_workgroups_y = cast(i32, ceilf(src_height / cast(f32, batch)));
+    var num_workgroups_x = cast(i32, ceil(src_width / cast(f32, cs_params.block_dim)));
+    var num_workgroups_y = cast(i32, ceil(src_height / cast(f32, batch)));
     sg_apply_bindings(&sg_bindings{
         .views[0] = src_tex_view,
         .views[1] = dst_simg_view,

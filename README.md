@@ -54,20 +54,14 @@ mirrors `data/` into `build/web/`.
 - `samples/*.mc`: one file per sample: the sample logic transpiled
   from upstream C, concatenated with the transpiled util modules it
   needs (sokol_gl, sokol_debugtext, sokol_fetch, sokol_spine, the
-  spine-c runtime, …). Shaders are minc `@shader` functions; the
-  sokol-shdc GLSL was ported, not embedded as bytecode blobs.
+  spine-c runtime, …). Shaders are minc `@shader` functions ported
+  from the sokol-shdc GLSL.
 
 - `data/`: texture / spine assets the samples fetch at runtime
   (see `data/README.txt` for their licenses).
 
-- `samples/sokol_wasm_host.js`: the browser-side host for `minc wasm`.
-  `minc` looks for it next to the sample before falling back to the
-  copy inside your install, so the samples get the version they need
-  regardless of which minc you have.
-
-- `lib/`: Box3D, which `box3d_simple_sapp` imports and the minc
-  standard library does not ship. `minc` searches `lib/` next to the
-  project before its own.
+- `lib/`: Sokol headers, Box3D, and other libraries used by the 
+   samples.
 
 - `build.mc`: the build driver (`minc run <name>`, `minc build all`).
 

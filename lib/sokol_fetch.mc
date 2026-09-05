@@ -1210,7 +1210,7 @@ u8*[14] _sfetch_log_messages = {
 
 void _sfetch_log(sfetch_log_item_t log_item, u32 log_level, u32 line_nr) {
     if _sfetch.desc.logger.func != null {
-        u8* filename = "sokol_fetch.h";
+        u8* filename = __file__;
         u8* message = _sfetch_log_messages[log_item];
         _sfetch.desc.logger.func("sfetch", log_level, cast(u32, log_item), message, line_nr, filename, _sfetch.desc.logger.user_data);
     } else {
@@ -1239,7 +1239,7 @@ void* _sfetch_malloc_with_allocator(sfetch_allocator_t* allocator, u64 size) {
         ptr = alloc(cast(i64, size));
     }
     if null == ptr {
-        _sfetch_log(SFETCH_LOGITEM_MALLOC_FAILED, 0, 1376);
+        _sfetch_log(SFETCH_LOGITEM_MALLOC_FAILED, 0, __line__);
     }
     return ptr;
 }
@@ -1755,7 +1755,7 @@ bool _sfetch_channel_send(_sfetch_channel_t* chn, u32 slot_id) {
         _sfetch_ring_enqueue(&chn.user_sent, slot_id);
         return true;
     } else {
-        _sfetch_log(SFETCH_LOGITEM_SEND_QUEUE_FULL, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_SEND_QUEUE_FULL, 1, __line__);
         return false;
     }
 }
@@ -1866,35 +1866,35 @@ void _sfetch_channel_dowork(_sfetch_channel_t* chn, _sfetch_pool_t* pool) {
 
 bool _sfetch_validate_request(_sfetch_t* ctx, sfetch_request_t* req) {
     if req.channel >= ctx.desc.num_channels {
-        _sfetch_log(SFETCH_LOGITEM_REQUEST_CHANNEL_INDEX_TOO_BIG, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_REQUEST_CHANNEL_INDEX_TOO_BIG, 1, __line__);
         return false;
     }
     if req.path == null {
-        _sfetch_log(SFETCH_LOGITEM_REQUEST_PATH_IS_NULL, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_REQUEST_PATH_IS_NULL, 1, __line__);
         return false;
     }
     if strlen(req.path) >= cast(u64, 1024 - 1) {
-        _sfetch_log(SFETCH_LOGITEM_REQUEST_PATH_TOO_LONG, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_REQUEST_PATH_TOO_LONG, 1, __line__);
         return false;
     }
     if req.callback == null {
-        _sfetch_log(SFETCH_LOGITEM_REQUEST_CALLBACK_MISSING, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_REQUEST_CALLBACK_MISSING, 1, __line__);
         return false;
     }
     if req.chunk_size > req.buffer.size {
-        _sfetch_log(SFETCH_LOGITEM_REQUEST_CHUNK_SIZE_GREATER_BUFFER_SIZE, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_REQUEST_CHUNK_SIZE_GREATER_BUFFER_SIZE, 1, __line__);
         return false;
     }
     if req.user_data.ptr && req.user_data.size == 0 {
-        _sfetch_log(SFETCH_LOGITEM_REQUEST_USERDATA_PTR_IS_SET_BUT_USERDATA_SIZE_IS_NULL, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_REQUEST_USERDATA_PTR_IS_SET_BUT_USERDATA_SIZE_IS_NULL, 1, __line__);
         return false;
     }
     if !req.user_data.ptr && req.user_data.size > 0 {
-        _sfetch_log(SFETCH_LOGITEM_REQUEST_USERDATA_PTR_IS_NULL_BUT_USERDATA_SIZE_IS_NOT, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_REQUEST_USERDATA_PTR_IS_NULL_BUT_USERDATA_SIZE_IS_NOT, 1, __line__);
         return false;
     }
     if req.user_data.size > cast(u64, 16 * sizeof(u64)) {
-        _sfetch_log(SFETCH_LOGITEM_REQUEST_USERDATA_SIZE_TOO_BIG, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_REQUEST_USERDATA_SIZE_TOO_BIG, 1, __line__);
         return false;
     }
     return true;
@@ -1926,7 +1926,7 @@ void sfetch_setup(sfetch_desc_t* desc_) {
     ctx.valid = true;
     if ctx.desc.num_channels > 16 {
         ctx.desc.num_channels = 16;
-        _sfetch_log(SFETCH_LOGITEM_CLAMPING_NUM_CHANNELS_TO_MAX_CHANNELS, 2, 1378);
+        _sfetch_log(SFETCH_LOGITEM_CLAMPING_NUM_CHANNELS_TO_MAX_CHANNELS, 2, __line__);
     }
     ctx.valid &= _sfetch_pool_init(&ctx.pool, ctx.desc.max_requests);
     for u32 i = 0; i < ctx.desc.num_channels; i++ {
@@ -1985,7 +1985,7 @@ sfetch_handle_t sfetch_send(sfetch_request_t* request) {
     }
     u32 slot_id = _sfetch_pool_item_alloc(&ctx.pool, request);
     if 0 == slot_id {
-        _sfetch_log(SFETCH_LOGITEM_REQUEST_POOL_EXHAUSTED, 2, 1378);
+        _sfetch_log(SFETCH_LOGITEM_REQUEST_POOL_EXHAUSTED, 2, __line__);
         return invalid_handle;
     }
     if _sfetch_channel_send(&ctx.chn[request.channel], slot_id) == 0 {
@@ -3235,7 +3235,7 @@ u8*[14] _sfetch_log_messages = {
 
 void _sfetch_log(sfetch_log_item_t log_item, u32 log_level, u32 line_nr) {
     if _sfetch.desc.logger.func != null {
-        u8* filename = "sokol_fetch.h";
+        u8* filename = __file__;
         u8* message = _sfetch_log_messages[log_item];
         _sfetch.desc.logger.func("sfetch", log_level, cast(u32, log_item), message, line_nr, filename, _sfetch.desc.logger.user_data);
     } else {
@@ -3264,7 +3264,7 @@ void* _sfetch_malloc_with_allocator(sfetch_allocator_t* allocator, u64 size) {
         ptr = alloc(cast(i64, size));
     }
     if null == ptr {
-        _sfetch_log(SFETCH_LOGITEM_MALLOC_FAILED, 0, 1376);
+        _sfetch_log(SFETCH_LOGITEM_MALLOC_FAILED, 0, __line__);
     }
     return ptr;
 }
@@ -3666,7 +3666,7 @@ bool _sfetch_channel_send(_sfetch_channel_t* chn, u32 slot_id) {
         _sfetch_ring_enqueue(&chn.user_sent, slot_id);
         return true;
     } else {
-        _sfetch_log(SFETCH_LOGITEM_SEND_QUEUE_FULL, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_SEND_QUEUE_FULL, 1, __line__);
         return false;
     }
 }
@@ -3779,35 +3779,35 @@ void _sfetch_channel_dowork(_sfetch_channel_t* chn, _sfetch_pool_t* pool) {
 
 bool _sfetch_validate_request(_sfetch_t* ctx, sfetch_request_t* req) {
     if req.channel >= ctx.desc.num_channels {
-        _sfetch_log(SFETCH_LOGITEM_REQUEST_CHANNEL_INDEX_TOO_BIG, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_REQUEST_CHANNEL_INDEX_TOO_BIG, 1, __line__);
         return false;
     }
     if req.path == null {
-        _sfetch_log(SFETCH_LOGITEM_REQUEST_PATH_IS_NULL, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_REQUEST_PATH_IS_NULL, 1, __line__);
         return false;
     }
     if strlen(req.path) >= cast(u64, 1024 - 1) {
-        _sfetch_log(SFETCH_LOGITEM_REQUEST_PATH_TOO_LONG, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_REQUEST_PATH_TOO_LONG, 1, __line__);
         return false;
     }
     if req.callback == null {
-        _sfetch_log(SFETCH_LOGITEM_REQUEST_CALLBACK_MISSING, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_REQUEST_CALLBACK_MISSING, 1, __line__);
         return false;
     }
     if req.chunk_size > req.buffer.size {
-        _sfetch_log(SFETCH_LOGITEM_REQUEST_CHUNK_SIZE_GREATER_BUFFER_SIZE, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_REQUEST_CHUNK_SIZE_GREATER_BUFFER_SIZE, 1, __line__);
         return false;
     }
     if req.user_data.ptr && req.user_data.size == 0 {
-        _sfetch_log(SFETCH_LOGITEM_REQUEST_USERDATA_PTR_IS_SET_BUT_USERDATA_SIZE_IS_NULL, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_REQUEST_USERDATA_PTR_IS_SET_BUT_USERDATA_SIZE_IS_NULL, 1, __line__);
         return false;
     }
     if !req.user_data.ptr && req.user_data.size > 0 {
-        _sfetch_log(SFETCH_LOGITEM_REQUEST_USERDATA_PTR_IS_NULL_BUT_USERDATA_SIZE_IS_NOT, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_REQUEST_USERDATA_PTR_IS_NULL_BUT_USERDATA_SIZE_IS_NOT, 1, __line__);
         return false;
     }
     if req.user_data.size > cast(u64, 16 * sizeof(u64)) {
-        _sfetch_log(SFETCH_LOGITEM_REQUEST_USERDATA_SIZE_TOO_BIG, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_REQUEST_USERDATA_SIZE_TOO_BIG, 1, __line__);
         return false;
     }
     return true;
@@ -3839,7 +3839,7 @@ void sfetch_setup(sfetch_desc_t* desc_) {
     ctx.valid = true;
     if ctx.desc.num_channels > 16 {
         ctx.desc.num_channels = 16;
-        _sfetch_log(SFETCH_LOGITEM_CLAMPING_NUM_CHANNELS_TO_MAX_CHANNELS, 2, 1378);
+        _sfetch_log(SFETCH_LOGITEM_CLAMPING_NUM_CHANNELS_TO_MAX_CHANNELS, 2, __line__);
     }
     ctx.valid &= _sfetch_pool_init(&ctx.pool, ctx.desc.max_requests);
     for u32 i = 0; i < ctx.desc.num_channels; i++ {
@@ -3898,7 +3898,7 @@ sfetch_handle_t sfetch_send(sfetch_request_t* request) {
     }
     u32 slot_id = _sfetch_pool_item_alloc(&ctx.pool, request);
     if 0 == slot_id {
-        _sfetch_log(SFETCH_LOGITEM_REQUEST_POOL_EXHAUSTED, 2, 1378);
+        _sfetch_log(SFETCH_LOGITEM_REQUEST_POOL_EXHAUSTED, 2, __line__);
         return invalid_handle;
     }
     if _sfetch_channel_send(&ctx.chn[request.channel], slot_id) == 0 {
@@ -5471,7 +5471,7 @@ u8*[14] _sfetch_log_messages = {
 
 void _sfetch_log(sfetch_log_item_t log_item, u32 log_level, u32 line_nr) {
     if _sfetch.desc.logger.func != null {
-        u8* filename = "sokol_fetch.h";
+        u8* filename = __file__;
         u8* message = _sfetch_log_messages[log_item];
         _sfetch.desc.logger.func("sfetch", log_level, cast(u32, log_item), message, line_nr, filename, _sfetch.desc.logger.user_data);
     } else {
@@ -5500,7 +5500,7 @@ void* _sfetch_malloc_with_allocator(sfetch_allocator_t* allocator, u64 size) {
         ptr = alloc(cast(i64, size));
     }
     if null == ptr {
-        _sfetch_log(SFETCH_LOGITEM_MALLOC_FAILED, 0, 1376);
+        _sfetch_log(SFETCH_LOGITEM_MALLOC_FAILED, 0, __line__);
     }
     return ptr;
 }
@@ -5757,7 +5757,7 @@ bool _sfetch_win32_utf8_to_wide(u8* src, u16* dst, i32 dst_num_bytes) {
 _sfetch_file_handle_t _sfetch_file_open(_sfetch_path_t* path) {
     noinit u16[1024] w_path;
     if _sfetch_win32_utf8_to_wide(path.buf, w_path, cast(i32, sizeof(w_path))) == 0 {
-        _sfetch_log(SFETCH_LOGITEM_FILE_PATH_UTF8_DECODING_FAILED, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_FILE_PATH_UTF8_DECODING_FAILED, 1, __line__);
         return null;
     }
     _sfetch_file_handle_t h = CreateFileW(w_path, 0x80000000, 1, null, 3, cast(DWORD, 0x80 | 0x08000000), null);
@@ -6031,7 +6031,7 @@ bool _sfetch_channel_send(_sfetch_channel_t* chn, u32 slot_id) {
         _sfetch_ring_enqueue(&chn.user_sent, slot_id);
         return true;
     } else {
-        _sfetch_log(SFETCH_LOGITEM_SEND_QUEUE_FULL, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_SEND_QUEUE_FULL, 1, __line__);
         return false;
     }
 }
@@ -6142,35 +6142,35 @@ void _sfetch_channel_dowork(_sfetch_channel_t* chn, _sfetch_pool_t* pool) {
 
 bool _sfetch_validate_request(_sfetch_t* ctx, sfetch_request_t* req) {
     if req.channel >= ctx.desc.num_channels {
-        _sfetch_log(SFETCH_LOGITEM_REQUEST_CHANNEL_INDEX_TOO_BIG, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_REQUEST_CHANNEL_INDEX_TOO_BIG, 1, __line__);
         return false;
     }
     if req.path == null {
-        _sfetch_log(SFETCH_LOGITEM_REQUEST_PATH_IS_NULL, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_REQUEST_PATH_IS_NULL, 1, __line__);
         return false;
     }
     if strlen(req.path) >= cast(u64, 1024 - 1) {
-        _sfetch_log(SFETCH_LOGITEM_REQUEST_PATH_TOO_LONG, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_REQUEST_PATH_TOO_LONG, 1, __line__);
         return false;
     }
     if req.callback == null {
-        _sfetch_log(SFETCH_LOGITEM_REQUEST_CALLBACK_MISSING, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_REQUEST_CALLBACK_MISSING, 1, __line__);
         return false;
     }
     if req.chunk_size > req.buffer.size {
-        _sfetch_log(SFETCH_LOGITEM_REQUEST_CHUNK_SIZE_GREATER_BUFFER_SIZE, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_REQUEST_CHUNK_SIZE_GREATER_BUFFER_SIZE, 1, __line__);
         return false;
     }
     if req.user_data.ptr && req.user_data.size == 0 {
-        _sfetch_log(SFETCH_LOGITEM_REQUEST_USERDATA_PTR_IS_SET_BUT_USERDATA_SIZE_IS_NULL, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_REQUEST_USERDATA_PTR_IS_SET_BUT_USERDATA_SIZE_IS_NULL, 1, __line__);
         return false;
     }
     if !req.user_data.ptr && req.user_data.size > 0 {
-        _sfetch_log(SFETCH_LOGITEM_REQUEST_USERDATA_PTR_IS_NULL_BUT_USERDATA_SIZE_IS_NOT, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_REQUEST_USERDATA_PTR_IS_NULL_BUT_USERDATA_SIZE_IS_NOT, 1, __line__);
         return false;
     }
     if req.user_data.size > cast(u64, 16 * sizeof(u64)) {
-        _sfetch_log(SFETCH_LOGITEM_REQUEST_USERDATA_SIZE_TOO_BIG, 1, 1377);
+        _sfetch_log(SFETCH_LOGITEM_REQUEST_USERDATA_SIZE_TOO_BIG, 1, __line__);
         return false;
     }
     return true;
@@ -6202,7 +6202,7 @@ void sfetch_setup(sfetch_desc_t* desc_) {
     ctx.valid = true;
     if ctx.desc.num_channels > 16 {
         ctx.desc.num_channels = 16;
-        _sfetch_log(SFETCH_LOGITEM_CLAMPING_NUM_CHANNELS_TO_MAX_CHANNELS, 2, 1378);
+        _sfetch_log(SFETCH_LOGITEM_CLAMPING_NUM_CHANNELS_TO_MAX_CHANNELS, 2, __line__);
     }
     ctx.valid &= _sfetch_pool_init(&ctx.pool, ctx.desc.max_requests);
     for u32 i = 0; i < ctx.desc.num_channels; i++ {
@@ -6261,7 +6261,7 @@ sfetch_handle_t sfetch_send(sfetch_request_t* request) {
     }
     u32 slot_id = _sfetch_pool_item_alloc(&ctx.pool, request);
     if 0 == slot_id {
-        _sfetch_log(SFETCH_LOGITEM_REQUEST_POOL_EXHAUSTED, 2, 1378);
+        _sfetch_log(SFETCH_LOGITEM_REQUEST_POOL_EXHAUSTED, 2, __line__);
         return invalid_handle;
     }
     if _sfetch_channel_send(&ctx.chn[request.channel], slot_id) == 0 {

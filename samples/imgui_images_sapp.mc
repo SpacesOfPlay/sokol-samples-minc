@@ -126,7 +126,7 @@ void frame() {
     sgl_load_pipeline(state.offscreen.sgl_pip);
     sgl_matrix_mode_projection();
     sgl_perspective(sgl_rad(45.0f), 1.0f, 0.1f, 100.0f);
-    f32[3] eye = {sinf(a) * 4.0f, sinf(a) * 2.0f, cosf(a) * 4.0f};
+    f32[3] eye = {sin(a) * 4.0f, sin(a) * 2.0f, cos(a) * 4.0f};
     sgl_matrix_mode_modelview();
     sgl_lookat(eye[0], eye[1], eye[2], 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
     draw_cube();

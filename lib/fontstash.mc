@@ -1507,8 +1507,8 @@ i32 stbtt__GetGlyphShapeTT(stbtt_fontinfo* info, i32 glyph_index, stbtt_vertex**
                 mtx[3] = cast(f32, ttSHORT(comp)) / 16384.0f;
                 comp += 2;
             }
-            m = cast(f32, sqrt(mtx[0] * mtx[0] + mtx[1] * mtx[1]));
-            n = cast(f32, sqrt(mtx[2] * mtx[2] + mtx[3] * mtx[3]));
+            m = sqrt(mtx[0] * mtx[0] + mtx[1] * mtx[1]);
+            n = sqrt(mtx[2] * mtx[2] + mtx[3] * mtx[3]);
             comp_num_verts = stbtt_GetGlyphShape(info, cast(i32, gidx), &comp_verts);
             if comp_num_verts > 0 {
                 for i = 0; i < comp_num_verts; ++i {
@@ -1943,7 +1943,7 @@ i32 stbtt__run_charstring(stbtt_fontinfo* info, i32 glyph_index, stbtt__csctx* c
                             dx6 = dy6;
                             dx = dx1 + dx2 + dx3 + dx4 + dx5;
                             dy = dy1 + dy2 + dy3 + dy4 + dy5;
-                            if fabs(dx) > fabs(dy) {
+                            if fabs(dx) > cast(f64, fabs(dy)) {
                                 dy6 = -dy;
                             } else {
                                 dx6 = -dx;
@@ -2424,7 +2424,7 @@ void stbtt__rasterize_sorted_edges(stbtt__bitmap* result, stbtt__edge* e, i32 n,
                 i32 m;
                 sum += scanline2[i];
                 k = scanline[i] + sum;
-                k = cast(f32, fabs(k)) * 255.0f + 0.5f;
+                k = fabs(k) * 255.0f + 0.5f;
                 m = cast(i32, k);
                 if m > 255 {
                     m = 255;
@@ -2613,8 +2613,8 @@ void stbtt__tesselate_cubic(stbtt__point* points, i32* num_points, f32 x0, f32 y
     f32 dy2 = y3 - y2;
     f32 dx = x3 - x0;
     f32 dy = y3 - y0;
-    var longlen = cast(f32, sqrt(dx0 * dx0 + dy0 * dy0) + sqrt(dx1 * dx1 + dy1 * dy1) + sqrt(dx2 * dx2 + dy2 * dy2));
-    var shortlen = cast(f32, sqrt(dx * dx + dy * dy));
+    var longlen = cast(f32, sqrt(dx0 * dx0 + dy0 * dy0) + cast(f64, sqrt(dx1 * dx1 + dy1 * dy1)) + cast(f64, sqrt(dx2 * dx2 + dy2 * dy2)));
+    var shortlen = sqrt(dx * dx + dy * dy);
     f32 flatness_squared = longlen * longlen - shortlen * shortlen;
     if n > 16 {
         return;
@@ -3296,7 +3296,7 @@ i32 stbtt__ray_intersect_bezier(f32* orig, f32* ray, f32* q0, f32* q1, f32* q2, 
         f32 discr = b * b - a * c;
         if discr > 0.0 {
             f32 rcpna = -1.0f / a;
-            var d = cast(f32, sqrt(discr));
+            var d = sqrt(discr);
             s0 = (b + d) * rcpna;
             s1 = (b - d) * rcpna;
             if s0 >= 0.0 && s0 <= 1.0 {
@@ -3352,7 +3352,7 @@ i32 stbtt__compute_crossings_x(f32 x, f32 y, i32 nverts, stbtt_vertex* verts) {
     i32 winding = 0;
     orig[0] = x;
     orig[1] = y;
-    y_frac = cast(f32, fmod(y, 1.0f));
+    y_frac = fmod(y, 1.0f);
     if y_frac < 0.01f {
         y += 0.01f;
     } else if y_frac > 0.99f {
@@ -3425,9 +3425,9 @@ i32 stbtt__compute_crossings_x(f32 x, f32 y, i32 nverts, stbtt_vertex* verts) {
 
 f32 stbtt__cuberoot(f32 x) {
     if x < 0.0f {
-        return -cast(f32, pow(-x, 1.0f / 3.0f));
+        return -cast(f32, pow(cast(f64, -x), cast(f64, 1.0f / 3.0f)));
     } else {
-        return cast(f32, pow(x, 1.0f / 3.0f));
+        return cast(f32, pow(cast(f64, x), cast(f64, 1.0f / 3.0f)));
     }
 }
 
@@ -3439,7 +3439,7 @@ i32 stbtt__solve_cubic(f32 a, f32 b, f32 c, f32* r) {
     f32 p3 = p * p * p;
     f32 d = q * q + 4.0f * p3 / 27.0f;
     if d >= 0.0f {
-        var z = cast(f32, sqrt(d));
+        var z = sqrt(d);
         f32 u = (-q + z) / 2.0f;
         f32 v = (-q - z) / 2.0f;
         u = stbtt__cuberoot(u);
@@ -3447,9 +3447,9 @@ i32 stbtt__solve_cubic(f32 a, f32 b, f32 c, f32* r) {
         r[0] = s + u + v;
         return 1;
     } else {
-        var u = cast(f32, sqrt(-p / 3.0f));
+        var u = sqrt(-p / 3.0f);
         f32 v = cast(f32, acos(-sqrt(-27.0f / p3) * q / 2.0)) / 3.0f;
-        var m = cast(f32, cos(v));
+        var m = cast(f32, cos(cast(f64, v)));
         f32 n = cast(f32, cos(v - 3.141592 / 2.0)) * 1.7320508079999999f;
         r[0] = s + u * 2.0f * m;
         r[1] = s - u * (m + n);
@@ -3518,7 +3518,7 @@ u8* stbtt_GetGlyphSDF(stbtt_fontinfo* info, f32 scale, i32 glyph, i32 padding, u
                     f32 y0 = cast(f32, verts[i].y) * scale_y;
                     f32 x1 = cast(f32, verts[j].x) * scale_x;
                     f32 y1 = cast(f32, verts[j].y) * scale_y;
-                    var dist = cast(f32, sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0)));
+                    var dist = sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
                     precompute[i] = dist == 0.0f ? 0.0f : 1.0f / dist;
                 } else if cast(i32, verts[i].type) == STBTT_vcurve {
                     f32 x2 = cast(f32, verts[j].x) * scale_x;
@@ -3554,12 +3554,12 @@ u8* stbtt_GetGlyphSDF(stbtt_fontinfo* info, f32 scale, i32 glyph, i32 padding, u
                     f32 y0 = cast(f32, verts[i].y) * scale_y;
                     f32 dist2 = (x0 - sx) * (x0 - sx) + (y0 - sy) * (y0 - sy);
                     if dist2 < min_dist * min_dist {
-                        min_dist = cast(f32, sqrt(dist2));
+                        min_dist = sqrt(dist2);
                     }
                     if cast(i32, verts[i].type) == STBTT_vline {
                         f32 x1 = cast(f32, verts[i - 1].x) * scale_x;
                         f32 y1 = cast(f32, verts[i - 1].y) * scale_y;
-                        f32 dist = cast(f32, fabs((x1 - x0) * (y0 - sy) - (y1 - y0) * (x0 - sx))) * precompute[i];
+                        f32 dist = fabs((x1 - x0) * (y0 - sy) - (y1 - y0) * (x0 - sx)) * precompute[i];
                         if dist < min_dist {
                             f32 dx = x1 - x0;
                             f32 dy = y1 - y0;
@@ -3606,7 +3606,7 @@ u8* stbtt_GetGlyphSDF(stbtt_fontinfo* info, f32 scale, i32 glyph, i32 padding, u
                                     if discriminant < 0.0f {
                                         num = 0;
                                     } else {
-                                        var root = cast(f32, sqrt(discriminant));
+                                        var root = sqrt(discriminant);
                                         res[0] = (-b - root) / (2.0f * a);
                                         res[1] = (-b + root) / (2.0f * a);
                                         num = 2;
@@ -3625,7 +3625,7 @@ u8* stbtt_GetGlyphSDF(stbtt_fontinfo* info, f32 scale, i32 glyph, i32 padding, u
                                 py = it * it * y0 + 2.0f * t * it * y1 + t * t * y2;
                                 dist2 = (px - sx) * (px - sx) + (py - sy) * (py - sy);
                                 if dist2 < min_dist * min_dist {
-                                    min_dist = cast(f32, sqrt(dist2));
+                                    min_dist = sqrt(dist2);
                                 }
                             }
                             if num >= 2 && res[1] >= 0.0f && res[1] <= 1.0f {
@@ -3635,7 +3635,7 @@ u8* stbtt_GetGlyphSDF(stbtt_fontinfo* info, f32 scale, i32 glyph, i32 padding, u
                                 py = it * it * y0 + 2.0f * t * it * y1 + t * t * y2;
                                 dist2 = (px - sx) * (px - sx) + (py - sy) * (py - sy);
                                 if dist2 < min_dist * min_dist {
-                                    min_dist = cast(f32, sqrt(dist2));
+                                    min_dist = sqrt(dist2);
                                 }
                             }
                             if num >= 3 && res[2] >= 0.0f && res[2] <= 1.0f {
@@ -3645,7 +3645,7 @@ u8* stbtt_GetGlyphSDF(stbtt_fontinfo* info, f32 scale, i32 glyph, i32 padding, u
                                 py = it * it * y0 + 2.0f * t * it * y1 + t * t * y2;
                                 dist2 = (px - sx) * (px - sx) + (py - sy) * (py - sy);
                                 if dist2 < min_dist * min_dist {
-                                    min_dist = cast(f32, sqrt(dist2));
+                                    min_dist = sqrt(dist2);
                                 }
                             }
                         }
@@ -4451,7 +4451,7 @@ void fons__blur(FONScontext* stash, u8* dst, i32 w, i32 h, i32 dstStride, i32 bl
         return;
     }
     sigma = cast(f32, blur) * 0.57735f;
-    alpha = cast(i32, cast(f32, 1 << 16) * (1.0f - expf(-2.3f / (sigma + 1.0f))));
+    alpha = cast(i32, cast(f32, 1 << 16) * (1.0f - exp(-2.3f / (sigma + 1.0f))));
     fons__blurRows(dst, w, h, dstStride, alpha);
     fons__blurCols(dst, w, h, dstStride, alpha);
     fons__blurRows(dst, w, h, dstStride, alpha);

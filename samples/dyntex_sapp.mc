@@ -11,27 +11,6 @@ sapp_desc sokol_main() {
     return d;
 }
 
-// Tiny libc surface some samples touch. rand() matches C's contract
-// (0..RAND_MAX, deterministic per seed) via a 32-bit xorshift.
-
-private { u32 __sapp_rand_state = 0x12345678; }
-
-const i32 RAND_MAX_C = 0x7fffffff;
-
-i32 rand() {
-    u32 x = __sapp_rand_state;
-    x = x ^ (x << 13);
-    x = x ^ (x >> 17);
-    x = x ^ (x << 5);
-    __sapp_rand_state = x;
-    return cast(i32, x & 0x7fffffff);
-}
-
-void srand(u32 seed) {
-    if seed == 0 { seed = 1; }
-    __sapp_rand_state = seed;
-}
-
 // dyntex-sapp.glsl - ported to minc @shader.
 
 struct DyntexSappVsOut {

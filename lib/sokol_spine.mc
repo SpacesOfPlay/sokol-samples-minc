@@ -1557,7 +1557,7 @@ u8*[32] _sspine_log_messages = {
 
 void _sspine_log(sspine_log_item log_item, u32 log_level, u32 line_nr) {
     if _sspine.desc.logger.func != null {
-        u8* filename = "sokol_spine.h";
+        u8* filename = __file__;
         u8* message = _sspine_log_messages[log_item];
         _sspine.desc.logger.func("sspine", log_level, cast(u32, log_item), message, line_nr, filename, _sspine.desc.logger.user_data);
     } else {
@@ -1624,7 +1624,7 @@ void* _sspine_malloc(u64 size) {
         ptr = alloc(cast(i64, size));
     }
     if null == ptr {
-        _sspine_log(SSPINE_LOGITEM_MALLOC_FAILED, 0, 3123);
+        _sspine_log(SSPINE_LOGITEM_MALLOC_FAILED, 0, __line__);
     }
     return ptr;
 }
@@ -2024,30 +2024,30 @@ sg_sampler _sspine_sampler_from_renderer_object(void* renderer_object) {
 
 sspine_resource_state _sspine_init_atlas(_sspine_atlas_t* atlas, sspine_atlas_desc* desc) {
     if null == desc.data.ptr || 0 == desc.data.size {
-        _sspine_log(SSPINE_LOGITEM_ATLAS_DESC_NO_DATA, 1, 3124);
+        _sspine_log(SSPINE_LOGITEM_ATLAS_DESC_NO_DATA, 1, __line__);
         return SSPINE_RESOURCESTATE_FAILED;
     }
     atlas.overrides = desc.override;
     atlas.sp_atlas = spAtlas_create(cast(u8*, desc.data.ptr), cast(i32, desc.data.size), "", null);
     if null == atlas.sp_atlas {
-        _sspine_log(SSPINE_LOGITEM_SPINE_ATLAS_CREATION_FAILED, 1, 3124);
+        _sspine_log(SSPINE_LOGITEM_SPINE_ATLAS_CREATION_FAILED, 1, __line__);
         return SSPINE_RESOURCESTATE_FAILED;
     }
     for spAtlasPage* page = atlas.sp_atlas.pages; page != null; page = page.next {
         atlas.num_pages++;
         sg_image img = sg_alloc_image();
         if sg_query_image_state(img) != SG_RESOURCESTATE_ALLOC {
-            _sspine_log(SSPINE_LOGITEM_SG_ALLOC_IMAGE_FAILED, 1, 3124);
+            _sspine_log(SSPINE_LOGITEM_SG_ALLOC_IMAGE_FAILED, 1, __line__);
             return SSPINE_RESOURCESTATE_FAILED;
         }
         sg_view view = sg_alloc_view();
         if sg_query_view_state(view) != SG_RESOURCESTATE_ALLOC {
-            _sspine_log(SSPINE_LOGITEM_SG_ALLOC_VIEW_FAILED, 1, 3124);
+            _sspine_log(SSPINE_LOGITEM_SG_ALLOC_VIEW_FAILED, 1, __line__);
             return SSPINE_RESOURCESTATE_FAILED;
         }
         sg_sampler smp = sg_alloc_sampler();
         if sg_query_sampler_state(smp) != SG_RESOURCESTATE_ALLOC {
-            _sspine_log(SSPINE_LOGITEM_SG_ALLOC_SAMPLER_FAILED, 1, 3124);
+            _sspine_log(SSPINE_LOGITEM_SG_ALLOC_SAMPLER_FAILED, 1, __line__);
             return SSPINE_RESOURCESTATE_FAILED;
         }
         page.rendererObject = cast(void*, _sspine_new_image_view_sampler(img, view, smp));
@@ -2157,22 +2157,22 @@ sspine_skeleton _sspine_alloc_skeleton() {
 
 sspine_resource_state _sspine_init_skeleton(_sspine_skeleton_t* skeleton, sspine_skeleton_desc* desc) {
     if null == desc.json_data && (null == desc.binary_data.ptr || 0 == desc.binary_data.size) {
-        _sspine_log(SSPINE_LOGITEM_SKELETON_DESC_NO_DATA, 1, 3124);
+        _sspine_log(SSPINE_LOGITEM_SKELETON_DESC_NO_DATA, 1, __line__);
         return SSPINE_RESOURCESTATE_FAILED;
     }
     if desc.atlas.id == cast(u32, SSPINE_INVALID_ID) {
-        _sspine_log(SSPINE_LOGITEM_SKELETON_DESC_NO_ATLAS, 1, 3124);
+        _sspine_log(SSPINE_LOGITEM_SKELETON_DESC_NO_ATLAS, 1, __line__);
         return SSPINE_RESOURCESTATE_FAILED;
     }
     skeleton.atlas.id = desc.atlas.id;
     skeleton.atlas.ptr = _sspine_lookup_atlas(skeleton.atlas.id);
     if _sspine_atlas_ref_valid(&skeleton.atlas) == 0 {
-        _sspine_log(SSPINE_LOGITEM_SKELETON_ATLAS_NOT_VALID, 1, 3124);
+        _sspine_log(SSPINE_LOGITEM_SKELETON_ATLAS_NOT_VALID, 1, __line__);
         return SSPINE_RESOURCESTATE_FAILED;
     }
     _sspine_atlas_t* atlas = skeleton.atlas.ptr;
     if SSPINE_RESOURCESTATE_VALID != atlas.slot.state {
-        _sspine_log(SSPINE_LOGITEM_SKELETON_ATLAS_NOT_VALID, 1, 3124);
+        _sspine_log(SSPINE_LOGITEM_SKELETON_ATLAS_NOT_VALID, 1, __line__);
         return SSPINE_RESOURCESTATE_FAILED;
     }
     if desc.json_data != null {
@@ -2182,7 +2182,7 @@ sspine_resource_state _sspine_init_skeleton(_sspine_skeleton_t* skeleton, sspine
         spSkeletonJson_dispose(skel_json);
         skel_json = null;
         if null == skeleton.sp_skel_data {
-            _sspine_log(SSPINE_LOGITEM_CREATE_SKELETON_DATA_FROM_JSON_FAILED, 1, 3124);
+            _sspine_log(SSPINE_LOGITEM_CREATE_SKELETON_DATA_FROM_JSON_FAILED, 1, __line__);
             return SSPINE_RESOURCESTATE_FAILED;
         }
     } else {
@@ -2192,7 +2192,7 @@ sspine_resource_state _sspine_init_skeleton(_sspine_skeleton_t* skeleton, sspine
         spSkeletonBinary_dispose(skel_bin);
         skel_bin = null;
         if null == skeleton.sp_skel_data {
-            _sspine_log(SSPINE_LOGITEM_CREATE_SKELETON_DATA_FROM_BINARY_FAILED, 1, 3124);
+            _sspine_log(SSPINE_LOGITEM_CREATE_SKELETON_DATA_FROM_BINARY_FAILED, 1, __line__);
             return SSPINE_RESOURCESTATE_FAILED;
         }
     }
@@ -2365,18 +2365,18 @@ sspine_skinset _sspine_alloc_skinset() {
 
 sspine_resource_state _sspine_init_skinset(_sspine_skinset_t* skinset, sspine_skinset_desc* desc) {
     if desc.skeleton.id == cast(u32, SSPINE_INVALID_ID) {
-        _sspine_log(SSPINE_LOGITEM_SKINSET_DESC_NO_SKELETON, 1, 3124);
+        _sspine_log(SSPINE_LOGITEM_SKINSET_DESC_NO_SKELETON, 1, __line__);
         return SSPINE_RESOURCESTATE_FAILED;
     }
     skinset.skel.id = desc.skeleton.id;
     skinset.skel.ptr = _sspine_lookup_skeleton(desc.skeleton.id);
     if _sspine_skeleton_ref_valid(&skinset.skel) == 0 {
-        _sspine_log(SSPINE_LOGITEM_SKINSET_SKELETON_NOT_VALID, 1, 3124);
+        _sspine_log(SSPINE_LOGITEM_SKINSET_SKELETON_NOT_VALID, 1, __line__);
         return SSPINE_RESOURCESTATE_FAILED;
     }
     _sspine_skeleton_t* skel = skinset.skel.ptr;
     if SSPINE_RESOURCESTATE_VALID != skel.slot.state {
-        _sspine_log(SSPINE_LOGITEM_SKINSET_SKELETON_NOT_VALID, 1, 3124);
+        _sspine_log(SSPINE_LOGITEM_SKINSET_SKELETON_NOT_VALID, 1, __line__);
         return SSPINE_RESOURCESTATE_FAILED;
     }
     skinset.sp_skin = spSkin_create("skinset");
@@ -2384,7 +2384,7 @@ sspine_resource_state _sspine_init_skinset(_sspine_skinset_t* skinset, sspine_sk
         if desc.skins[i].skeleton_id != cast(u32, SSPINE_INVALID_ID) {
             spSkin* skin = _sspine_lookup_skin(desc.skins[i].skeleton_id, desc.skins[i].index);
             if null == skin {
-                _sspine_log(SSPINE_LOGITEM_SKINSET_INVALID_SKIN_HANDLE, 1, 3124);
+                _sspine_log(SSPINE_LOGITEM_SKINSET_INVALID_SKIN_HANDLE, 1, __line__);
                 return SSPINE_RESOURCESTATE_FAILED;
             }
             spSkin_addSkin(skinset.sp_skin, skin);
@@ -2511,7 +2511,7 @@ void _sspine_event_listener(spAnimationState* sp_anim_state, spEventType sp_even
                 info.balance = sp_event.balance;
                 info.string_value = _sspine_string(sp_event.stringValue);
                 if info.string_value.truncated != 0 {
-                    _sspine_log(SSPINE_LOGITEM_STRING_TRUNCATED, 2, 3125);
+                    _sspine_log(SSPINE_LOGITEM_STRING_TRUNCATED, 2, __line__);
                 }
             }
         }
@@ -2520,42 +2520,42 @@ void _sspine_event_listener(spAnimationState* sp_anim_state, spEventType sp_even
 
 sspine_resource_state _sspine_init_instance(_sspine_instance_t* instance, sspine_instance_desc* desc) {
     if desc.skeleton.id == cast(u32, SSPINE_INVALID_ID) {
-        _sspine_log(SSPINE_LOGITEM_INSTANCE_DESC_NO_SKELETON, 1, 3124);
+        _sspine_log(SSPINE_LOGITEM_INSTANCE_DESC_NO_SKELETON, 1, __line__);
         return SSPINE_RESOURCESTATE_FAILED;
     }
     instance.skel.id = desc.skeleton.id;
     instance.skel.ptr = _sspine_lookup_skeleton(instance.skel.id);
     if _sspine_skeleton_ref_valid(&instance.skel) == 0 {
-        _sspine_log(SSPINE_LOGITEM_INSTANCE_SKELETON_NOT_VALID, 1, 3124);
+        _sspine_log(SSPINE_LOGITEM_INSTANCE_SKELETON_NOT_VALID, 1, __line__);
         return SSPINE_RESOURCESTATE_FAILED;
     }
     _sspine_skeleton_t* skel = instance.skel.ptr;
     if SSPINE_RESOURCESTATE_VALID != skel.slot.state {
-        _sspine_log(SSPINE_LOGITEM_INSTANCE_SKELETON_NOT_VALID, 1, 3124);
+        _sspine_log(SSPINE_LOGITEM_INSTANCE_SKELETON_NOT_VALID, 1, __line__);
         return SSPINE_RESOURCESTATE_FAILED;
     }
     instance.atlas = skel.atlas;
     if _sspine_atlas_ref_valid(&instance.atlas) == 0 {
-        _sspine_log(SSPINE_LOGITEM_INSTANCE_ATLAS_NOT_VALID, 1, 3124);
+        _sspine_log(SSPINE_LOGITEM_INSTANCE_ATLAS_NOT_VALID, 1, __line__);
         return SSPINE_RESOURCESTATE_FAILED;
     }
     if SSPINE_RESOURCESTATE_VALID != instance.atlas.ptr.slot.state {
-        _sspine_log(SSPINE_LOGITEM_INSTANCE_ATLAS_NOT_VALID, 1, 3124);
+        _sspine_log(SSPINE_LOGITEM_INSTANCE_ATLAS_NOT_VALID, 1, __line__);
         return SSPINE_RESOURCESTATE_FAILED;
     }
     instance.sp_skel = spSkeleton_create(skel.sp_skel_data);
     if null == instance.sp_skel {
-        _sspine_log(SSPINE_LOGITEM_SPINE_SKELETON_CREATION_FAILED, 1, 3124);
+        _sspine_log(SSPINE_LOGITEM_SPINE_SKELETON_CREATION_FAILED, 1, __line__);
         return SSPINE_RESOURCESTATE_FAILED;
     }
     instance.sp_anim_state = spAnimationState_create(skel.sp_anim_data);
     if null == instance.sp_anim_state {
-        _sspine_log(SSPINE_LOGITEM_SPINE_ANIMATIONSTATE_CREATION_FAILED, 1, 3124);
+        _sspine_log(SSPINE_LOGITEM_SPINE_ANIMATIONSTATE_CREATION_FAILED, 1, __line__);
         return SSPINE_RESOURCESTATE_FAILED;
     }
     instance.sp_clip = spSkeletonClipping_create();
     if null == instance.sp_clip {
-        _sspine_log(SSPINE_LOGITEM_SPINE_SKELETONCLIPPING_CREATION_FAILED, 1, 3124);
+        _sspine_log(SSPINE_LOGITEM_SPINE_SKELETONCLIPPING_CREATION_FAILED, 1, __line__);
         return SSPINE_RESOURCESTATE_FAILED;
     }
     instance.sp_anim_state.userData = cast(void*, cast(u64, instance.slot.id));
@@ -2675,7 +2675,7 @@ _sspine_command_t* _sspine_next_command(_sspine_context_t* ctx) {
     if ctx.commands.next < ctx.commands.cap {
         return &ctx.commands.ptr[ctx.commands.next++];
     } else {
-        _sspine_log(SSPINE_LOGITEM_COMMAND_BUFFER_FULL, 1, 3124);
+        _sspine_log(SSPINE_LOGITEM_COMMAND_BUFFER_FULL, 1, __line__);
         return null;
     }
 }
@@ -2705,7 +2705,7 @@ _sspine_alloc_vertices_result_t _sspine_alloc_vertices(_sspine_context_t* ctx, i
         res.index = ctx.vertices.next;
         ctx.vertices.next += num;
     } else {
-        _sspine_log(SSPINE_LOGITEM_VERTEX_BUFFER_FULL, 1, 3124);
+        _sspine_log(SSPINE_LOGITEM_VERTEX_BUFFER_FULL, 1, __line__);
     }
     return res;
 }
@@ -2726,7 +2726,7 @@ _sspine_alloc_indices_result_t _sspine_alloc_indices(_sspine_context_t* ctx, i32
         res.index = ctx.indices.next;
         ctx.indices.next += num;
     } else {
-        _sspine_log(SSPINE_LOGITEM_INDEX_BUFFER_FULL, 1, 3124);
+        _sspine_log(SSPINE_LOGITEM_INDEX_BUFFER_FULL, 1, __line__);
     }
     return res;
 }
@@ -3089,7 +3089,7 @@ void _sspine_init_image_info(_sspine_atlas_t* atlas, i32 index, sspine_image_inf
     info.premul_alpha = page.pma != 0;
     info.filename = _sspine_string(page.name);
     if info.filename.truncated != 0 {
-        _sspine_log(SSPINE_LOGITEM_STRING_TRUNCATED, 2, 3125);
+        _sspine_log(SSPINE_LOGITEM_STRING_TRUNCATED, 2, __line__);
     }
 }
 
@@ -3136,7 +3136,7 @@ void sspine_setup(sspine_desc* desc) {
     _sspine.def_ctx_id = sspine_make_context(&ctx_desc);
     sspine_set_context(_sspine.def_ctx_id);
     if sg_add_commit_listener(_sspine_make_commit_listener()) == 0 {
-        _sspine_log(SSPINE_LOGITEM_ADD_COMMIT_LISTENER_FAILED, 1, 3124);
+        _sspine_log(SSPINE_LOGITEM_ADD_COMMIT_LISTENER_FAILED, 1, __line__);
     }
 }
 
@@ -3167,14 +3167,14 @@ sspine_context sspine_make_context(sspine_context_desc* desc) {
         }
     } else {
         ctx.slot.state = SSPINE_RESOURCESTATE_FAILED;
-        _sspine_log(SSPINE_LOGITEM_CONTEXT_POOL_EXHAUSTED, 1, 3124);
+        _sspine_log(SSPINE_LOGITEM_CONTEXT_POOL_EXHAUSTED, 1, __line__);
     }
     return ctx_id;
 }
 
 void sspine_destroy_context(sspine_context ctx_id) {
     if _sspine_is_default_context(ctx_id) != 0 {
-        _sspine_log(SSPINE_LOGITEM_CANNOT_DESTROY_DEFAULT_CONTEXT, 1, 3124);
+        _sspine_log(SSPINE_LOGITEM_CANNOT_DESTROY_DEFAULT_CONTEXT, 1, __line__);
         return;
     }
     _sspine_destroy_context(ctx_id);
@@ -3298,7 +3298,7 @@ sspine_atlas sspine_make_atlas(sspine_atlas_desc* desc) {
             _sspine_deinit_atlas(atlas);
         }
     } else {
-        _sspine_log(SSPINE_LOGITEM_ATLAS_POOL_EXHAUSTED, 1, 3124);
+        _sspine_log(SSPINE_LOGITEM_ATLAS_POOL_EXHAUSTED, 1, __line__);
     }
     return atlas_id;
 }
@@ -3317,7 +3317,7 @@ sspine_skeleton sspine_make_skeleton(sspine_skeleton_desc* desc) {
             _sspine_deinit_skeleton(skeleton);
         }
     } else {
-        _sspine_log(SSPINE_LOGITEM_SKELETON_POOL_EXHAUSTED, 1, 3124);
+        _sspine_log(SSPINE_LOGITEM_SKELETON_POOL_EXHAUSTED, 1, __line__);
     }
     return skeleton_id;
 }
@@ -3336,7 +3336,7 @@ sspine_skinset sspine_make_skinset(sspine_skinset_desc* desc) {
             _sspine_deinit_skinset(skinset);
         }
     } else {
-        _sspine_log(SSPINE_LOGITEM_SKINSET_POOL_EXHAUSTED, 1, 3124);
+        _sspine_log(SSPINE_LOGITEM_SKINSET_POOL_EXHAUSTED, 1, __line__);
     }
     return skinset_id;
 }
@@ -3355,7 +3355,7 @@ sspine_instance sspine_make_instance(sspine_instance_desc* desc) {
             _sspine_deinit_instance(instance);
         }
     } else {
-        _sspine_log(SSPINE_LOGITEM_INSTANCE_POOL_EXHAUSTED, 1, 3124);
+        _sspine_log(SSPINE_LOGITEM_INSTANCE_POOL_EXHAUSTED, 1, __line__);
     }
     return instance_id;
 }
@@ -3625,7 +3625,7 @@ sspine_anim_info sspine_get_anim_info(sspine_anim anim) {
         res.duration = sp_anim.duration;
         res.name = _sspine_string(sp_anim.name);
         if res.name.truncated != 0 {
-            _sspine_log(SSPINE_LOGITEM_STRING_TRUNCATED, 2, 3125);
+            _sspine_log(SSPINE_LOGITEM_STRING_TRUNCATED, 2, __line__);
         }
     }
     return res;
@@ -3734,7 +3734,7 @@ sspine_bone_info sspine_get_bone_info(sspine_bone bone) {
         res.color.a = sp_bone_data.color.a;
         res.name = _sspine_string(sp_bone_data.name);
         if res.name.truncated != 0 {
-            _sspine_log(SSPINE_LOGITEM_STRING_TRUNCATED, 2, 3125);
+            _sspine_log(SSPINE_LOGITEM_STRING_TRUNCATED, 2, __line__);
         }
     }
     return res;
@@ -3922,11 +3922,11 @@ sspine_slot_info sspine_get_slot_info(sspine_slot slot) {
         res.color.a = sp_slot_data.color.a;
         res.attachment_name = _sspine_string(sp_slot_data.attachmentName);
         if res.attachment_name.truncated != 0 {
-            _sspine_log(SSPINE_LOGITEM_STRING_TRUNCATED, 2, 3125);
+            _sspine_log(SSPINE_LOGITEM_STRING_TRUNCATED, 2, __line__);
         }
         res.name = _sspine_string(sp_slot_data.name);
         if res.name.truncated != 0 {
-            _sspine_log(SSPINE_LOGITEM_STRING_TRUNCATED, 2, 3125);
+            _sspine_log(SSPINE_LOGITEM_STRING_TRUNCATED, 2, __line__);
         }
     }
     return res;
@@ -4004,15 +4004,15 @@ sspine_event_info sspine_get_event_info(sspine_event event) {
         res.balance = sp_event_data.balance;
         res.name = _sspine_string(sp_event_data.name);
         if res.name.truncated != 0 {
-            _sspine_log(SSPINE_LOGITEM_STRING_TRUNCATED, 2, 3125);
+            _sspine_log(SSPINE_LOGITEM_STRING_TRUNCATED, 2, __line__);
         }
         res.string_value = _sspine_string(sp_event_data.stringValue);
         if res.string_value.truncated != 0 {
-            _sspine_log(SSPINE_LOGITEM_STRING_TRUNCATED, 2, 3125);
+            _sspine_log(SSPINE_LOGITEM_STRING_TRUNCATED, 2, __line__);
         }
         res.audio_path = _sspine_string(sp_event_data.audioPath);
         if res.audio_path.truncated != 0 {
-            _sspine_log(SSPINE_LOGITEM_STRING_TRUNCATED, 2, 3125);
+            _sspine_log(SSPINE_LOGITEM_STRING_TRUNCATED, 2, __line__);
         }
     }
     return res;
@@ -4064,7 +4064,7 @@ sspine_iktarget_info sspine_get_iktarget_info(sspine_iktarget iktarget) {
         res.target_bone = _sspine_bone(iktarget.skeleton_id, ik_data.target.index);
         res.name = _sspine_string(ik_data.name);
         if res.name.truncated != 0 {
-            _sspine_log(SSPINE_LOGITEM_STRING_TRUNCATED, 2, 3125);
+            _sspine_log(SSPINE_LOGITEM_STRING_TRUNCATED, 2, __line__);
         }
     }
     return res;
@@ -4126,7 +4126,7 @@ sspine_skin_info sspine_get_skin_info(sspine_skin skin) {
         res.index = skin.index;
         res.name = _sspine_string(sp_skin.name);
         if res.name.truncated != 0 {
-            _sspine_log(SSPINE_LOGITEM_STRING_TRUNCATED, 2, 3125);
+            _sspine_log(SSPINE_LOGITEM_STRING_TRUNCATED, 2, __line__);
         }
     }
     return res;

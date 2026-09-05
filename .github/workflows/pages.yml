@@ -49,14 +49,14 @@ jobs:
             minc "samples/$stem.mc" --target wasm -DSOKOL_WGPU -DSOKOL_TRACE_HOOKS -o "live-demo/$stem.wgpu.wasm"
           done < samples/LIST_WASM_WGPU.txt
 
-      # The samples ship their own wasm hosts rather than depend on the
-      # one in a user's minc install; the gallery serves those copies.
+      # The hosts come from the minc that built the .wasm, so the JS and
+      # the sokol modules compiled into it are always the same version.
       # data/ sits beside the pages for the sokol_fetch paths.
       - name: stage hosts + assets
         run: |
-          cp samples/sokol_wasm_host.js live-demo/
-          cp samples/sokol_wgpu_host.js live-demo/
-          cp samples/sokol_wasm_audio_worklet.js live-demo/
+          cp "$HOME/.minc/lib/wasm/sokol_wasm_host.js" live-demo/
+          cp "$HOME/.minc/lib/wasm/sokol_wgpu_host.js" live-demo/
+          cp "$HOME/.minc/lib/wasm/sokol_wasm_audio_worklet.js" live-demo/
           cp -R data live-demo/data
 
       # index.html's list is hand-written. Fail the job rather than publish

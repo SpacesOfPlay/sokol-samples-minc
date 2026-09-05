@@ -94,10 +94,10 @@ void init() {
 }
 
 void frame() {
-    state.time = fmodf(state.time + cast(f32, sapp_frame_duration()), 20.0f);
+    state.time = fmod(state.time + cast(f32, sapp_frame_duration()), 20.0f);
     f32 aspect = sapp_widthf() / sapp_heightf();
-    f32 width = 4.0f * powf(0.6f, state.time);
-    i32 iter_max = 64 + cast(i32, log2f(4.0f / width) * 32.0f);
+    f32 width = 4.0f * pow(0.6f, state.time);
+    i32 iter_max = 64 + cast(i32, log2(4.0f / width) * 32.0f);
     if iter_max > 256 {
         iter_max = 256;
     }

@@ -343,9 +343,6 @@ void video_cb(plm_t* mpeg, plm_frame_t* frame, void* user) {
 void audio_cb(plm_t* mpeg, plm_samples_t* samples, void* user) {
     ignore mpeg;
     ignore user;
-    // cap the audio backlog: the fifo (256 packets of 128 frames)
-    // drains in real time only, so audio queued beyond the 0.25s
-    // decode lead plays as a fixed AV lag; drop and resync instead
     if 256 * 128 - saudio_expect() > 16384 {
         return;
     }

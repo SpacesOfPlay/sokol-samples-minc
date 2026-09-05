@@ -547,7 +547,7 @@ _sshape_vec4_t _sshape_vec4(f32 x, f32 y, f32 z, f32 w) {
 }
 
 _sshape_vec4_t _sshape_vec4_norm(_sshape_vec4_t v) {
-    f32 l = sqrtf(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
+    f32 l = sqrt(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
     if l != 0.0f {
         return _sshape_vec4(v.x / l, v.y / l, v.z / l, v.w / l);
     } else {
@@ -1104,12 +1104,12 @@ void sshape_build_sphere(sshape_state_t* state, sshape_sphere_t* in_params) {
     f32 dv = 1.0f / cast(f32, params.stacks);
     for u32 stack = 0; stack <= params.stacks; stack++ {
         f32 stack_angle = pi * cast(f32, stack) / cast(f32, params.stacks);
-        f32 sin_stack = sinf(stack_angle);
-        f32 cos_stack = cosf(stack_angle);
+        f32 sin_stack = sin(stack_angle);
+        f32 cos_stack = cos(stack_angle);
         for u32 slice = 0; slice <= params.slices; slice++ {
             f32 slice_angle = two_pi * cast(f32, slice) / cast(f32, params.slices);
-            f32 sin_slice = sinf(slice_angle);
-            f32 cos_slice = cosf(slice_angle);
+            f32 sin_slice = sin(slice_angle);
+            f32 cos_slice = cos(slice_angle);
             _sshape_vec4_t norm = _sshape_vec4(-sin_slice * sin_stack, cos_stack, cos_slice * sin_stack, 0.0f);
             _sshape_vec4_t pos = _sshape_vec4(norm.x * params.radius, norm.y * params.radius, norm.z * params.radius, 1.0f);
             _sshape_vec4_t tnorm = _sshape_vec4_norm(_sshape_mat4_mul(&params.transform, norm));
@@ -1178,8 +1178,8 @@ void _sshape_build_cylinder_cap_ring(sshape_state_t* state, sshape_cylinder_t* p
     _sshape_vec4_t tnorm = _sshape_vec4_norm(_sshape_mat4_mul(&params.transform, _sshape_vec4(0.0f, norm_y, 0.0f, 0.0f)));
     for u32 slice = 0; slice <= params.slices; slice++ {
         f32 slice_angle = two_pi * cast(f32, slice) / cast(f32, params.slices);
-        f32 sin_slice = sinf(slice_angle);
-        f32 cos_slice = cosf(slice_angle);
+        f32 sin_slice = sin(slice_angle);
+        f32 cos_slice = cos(slice_angle);
         _sshape_vec4_t pos = _sshape_vec4(sin_slice * params.radius, pos_y, cos_slice * params.radius, 1.0f);
         _sshape_vec4_t tpos = _sshape_mat4_mul(&params.transform, pos);
         _sshape_vec2_t uv = _sshape_vec2(cast(f32, slice) * du, 1.0f - v);
@@ -1218,8 +1218,8 @@ void sshape_build_cylinder(sshape_state_t* state, sshape_cylinder_t* in_params) 
         f32 v = dv * cast(f32, stack) + dv;
         for u32 slice = 0; slice <= params.slices; slice++ {
             f32 slice_angle = two_pi * cast(f32, slice) / cast(f32, params.slices);
-            f32 sin_slice = sinf(slice_angle);
-            f32 cos_slice = cosf(slice_angle);
+            f32 sin_slice = sin(slice_angle);
+            f32 cos_slice = cos(slice_angle);
             _sshape_vec4_t pos = _sshape_vec4(sin_slice * params.radius, y, cos_slice * params.radius, 1.0f);
             _sshape_vec4_t tpos = _sshape_mat4_mul(&params.transform, pos);
             _sshape_vec4_t norm = _sshape_vec4(sin_slice, 0.0f, cos_slice, 0.0f);
@@ -1293,12 +1293,12 @@ void sshape_build_torus(sshape_state_t* state, sshape_torus_t* in_params) {
     f32 du = 1.0f / cast(f32, params.rings);
     for u32 side = 0; side <= params.sides; side++ {
         f32 phi = cast(f32, side) * two_pi / cast(f32, params.sides);
-        f32 sin_phi = sinf(phi);
-        f32 cos_phi = cosf(phi);
+        f32 sin_phi = sin(phi);
+        f32 cos_phi = cos(phi);
         for u32 ring = 0; ring <= params.rings; ring++ {
             f32 theta = cast(f32, ring) * two_pi / cast(f32, params.rings);
-            f32 sin_theta = sinf(theta);
-            f32 cos_theta = cosf(theta);
+            f32 sin_theta = sin(theta);
+            f32 cos_theta = cos(theta);
             f32 spx = sin_theta * (params.radius - params.ring_radius * cos_phi);
             f32 spy = sin_phi * params.ring_radius;
             f32 spz = cos_theta * (params.radius - params.ring_radius * cos_phi);

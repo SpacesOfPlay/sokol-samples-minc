@@ -128,7 +128,7 @@ void frame() {
     sgl_matrix_mode_projection();
     sgl_perspective(sgl_rad(45.0f), aspect, 0.1f, 1000.0f);
     sgl_matrix_mode_modelview();
-    sgl_translate(sinf(cast(f32, frame__frame_count) * 0.02f) * 16.0f, sinf(cast(f32, frame__frame_count) * 0.01f) * 4.0f, 0.0f);
+    sgl_translate(sin(cast(f32, frame__frame_count) * 0.02f) * 16.0f, sin(cast(f32, frame__frame_count) * 0.01f) * 4.0f, 0.0f);
     sgl_c3f(1.0f, 0.0f, 1.0f);
     grid(-7.0f, frame__frame_count);
     grid(7.0f, frame__frame_count);
@@ -139,14 +139,14 @@ void frame() {
     floaty_thingy(frame__frame_count);
     sgl_pop_matrix();
     sgl_push_matrix();
-    sgl_translate(-sinf(cast(f32, frame__frame_count) * 0.02f) * 32.0f, 0.0f, -70.0f + cosf(cast(f32, frame__frame_count) * 0.01f) * 50.0f);
+    sgl_translate(-sin(cast(f32, frame__frame_count) * 0.02f) * 32.0f, 0.0f, -70.0f + cos(cast(f32, frame__frame_count) * 0.01f) * 50.0f);
     sgl_rotate(cast(f32, frame__frame_count) * 0.05f, 0.0f, -1.0f, 1.0f);
     sgl_c3f(0.0f, 1.0f, 0.0f);
     floaty_thingy(frame__frame_count + 32);
     sgl_pop_matrix();
     sgl_push_matrix();
-    sgl_translate(-sinf(cast(f32, frame__frame_count) * 0.02f) * 16.0f, 0.0f, -30.0f);
-    sgl_rotate(cast(f32, frame__frame_count) * 0.01f, sinf(cast(f32, frame__frame_count) * 0.005f), 0.0f, 1.0f);
+    sgl_translate(-sin(cast(f32, frame__frame_count) * 0.02f) * 16.0f, 0.0f, -30.0f);
+    sgl_rotate(cast(f32, frame__frame_count) * 0.01f, sin(cast(f32, frame__frame_count) * 0.005f), 0.0f, 1.0f);
     sgl_c3f(0.5f, 1.0f, 0.0f);
     hairball();
     sgl_pop_matrix();
