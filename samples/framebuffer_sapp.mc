@@ -29,18 +29,18 @@ void init() {
 }
 
 void frame() {
-    state.time = fmodf(state.time + cast(f32, sapp_frame_duration()), 3600.0f);
+    state.time = fmod(state.time + cast(f32, sapp_frame_duration()), 3600.0f);
     for i32 y = 0; y < 256; y++ {
         for i32 x = 0; x < 320; x++ {
             f32 t3 = state.time * 0.6f;
             vec2_t coord = vec2(cast(f32, x * 2), cast(f32, y * 2));
-            f32 color1 = (sinf(vec2_dot(coord, vec2(sinf(t3), cosf(t3))) * 0.02f + t3) + 1.0f) * 0.5f;
-            vec2_t center = vec2_add(vec2(320.0f, 180.0f), vec2(320.0f * sinf(-t3), 180.0f * cosf(-t3)));
-            f32 color2 = (cosf(vec2_length(vec2_sub(coord, center)) * 0.03f) + 1.0f) * 0.5f;
+            f32 color1 = (sin(vec2_dot(coord, vec2(sin(t3), cos(t3))) * 0.02f + t3) + 1.0f) * 0.5f;
+            vec2_t center = vec2_add(vec2(320.0f, 180.0f), vec2(320.0f * sin(-t3), 180.0f * cos(-t3)));
+            f32 color2 = (cos(vec2_length(vec2_sub(coord, center)) * 0.03f) + 1.0f) * 0.5f;
             f32 color = color1 + color2;
-            f32 rf = (cosf(3.141592654f * color + t3) + 1.0f) * 0.5f;
-            f32 gf = (sinf(3.141592654f * color + t3) + 1.0f) * 0.5f;
-            f32 bf = (sinf(t3) + 1.0f) * 0.5f;
+            f32 rf = (cos(3.141592654f * color + t3) + 1.0f) * 0.5f;
+            f32 gf = (sin(3.141592654f * color + t3) + 1.0f) * 0.5f;
+            f32 bf = (sin(t3) + 1.0f) * 0.5f;
             var ru8 = cast(u8, rf * 255.0f);
             var gu8 = cast(u8, gf * 255.0f);
             var bu8 = cast(u8, bf * 255.0f);

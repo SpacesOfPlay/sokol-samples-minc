@@ -642,7 +642,7 @@ void ctrl_move(f32 dx, f32 dy) {
 }
 
 void ctrl_scale(f32 ds) {
-    state.ctrl.scale *= expf(ds);
+    state.ctrl.scale *= exp(ds);
     if state.ctrl.scale > 4.0f {
         state.ctrl.scale = 4.0f;
     } else if state.ctrl.scale < 0.25f {

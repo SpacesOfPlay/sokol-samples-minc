@@ -63,7 +63,7 @@ void draw_triangle() {
 }
 
 void draw_quad(f32 t) {
-    f32 scale = 1.0f + sinf(sgl_rad(draw_quad__angle_deg)) * 0.5f;
+    f32 scale = 1.0f + sin(sgl_rad(draw_quad__angle_deg)) * 0.5f;
     draw_quad__angle_deg += 1.0f * t;
     sgl_defaults();
     sgl_rotate(sgl_rad(draw_quad__angle_deg), 0.0f, 0.0f, 1.0f);
@@ -144,10 +144,10 @@ void draw_tex_cube(f32 t) {
     draw_tex_cube__frame_count += 1.0f * t;
     f32 a = sgl_rad(draw_tex_cube__frame_count);
     f32 tex_rot = 0.5f * a;
-    f32 tex_scale = 1.0f + sinf(a) * 0.5f;
-    f32 eye_x = sinf(a) * 6.0f;
-    f32 eye_z = cosf(a) * 6.0f;
-    f32 eye_y = sinf(a) * 3.0f;
+    f32 tex_scale = 1.0f + sin(a) * 0.5f;
+    f32 eye_x = sin(a) * 6.0f;
+    f32 eye_z = cos(a) * 6.0f;
+    f32 eye_y = sin(a) * 3.0f;
     sgl_defaults();
     sgl_load_pipeline(state.pip_3d);
     sgl_enable_texture();

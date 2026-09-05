@@ -1365,10 +1365,10 @@ struct _spSkeletonJson {
  *****************************************************************************/
 
 spPropertyIdArray* spPropertyIdArray_create(i32 initialCapacity) {
-    var array = cast(spPropertyIdArray*, _spCalloc(1, cast(u64, sizeof(spPropertyIdArray)), "extension.h", 87));
+    var array = cast(spPropertyIdArray*, _spCalloc(1, cast(u64, sizeof(spPropertyIdArray)), __file__, __line__));
     array.size = 0;
     array.capacity = initialCapacity;
-    array.items = cast(spPropertyId*, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(spPropertyId)), "extension.h", 87));
+    array.items = cast(spPropertyId*, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(spPropertyId)), __file__, __line__));
     return array;
 }
 
@@ -1451,10 +1451,10 @@ spPropertyId spPropertyIdArray_peek(spPropertyIdArray* self) {
 }
 
 spTimelineArray* spTimelineArray_create(i32 initialCapacity) {
-    var array = cast(spTimelineArray*, _spCalloc(1, cast(u64, sizeof(spTimelineArray)), "extension.h", 87));
+    var array = cast(spTimelineArray*, _spCalloc(1, cast(u64, sizeof(spTimelineArray)), __file__, __line__));
     array.size = 0;
     array.capacity = initialCapacity;
-    array.items = cast(spTimeline**, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(spTimeline*)), "extension.h", 87));
+    array.items = cast(spTimeline**, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(spTimeline*)), __file__, __line__));
     return array;
 }
 
@@ -1540,8 +1540,8 @@ spAnimation* spAnimation_create(u8* name, spTimelineArray* timelines, f32 durati
     i32 i;
     i32 n;
     i32 totalCount = 0;
-    var self = cast(spAnimation*, _spCalloc(1, cast(u64, sizeof(spAnimation)), "extension.h", 87));
-    self.name = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(name) + 1), "extension.h", 83));
+    var self = cast(spAnimation*, _spCalloc(1, cast(u64, sizeof(spAnimation)), __file__, __line__));
+    self.name = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(name) + 1), __file__, __line__));
     strcpy(self.name, name);
     self.timelines = timelines != null ? timelines : spTimelineArray_create(1);
     timelines = self.timelines;
@@ -1594,9 +1594,9 @@ void spAnimation_apply(spAnimation* self, spSkeleton* skeleton, f32 lastTime, f3
     i32 i;
     i32 n = self.timelines.size;
     if loop && self.duration != 0.0f {
-        time = fmodf(time, self.duration);
+        time = fmod(time, self.duration);
         if lastTime > 0.0f {
-            lastTime = fmodf(lastTime, self.duration);
+            lastTime = fmod(lastTime, self.duration);
         }
     }
     for i = 0; i < n; ++i {
@@ -1938,7 +1938,7 @@ void _spRotateTimeline_apply(spTimeline* timeline, spSkeleton* skeleton, f32 las
 }
 
 spRotateTimeline* spRotateTimeline_create(i32 frameCount, i32 bezierCount, i32 boneIndex) {
-    var timeline = cast(spRotateTimeline*, _spCalloc(1, cast(u64, sizeof(spRotateTimeline)), "extension.h", 87));
+    var timeline = cast(spRotateTimeline*, _spCalloc(1, cast(u64, sizeof(spRotateTimeline)), __file__, __line__));
     noinit spPropertyId[1] ids;
     ids[0] = cast(spPropertyId, SP_PROPERTY_ROTATE) << 32 | cast(u64, boneIndex);
     _spCurveTimeline_init(&timeline.super, frameCount, 2, bezierCount, ids, 1, SP_TIMELINE_ROTATE, cast(fn(spTimeline*): void, _spCurveTimeline_dispose), cast(fn(spTimeline*, spSkeleton*, f32, f32, spEvent**, i32*, f32, spMixBlend, spMixDirection): void, _spRotateTimeline_apply), cast(fn(spTimeline*, i32, i32, f32, f32, f32, f32, f32, f32, f32, f32, f32): void, _spCurveTimeline_setBezier));
@@ -2033,7 +2033,7 @@ void _spTranslateTimeline_apply(spTimeline* timeline, spSkeleton* skeleton, f32 
 }
 
 spTranslateTimeline* spTranslateTimeline_create(i32 frameCount, i32 bezierCount, i32 boneIndex) {
-    var timeline = cast(spTranslateTimeline*, _spCalloc(1, cast(u64, sizeof(spTranslateTimeline)), "extension.h", 87));
+    var timeline = cast(spTranslateTimeline*, _spCalloc(1, cast(u64, sizeof(spTranslateTimeline)), __file__, __line__));
     noinit spPropertyId[2] ids;
     ids[0] = cast(spPropertyId, SP_PROPERTY_X) << 32 | cast(u64, boneIndex);
     ids[1] = cast(spPropertyId, SP_PROPERTY_Y) << 32 | cast(u64, boneIndex);
@@ -2092,7 +2092,7 @@ void _spTranslateXTimeline_apply(spTimeline* timeline, spSkeleton* skeleton, f32
 }
 
 spTranslateXTimeline* spTranslateXTimeline_create(i32 frameCount, i32 bezierCount, i32 boneIndex) {
-    var timeline = cast(spTranslateXTimeline*, _spCalloc(1, cast(u64, sizeof(spTranslateXTimeline)), "extension.h", 87));
+    var timeline = cast(spTranslateXTimeline*, _spCalloc(1, cast(u64, sizeof(spTranslateXTimeline)), __file__, __line__));
     noinit spPropertyId[1] ids;
     ids[0] = cast(spPropertyId, SP_PROPERTY_X) << 32 | cast(u64, boneIndex);
     _spCurveTimeline_init(&timeline.super, frameCount, 2, bezierCount, ids, 1, SP_TIMELINE_TRANSLATEX, cast(fn(spTimeline*): void, _spCurveTimeline_dispose), cast(fn(spTimeline*, spSkeleton*, f32, f32, spEvent**, i32*, f32, spMixBlend, spMixDirection): void, _spTranslateXTimeline_apply), cast(fn(spTimeline*, i32, i32, f32, f32, f32, f32, f32, f32, f32, f32, f32): void, _spCurveTimeline_setBezier));
@@ -2150,7 +2150,7 @@ void _spTranslateYTimeline_apply(spTimeline* timeline, spSkeleton* skeleton, f32
 }
 
 spTranslateYTimeline* spTranslateYTimeline_create(i32 frameCount, i32 bezierCount, i32 boneIndex) {
-    var timeline = cast(spTranslateYTimeline*, _spCalloc(1, cast(u64, sizeof(spTranslateYTimeline)), "extension.h", 87));
+    var timeline = cast(spTranslateYTimeline*, _spCalloc(1, cast(u64, sizeof(spTranslateYTimeline)), __file__, __line__));
     noinit spPropertyId[1] ids;
     ids[0] = cast(spPropertyId, SP_PROPERTY_Y) << 32 | cast(u64, boneIndex);
     _spCurveTimeline_init(&timeline.super, frameCount, 2, bezierCount, ids, 1, SP_TIMELINE_TRANSLATEY, cast(fn(spTimeline*): void, _spCurveTimeline_dispose), cast(fn(spTimeline*, spSkeleton*, f32, f32, spEvent**, i32*, f32, spMixBlend, spMixDirection): void, _spTranslateYTimeline_apply), cast(fn(spTimeline*, i32, i32, f32, f32, f32, f32, f32, f32, f32, f32, f32): void, _spCurveTimeline_setBezier));
@@ -2283,7 +2283,7 @@ void _spScaleTimeline_apply(spTimeline* timeline, spSkeleton* skeleton, f32 last
 }
 
 spScaleTimeline* spScaleTimeline_create(i32 frameCount, i32 bezierCount, i32 boneIndex) {
-    var timeline = cast(spScaleTimeline*, _spCalloc(1, cast(u64, sizeof(spScaleTimeline)), "extension.h", 87));
+    var timeline = cast(spScaleTimeline*, _spCalloc(1, cast(u64, sizeof(spScaleTimeline)), __file__, __line__));
     noinit spPropertyId[2] ids;
     ids[0] = cast(spPropertyId, SP_PROPERTY_SCALEX) << 32 | cast(u64, boneIndex);
     ids[1] = cast(spPropertyId, SP_PROPERTY_SCALEY) << 32 | cast(u64, boneIndex);
@@ -2309,7 +2309,7 @@ void _spScaleXTimeline_apply(spTimeline* timeline, spSkeleton* skeleton, f32 las
 }
 
 spScaleXTimeline* spScaleXTimeline_create(i32 frameCount, i32 bezierCount, i32 boneIndex) {
-    var timeline = cast(spScaleXTimeline*, _spCalloc(1, cast(u64, sizeof(spScaleXTimeline)), "extension.h", 87));
+    var timeline = cast(spScaleXTimeline*, _spCalloc(1, cast(u64, sizeof(spScaleXTimeline)), __file__, __line__));
     noinit spPropertyId[1] ids;
     ids[0] = cast(spPropertyId, SP_PROPERTY_SCALEX) << 32 | cast(u64, boneIndex);
     _spCurveTimeline_init(&timeline.super, frameCount, 2, bezierCount, ids, 1, SP_TIMELINE_SCALEX, cast(fn(spTimeline*): void, _spCurveTimeline_dispose), cast(fn(spTimeline*, spSkeleton*, f32, f32, spEvent**, i32*, f32, spMixBlend, spMixDirection): void, _spScaleXTimeline_apply), cast(fn(spTimeline*, i32, i32, f32, f32, f32, f32, f32, f32, f32, f32, f32): void, _spCurveTimeline_setBezier));
@@ -2334,7 +2334,7 @@ void _spScaleYTimeline_apply(spTimeline* timeline, spSkeleton* skeleton, f32 las
 }
 
 spScaleYTimeline* spScaleYTimeline_create(i32 frameCount, i32 bezierCount, i32 boneIndex) {
-    var timeline = cast(spScaleYTimeline*, _spCalloc(1, cast(u64, sizeof(spScaleYTimeline)), "extension.h", 87));
+    var timeline = cast(spScaleYTimeline*, _spCalloc(1, cast(u64, sizeof(spScaleYTimeline)), __file__, __line__));
     noinit spPropertyId[1] ids;
     ids[0] = cast(spPropertyId, SP_PROPERTY_SCALEY) << 32 | cast(u64, boneIndex);
     _spCurveTimeline_init(&timeline.super, frameCount, 2, bezierCount, ids, 1, SP_TIMELINE_SCALEY, cast(fn(spTimeline*): void, _spCurveTimeline_dispose), cast(fn(spTimeline*, spSkeleton*, f32, f32, spEvent**, i32*, f32, spMixBlend, spMixDirection): void, _spScaleYTimeline_apply), cast(fn(spTimeline*, i32, i32, f32, f32, f32, f32, f32, f32, f32, f32, f32): void, _spCurveTimeline_setBezier));
@@ -2429,7 +2429,7 @@ void _spShearTimeline_apply(spTimeline* timeline, spSkeleton* skeleton, f32 last
 }
 
 spShearTimeline* spShearTimeline_create(i32 frameCount, i32 bezierCount, i32 boneIndex) {
-    var timeline = cast(spShearTimeline*, _spCalloc(1, cast(u64, sizeof(spShearTimeline)), "extension.h", 87));
+    var timeline = cast(spShearTimeline*, _spCalloc(1, cast(u64, sizeof(spShearTimeline)), __file__, __line__));
     noinit spPropertyId[2] ids;
     ids[0] = cast(spPropertyId, SP_PROPERTY_SHEARX) << 32 | cast(u64, boneIndex);
     ids[1] = cast(spPropertyId, SP_PROPERTY_SHEARY) << 32 | cast(u64, boneIndex);
@@ -2456,7 +2456,7 @@ void _spShearXTimeline_apply(spTimeline* timeline, spSkeleton* skeleton, f32 las
 }
 
 spShearXTimeline* spShearXTimeline_create(i32 frameCount, i32 bezierCount, i32 boneIndex) {
-    var timeline = cast(spShearXTimeline*, _spCalloc(1, cast(u64, sizeof(spShearXTimeline)), "extension.h", 87));
+    var timeline = cast(spShearXTimeline*, _spCalloc(1, cast(u64, sizeof(spShearXTimeline)), __file__, __line__));
     noinit spPropertyId[1] ids;
     ids[0] = cast(spPropertyId, SP_PROPERTY_SHEARX) << 32 | cast(u64, boneIndex);
     _spCurveTimeline_init(&timeline.super, frameCount, 2, bezierCount, ids, 1, SP_TIMELINE_SHEARX, cast(fn(spTimeline*): void, _spCurveTimeline_dispose), cast(fn(spTimeline*, spSkeleton*, f32, f32, spEvent**, i32*, f32, spMixBlend, spMixDirection): void, _spShearXTimeline_apply), cast(fn(spTimeline*, i32, i32, f32, f32, f32, f32, f32, f32, f32, f32, f32): void, _spCurveTimeline_setBezier));
@@ -2482,7 +2482,7 @@ void _spShearYTimeline_apply(spTimeline* timeline, spSkeleton* skeleton, f32 las
 }
 
 spShearYTimeline* spShearYTimeline_create(i32 frameCount, i32 bezierCount, i32 boneIndex) {
-    var timeline = cast(spShearYTimeline*, _spCalloc(1, cast(u64, sizeof(spShearYTimeline)), "extension.h", 87));
+    var timeline = cast(spShearYTimeline*, _spCalloc(1, cast(u64, sizeof(spShearYTimeline)), __file__, __line__));
     noinit spPropertyId[1] ids;
     ids[0] = cast(spPropertyId, SP_PROPERTY_SHEARY) << 32 | cast(u64, boneIndex);
     _spCurveTimeline_init(&timeline.super, frameCount, 2, bezierCount, ids, 1, SP_TIMELINE_SHEARY, cast(fn(spTimeline*): void, _spCurveTimeline_dispose), cast(fn(spTimeline*, spSkeleton*, f32, f32, spEvent**, i32*, f32, spMixBlend, spMixDirection): void, _spShearYTimeline_apply), cast(fn(spTimeline*, i32, i32, f32, f32, f32, f32, f32, f32, f32, f32, f32): void, _spCurveTimeline_setBezier));
@@ -2589,7 +2589,7 @@ void _spRGBATimeline_apply(spTimeline* timeline, spSkeleton* skeleton, f32 lastT
 }
 
 spRGBATimeline* spRGBATimeline_create(i32 framesCount, i32 bezierCount, i32 slotIndex) {
-    var timeline = cast(spRGBATimeline*, _spCalloc(1, cast(u64, sizeof(spRGBATimeline)), "extension.h", 87));
+    var timeline = cast(spRGBATimeline*, _spCalloc(1, cast(u64, sizeof(spRGBATimeline)), __file__, __line__));
     noinit spPropertyId[2] ids;
     ids[0] = cast(spPropertyId, SP_PROPERTY_RGB) << 32 | cast(u64, slotIndex);
     ids[1] = cast(spPropertyId, SP_PROPERTY_ALPHA) << 32 | cast(u64, slotIndex);
@@ -2699,7 +2699,7 @@ void _spRGBTimeline_apply(spTimeline* timeline, spSkeleton* skeleton, f32 lastTi
 }
 
 spRGBTimeline* spRGBTimeline_create(i32 framesCount, i32 bezierCount, i32 slotIndex) {
-    var timeline = cast(spRGBTimeline*, _spCalloc(1, cast(u64, sizeof(spRGBTimeline)), "extension.h", 87));
+    var timeline = cast(spRGBTimeline*, _spCalloc(1, cast(u64, sizeof(spRGBTimeline)), __file__, __line__));
     noinit spPropertyId[1] ids;
     ids[0] = cast(spPropertyId, SP_PROPERTY_RGB) << 32 | cast(u64, slotIndex);
     _spCurveTimeline_init(&timeline.super, framesCount, 4, bezierCount, ids, 1, SP_TIMELINE_RGB, cast(fn(spTimeline*): void, _spCurveTimeline_dispose), cast(fn(spTimeline*, spSkeleton*, f32, f32, spEvent**, i32*, f32, spMixBlend, spMixDirection): void, _spRGBTimeline_apply), cast(fn(spTimeline*, i32, i32, f32, f32, f32, f32, f32, f32, f32, f32, f32): void, _spCurveTimeline_setBezier));
@@ -2763,7 +2763,7 @@ void _spAlphaTimeline_apply(spTimeline* timeline, spSkeleton* skeleton, f32 last
 }
 
 spAlphaTimeline* spAlphaTimeline_create(i32 frameCount, i32 bezierCount, i32 slotIndex) {
-    var timeline = cast(spAlphaTimeline*, _spCalloc(1, cast(u64, sizeof(spAlphaTimeline)), "extension.h", 87));
+    var timeline = cast(spAlphaTimeline*, _spCalloc(1, cast(u64, sizeof(spAlphaTimeline)), __file__, __line__));
     noinit spPropertyId[1] ids;
     ids[0] = cast(spPropertyId, SP_PROPERTY_ALPHA) << 32 | cast(u64, slotIndex);
     _spCurveTimeline_init(&timeline.super, frameCount, 2, bezierCount, ids, 1, SP_TIMELINE_ALPHA, cast(fn(spTimeline*): void, _spCurveTimeline_dispose), cast(fn(spTimeline*, spSkeleton*, f32, f32, spEvent**, i32*, f32, spMixBlend, spMixDirection): void, _spAlphaTimeline_apply), cast(fn(spTimeline*, i32, i32, f32, f32, f32, f32, f32, f32, f32, f32, f32): void, _spCurveTimeline_setBezier));
@@ -2905,7 +2905,7 @@ void _spRGBA2Timeline_apply(spTimeline* timeline, spSkeleton* skeleton, f32 last
 }
 
 spRGBA2Timeline* spRGBA2Timeline_create(i32 framesCount, i32 bezierCount, i32 slotIndex) {
-    var timeline = cast(spRGBA2Timeline*, _spCalloc(1, cast(u64, sizeof(spRGBA2Timeline)), "extension.h", 87));
+    var timeline = cast(spRGBA2Timeline*, _spCalloc(1, cast(u64, sizeof(spRGBA2Timeline)), __file__, __line__));
     noinit spPropertyId[3] ids;
     ids[0] = cast(spPropertyId, SP_PROPERTY_RGB) << 32 | cast(u64, slotIndex);
     ids[1] = cast(spPropertyId, SP_PROPERTY_ALPHA) << 32 | cast(u64, slotIndex);
@@ -3052,7 +3052,7 @@ void _spRGB2Timeline_apply(spTimeline* timeline, spSkeleton* skeleton, f32 lastT
 }
 
 spRGB2Timeline* spRGB2Timeline_create(i32 framesCount, i32 bezierCount, i32 slotIndex) {
-    var timeline = cast(spRGB2Timeline*, _spCalloc(1, cast(u64, sizeof(spRGB2Timeline)), "extension.h", 87));
+    var timeline = cast(spRGB2Timeline*, _spCalloc(1, cast(u64, sizeof(spRGB2Timeline)), __file__, __line__));
     noinit spPropertyId[2] ids;
     ids[0] = cast(spPropertyId, SP_PROPERTY_RGB) << 32 | cast(u64, slotIndex);
     ids[1] = cast(spPropertyId, SP_PROPERTY_RGB2) << 32 | cast(u64, slotIndex);
@@ -3124,11 +3124,11 @@ void _spAttachmentTimeline_dispose(spTimeline* timeline) {
 }
 
 spAttachmentTimeline* spAttachmentTimeline_create(i32 framesCount, i32 slotIndex) {
-    var self = cast(spAttachmentTimeline*, _spCalloc(1, cast(u64, sizeof(spAttachmentTimeline)), "extension.h", 87));
+    var self = cast(spAttachmentTimeline*, _spCalloc(1, cast(u64, sizeof(spAttachmentTimeline)), __file__, __line__));
     noinit spPropertyId[1] ids;
     ids[0] = cast(spPropertyId, SP_PROPERTY_ATTACHMENT) << 32 | cast(u64, slotIndex);
     _spTimeline_init(&self.super, framesCount, 1, ids, 1, SP_TIMELINE_ATTACHMENT, cast(fn(spTimeline*): void, _spAttachmentTimeline_dispose), cast(fn(spTimeline*, spSkeleton*, f32, f32, spEvent**, i32*, f32, spMixBlend, spMixDirection): void, _spAttachmentTimeline_apply), null);
-    self.attachmentNames = cast(u8**, _spCalloc(cast(u64, framesCount), cast(u64, sizeof(u8*)), "extension.h", 87));
+    self.attachmentNames = cast(u8**, _spCalloc(cast(u64, framesCount), cast(u64, sizeof(u8*)), __file__, __line__));
     self.slotIndex = slotIndex;
     return self;
 }
@@ -3137,7 +3137,7 @@ void spAttachmentTimeline_setFrame(spAttachmentTimeline* self, i32 frame, f32 ti
     self.super.frames.items[frame] = time;
     _spFree(cast(void*, self.attachmentNames[frame]));
     if attachmentName != null {
-        self.attachmentNames[frame] = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(attachmentName) + 1), "extension.h", 83));
+        self.attachmentNames[frame] = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(attachmentName) + 1), __file__, __line__));
         strcpy(self.attachmentNames[frame], attachmentName);
     } else {
         self.attachmentNames[frame] = null;
@@ -3259,7 +3259,7 @@ void _spDeformTimeline_apply(spTimeline* timeline, spSkeleton* skeleton, f32 las
     if slot.deformCount < vertexCount {
         if slot.deformCapacity < vertexCount {
             _spFree(cast(void*, slot.deform));
-            slot.deform = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * vertexCount), "extension.h", 83));
+            slot.deform = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * vertexCount), __file__, __line__));
             slot.deformCapacity = vertexCount;
         }
     }
@@ -3441,11 +3441,11 @@ void _spDeformTimeline_dispose(spTimeline* timeline) {
 }
 
 spDeformTimeline* spDeformTimeline_create(i32 framesCount, i32 frameVerticesCount, i32 bezierCount, i32 slotIndex, spVertexAttachment* attachment) {
-    var self = cast(spDeformTimeline*, _spCalloc(1, cast(u64, sizeof(spDeformTimeline)), "extension.h", 87));
+    var self = cast(spDeformTimeline*, _spCalloc(1, cast(u64, sizeof(spDeformTimeline)), __file__, __line__));
     noinit spPropertyId[1] ids;
     ids[0] = cast(spPropertyId, SP_PROPERTY_DEFORM) << 32 | cast(u64, (slotIndex << 16 | attachment.id) & 0xffffffff);
     _spCurveTimeline_init(&self.super, framesCount, 1, bezierCount, ids, 1, SP_TIMELINE_DEFORM, cast(fn(spTimeline*): void, _spDeformTimeline_dispose), cast(fn(spTimeline*, spSkeleton*, f32, f32, spEvent**, i32*, f32, spMixBlend, spMixDirection): void, _spDeformTimeline_apply), cast(fn(spTimeline*, i32, i32, f32, f32, f32, f32, f32, f32, f32, f32, f32): void, _spDeformTimeline_setBezier));
-    self.frameVertices = cast(f32**, _spCalloc(cast(u64, framesCount), cast(u64, sizeof(f32*)), "extension.h", 87));
+    self.frameVertices = cast(f32**, _spCalloc(cast(u64, framesCount), cast(u64, sizeof(f32*)), __file__, __line__));
     self.frameVerticesCount = frameVerticesCount;
     self.slotIndex = slotIndex;
     self.attachment = &attachment.super;
@@ -3458,7 +3458,7 @@ void spDeformTimeline_setFrame(spDeformTimeline* self, i32 frame, f32 time, f32*
     if vertices == null {
         self.frameVertices[frame] = null;
     } else {
-        self.frameVertices[frame] = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * self.frameVerticesCount), "extension.h", 83));
+        self.frameVertices[frame] = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * self.frameVerticesCount), __file__, __line__));
         memcpy(self.frameVertices[frame], vertices, cast(u64, self.frameVerticesCount * sizeof(f32)));
     }
 }
@@ -3582,7 +3582,7 @@ void _spSequenceTimeline_dispose(spTimeline* timeline) {
 
 spSequenceTimeline* spSequenceTimeline_create(i32 framesCount, i32 slotIndex, spAttachment* attachment) {
     i32 sequenceId = 0;
-    var self = cast(spSequenceTimeline*, _spCalloc(1, cast(u64, sizeof(spSequenceTimeline)), "extension.h", 87));
+    var self = cast(spSequenceTimeline*, _spCalloc(1, cast(u64, sizeof(spSequenceTimeline)), __file__, __line__));
     noinit spPropertyId[1] ids;
     if attachment.type == SP_ATTACHMENT_REGION {
         sequenceId = cast(spRegionAttachment*, attachment).sequence.id;
@@ -3654,11 +3654,11 @@ void _spEventTimeline_dispose(spTimeline* timeline) {
 }
 
 spEventTimeline* spEventTimeline_create(i32 framesCount) {
-    var self = cast(spEventTimeline*, _spCalloc(1, cast(u64, sizeof(spEventTimeline)), "extension.h", 87));
+    var self = cast(spEventTimeline*, _spCalloc(1, cast(u64, sizeof(spEventTimeline)), __file__, __line__));
     noinit spPropertyId[1] ids;
     ids[0] = cast(spPropertyId, SP_PROPERTY_EVENT) << 32;
     _spTimeline_init(&self.super, framesCount, 1, ids, 1, SP_TIMELINE_EVENT, cast(fn(spTimeline*): void, _spEventTimeline_dispose), cast(fn(spTimeline*, spSkeleton*, f32, f32, spEvent**, i32*, f32, spMixBlend, spMixDirection): void, _spEventTimeline_apply), null);
-    self.events = cast(spEvent**, _spCalloc(cast(u64, framesCount), cast(u64, sizeof(spEvent*)), "extension.h", 87));
+    self.events = cast(spEvent**, _spCalloc(cast(u64, framesCount), cast(u64, sizeof(spEvent*)), __file__, __line__));
     return self;
 }
 
@@ -3710,11 +3710,11 @@ void _spDrawOrderTimeline_dispose(spTimeline* timeline) {
 }
 
 spDrawOrderTimeline* spDrawOrderTimeline_create(i32 framesCount, i32 slotsCount) {
-    var self = cast(spDrawOrderTimeline*, _spCalloc(1, cast(u64, sizeof(spDrawOrderTimeline)), "extension.h", 87));
+    var self = cast(spDrawOrderTimeline*, _spCalloc(1, cast(u64, sizeof(spDrawOrderTimeline)), __file__, __line__));
     noinit spPropertyId[1] ids;
     ids[0] = cast(spPropertyId, SP_PROPERTY_DRAWORDER) << 32;
     _spTimeline_init(&self.super, framesCount, 1, ids, 1, SP_TIMELINE_DRAWORDER, cast(fn(spTimeline*): void, _spDrawOrderTimeline_dispose), cast(fn(spTimeline*, spSkeleton*, f32, f32, spEvent**, i32*, f32, spMixBlend, spMixDirection): void, _spDrawOrderTimeline_apply), null);
-    self.drawOrders = cast(i32**, _spCalloc(cast(u64, framesCount), cast(u64, sizeof(i32*)), "extension.h", 87));
+    self.drawOrders = cast(i32**, _spCalloc(cast(u64, framesCount), cast(u64, sizeof(i32*)), __file__, __line__));
     self.slotsCount = slotsCount;
     return self;
 }
@@ -3725,7 +3725,7 @@ void spDrawOrderTimeline_setFrame(spDrawOrderTimeline* self, i32 frame, f32 time
     if drawOrder == null {
         self.drawOrders[frame] = null;
     } else {
-        self.drawOrders[frame] = cast(i32*, _spMalloc(cast(u64, sizeof(i32) * self.slotsCount), "extension.h", 83));
+        self.drawOrders[frame] = cast(i32*, _spMalloc(cast(u64, sizeof(i32) * self.slotsCount), __file__, __line__));
         memcpy(self.drawOrders[frame], drawOrder, cast(u64, self.slotsCount * sizeof(i32)));
     }
 }
@@ -3764,7 +3764,7 @@ void _spInheritTimeline_dispose(spTimeline* timeline) {
 }
 
 spInheritTimeline* spInheritTimeline_create(i32 framesCount, i32 boneIndex) {
-    var self = cast(spInheritTimeline*, _spCalloc(1, cast(u64, sizeof(spInheritTimeline)), "extension.h", 87));
+    var self = cast(spInheritTimeline*, _spCalloc(1, cast(u64, sizeof(spInheritTimeline)), __file__, __line__));
     noinit spPropertyId[1] ids;
     ids[0] = cast(spPropertyId, SP_PROPERTY_INHERIT) << 32;
     _spTimeline_init(&self.super, framesCount, 2, ids, 1, SP_TIMELINE_INHERIT, cast(fn(spTimeline*): void, _spInheritTimeline_dispose), cast(fn(spTimeline*, spSkeleton*, f32, f32, spEvent**, i32*, f32, spMixBlend, spMixDirection): void, _spInheritTimeline_apply), null);
@@ -3877,7 +3877,7 @@ void _spIkConstraintTimeline_apply(spTimeline* timeline, spSkeleton* skeleton, f
 }
 
 spIkConstraintTimeline* spIkConstraintTimeline_create(i32 framesCount, i32 bezierCount, i32 ikConstraintIndex) {
-    var timeline = cast(spIkConstraintTimeline*, _spCalloc(1, cast(u64, sizeof(spIkConstraintTimeline)), "extension.h", 87));
+    var timeline = cast(spIkConstraintTimeline*, _spCalloc(1, cast(u64, sizeof(spIkConstraintTimeline)), __file__, __line__));
     noinit spPropertyId[1] ids;
     ids[0] = cast(spPropertyId, SP_PROPERTY_IKCONSTRAINT) << 32 | cast(u64, ikConstraintIndex);
     _spCurveTimeline_init(&timeline.super, framesCount, IKCONSTRAINT_ENTRIES, bezierCount, ids, 1, SP_TIMELINE_IKCONSTRAINT, cast(fn(spTimeline*): void, _spCurveTimeline_dispose), cast(fn(spTimeline*, spSkeleton*, f32, f32, spEvent**, i32*, f32, spMixBlend, spMixDirection): void, _spIkConstraintTimeline_apply), cast(fn(spTimeline*, i32, i32, f32, f32, f32, f32, f32, f32, f32, f32, f32): void, _spCurveTimeline_setBezier));
@@ -4019,7 +4019,7 @@ void _spTransformConstraintTimeline_apply(spTimeline* timeline, spSkeleton* skel
 }
 
 spTransformConstraintTimeline* spTransformConstraintTimeline_create(i32 framesCount, i32 bezierCount, i32 transformConstraintIndex) {
-    var timeline = cast(spTransformConstraintTimeline*, _spCalloc(1, cast(u64, sizeof(spTransformConstraintTimeline)), "extension.h", 87));
+    var timeline = cast(spTransformConstraintTimeline*, _spCalloc(1, cast(u64, sizeof(spTransformConstraintTimeline)), __file__, __line__));
     noinit spPropertyId[1] ids;
     ids[0] = cast(spPropertyId, SP_PROPERTY_TRANSFORMCONSTRAINT) << 32 | cast(u64, transformConstraintIndex);
     _spCurveTimeline_init(&timeline.super, framesCount, TRANSFORMCONSTRAINT_ENTRIES, bezierCount, ids, 1, SP_TIMELINE_TRANSFORMCONSTRAINT, cast(fn(spTimeline*): void, _spCurveTimeline_dispose), cast(fn(spTimeline*, spSkeleton*, f32, f32, spEvent**, i32*, f32, spMixBlend, spMixDirection): void, _spTransformConstraintTimeline_apply), cast(fn(spTimeline*, i32, i32, f32, f32, f32, f32, f32, f32, f32, f32, f32): void, _spCurveTimeline_setBezier));
@@ -4057,7 +4057,7 @@ void _spPathConstraintPositionTimeline_apply(spTimeline* timeline, spSkeleton* s
 }
 
 spPathConstraintPositionTimeline* spPathConstraintPositionTimeline_create(i32 framesCount, i32 bezierCount, i32 pathConstraintIndex) {
-    var timeline = cast(spPathConstraintPositionTimeline*, _spCalloc(1, cast(u64, sizeof(spPathConstraintPositionTimeline)), "extension.h", 87));
+    var timeline = cast(spPathConstraintPositionTimeline*, _spCalloc(1, cast(u64, sizeof(spPathConstraintPositionTimeline)), __file__, __line__));
     noinit spPropertyId[1] ids;
     ids[0] = cast(spPropertyId, SP_PROPERTY_PATHCONSTRAINT_POSITION) << 32 | cast(u64, pathConstraintIndex);
     _spCurveTimeline_init(&timeline.super, framesCount, PATHCONSTRAINTPOSITION_ENTRIES, bezierCount, ids, 1, SP_TIMELINE_PATHCONSTRAINTPOSITION, cast(fn(spTimeline*): void, _spCurveTimeline_dispose), cast(fn(spTimeline*, spSkeleton*, f32, f32, spEvent**, i32*, f32, spMixBlend, spMixDirection): void, _spPathConstraintPositionTimeline_apply), cast(fn(spTimeline*, i32, i32, f32, f32, f32, f32, f32, f32, f32, f32, f32): void, _spCurveTimeline_setBezier));
@@ -4090,7 +4090,7 @@ void _spPathConstraintSpacingTimeline_apply(spTimeline* timeline, spSkeleton* sk
 }
 
 spPathConstraintSpacingTimeline* spPathConstraintSpacingTimeline_create(i32 framesCount, i32 bezierCount, i32 pathConstraintIndex) {
-    var timeline = cast(spPathConstraintSpacingTimeline*, _spCalloc(1, cast(u64, sizeof(spPathConstraintSpacingTimeline)), "extension.h", 87));
+    var timeline = cast(spPathConstraintSpacingTimeline*, _spCalloc(1, cast(u64, sizeof(spPathConstraintSpacingTimeline)), __file__, __line__));
     noinit spPropertyId[1] ids;
     ids[0] = cast(spPropertyId, SP_PROPERTY_PATHCONSTRAINT_SPACING) << 32 | cast(u64, pathConstraintIndex);
     _spCurveTimeline_init(&timeline.super, framesCount, PATHCONSTRAINTSPACING_ENTRIES, bezierCount, ids, 1, SP_TIMELINE_PATHCONSTRAINTSPACING, cast(fn(spTimeline*): void, _spCurveTimeline_dispose), cast(fn(spTimeline*, spSkeleton*, f32, f32, spEvent**, i32*, f32, spMixBlend, spMixDirection): void, _spPathConstraintSpacingTimeline_apply), cast(fn(spTimeline*, i32, i32, f32, f32, f32, f32, f32, f32, f32, f32, f32): void, _spCurveTimeline_setBezier));
@@ -4199,7 +4199,7 @@ void _spPathConstraintMixTimeline_apply(spTimeline* timeline, spSkeleton* skelet
 }
 
 spPathConstraintMixTimeline* spPathConstraintMixTimeline_create(i32 framesCount, i32 bezierCount, i32 pathConstraintIndex) {
-    var timeline = cast(spPathConstraintMixTimeline*, _spCalloc(1, cast(u64, sizeof(spPathConstraintMixTimeline)), "extension.h", 87));
+    var timeline = cast(spPathConstraintMixTimeline*, _spCalloc(1, cast(u64, sizeof(spPathConstraintMixTimeline)), __file__, __line__));
     noinit spPropertyId[1] ids;
     ids[0] = cast(spPropertyId, SP_PROPERTY_PATHCONSTRAINT_MIX) << 32 | cast(u64, pathConstraintIndex);
     _spCurveTimeline_init(&timeline.super, framesCount, PATHCONSTRAINTMIX_ENTRIES, bezierCount, ids, 1, SP_TIMELINE_PATHCONSTRAINTMIX, cast(fn(spTimeline*): void, _spCurveTimeline_dispose), cast(fn(spTimeline*, spSkeleton*, f32, f32, spEvent**, i32*, f32, spMixBlend, spMixDirection): void, _spPathConstraintMixTimeline_apply), cast(fn(spTimeline*, i32, i32, f32, f32, f32, f32, f32, f32, f32, f32, f32): void, _spCurveTimeline_setBezier));
@@ -4358,7 +4358,7 @@ void _spPhysicsConstraintTimeline_apply(spTimeline* timeline, spSkeleton* skelet
 }
 
 spPhysicsConstraintTimeline* spPhysicsConstraintTimeline_create(i32 frameCount, i32 bezierCount, i32 physicsConstraintIndex, spTimelineType type) {
-    var timeline = cast(spPhysicsConstraintTimeline*, _spCalloc(1, cast(u64, sizeof(spPhysicsConstraintTimeline)), "extension.h", 87));
+    var timeline = cast(spPhysicsConstraintTimeline*, _spCalloc(1, cast(u64, sizeof(spPhysicsConstraintTimeline)), __file__, __line__));
     noinit spPropertyId[1] ids;
     spPropertyId id;
     switch type {
@@ -4442,7 +4442,7 @@ void _spPhysicsConstraintResetTimeline_dispose(spTimeline* timeline) {
 }
 
 spPhysicsConstraintResetTimeline* spPhysicsConstraintResetTimeline_create(i32 framesCount, i32 physicsConstraintIndex) {
-    var self = cast(spPhysicsConstraintResetTimeline*, _spCalloc(1, cast(u64, sizeof(spPhysicsConstraintResetTimeline)), "extension.h", 87));
+    var self = cast(spPhysicsConstraintResetTimeline*, _spCalloc(1, cast(u64, sizeof(spPhysicsConstraintResetTimeline)), __file__, __line__));
     noinit spPropertyId[1] ids;
     ids[0] = cast(spPropertyId, SP_PROPERTY_PHYSICSCONSTRAINT_RESET) << 32;
     _spTimeline_init(&self.super, framesCount, 1, ids, 1, SP_TIMELINE_PHYSICSCONSTRAINT_RESET, cast(fn(spTimeline*): void, _spPhysicsConstraintResetTimeline_dispose), cast(fn(spTimeline*, spSkeleton*, f32, f32, spEvent**, i32*, f32, spMixBlend, spMixDirection): void, _spPhysicsConstraintResetTimeline_apply), null);
@@ -4455,10 +4455,10 @@ void spPhysicsConstraintResetTimeline_setFrame(spPhysicsConstraintResetTimeline*
 }
 
 spTrackEntryArray* spTrackEntryArray_create(i32 initialCapacity) {
-    var array = cast(spTrackEntryArray*, _spCalloc(1, cast(u64, sizeof(spTrackEntryArray)), "extension.h", 77));
+    var array = cast(spTrackEntryArray*, _spCalloc(1, cast(u64, sizeof(spTrackEntryArray)), __file__, __line__));
     array.size = 0;
     array.capacity = initialCapacity;
-    array.items = cast(spTrackEntry**, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(spTrackEntry*)), "extension.h", 77));
+    array.items = cast(spTrackEntry**, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(spTrackEntry*)), __file__, __line__));
     return array;
 }
 
@@ -4549,11 +4549,11 @@ void spAnimationState_disposeStatics() {
 }
 
 _spEventQueue* _spEventQueue_create(_spAnimationState* state) {
-    var self = cast(_spEventQueue*, _spCalloc(1, cast(u64, sizeof(_spEventQueue)), "extension.h", 77));
+    var self = cast(_spEventQueue*, _spCalloc(1, cast(u64, sizeof(_spEventQueue)), __file__, __line__));
     self.state = state;
     self.objectsCount = 0;
     self.objectsCapacity = 16;
-    self.objects = cast(_spEventQueueItem*, _spCalloc(cast(u64, self.objectsCapacity), cast(u64, sizeof(_spEventQueueItem)), "extension.h", 77));
+    self.objects = cast(_spEventQueueItem*, _spCalloc(cast(u64, self.objectsCapacity), cast(u64, sizeof(_spEventQueueItem)), __file__, __line__));
     self.drainDisabled = 0;
     return self;
 }
@@ -4567,7 +4567,7 @@ void _spEventQueue_ensureCapacity(_spEventQueue* self, i32 newElements) {
     if self.objectsCount + newElements > self.objectsCapacity {
         _spEventQueueItem* newObjects;
         self.objectsCapacity <<= 1;
-        newObjects = cast(_spEventQueueItem*, _spCalloc(cast(u64, self.objectsCapacity), cast(u64, sizeof(_spEventQueueItem)), "extension.h", 77));
+        newObjects = cast(_spEventQueueItem*, _spCalloc(cast(u64, self.objectsCapacity), cast(u64, sizeof(_spEventQueueItem)), __file__, __line__));
         memcpy(newObjects, self.objects, cast(u64, sizeof(_spEventQueueItem) * self.objectsCount));
         _spFree(cast(void*, self.objects));
         self.objects = newObjects;
@@ -4730,13 +4730,13 @@ spAnimationState* spAnimationState_create(spAnimationStateData* data) {
         SP_EMPTY_ANIMATION = cast(spAnimation*, 1);
         SP_EMPTY_ANIMATION = spAnimation_create("<empty>", null, 0.0f);
     }
-    internal = cast(_spAnimationState*, _spCalloc(1, cast(u64, sizeof(_spAnimationState)), "extension.h", 77));
+    internal = cast(_spAnimationState*, _spCalloc(1, cast(u64, sizeof(_spAnimationState)), __file__, __line__));
     self = &internal.super;
     self.data = data;
     self.timeScale = 1.0f;
     internal.queue = _spEventQueue_create(internal);
-    internal.events = cast(spEvent**, _spCalloc(128, cast(u64, sizeof(spEvent*)), "extension.h", 77));
-    internal.propertyIDs = cast(spPropertyId*, _spCalloc(128, cast(u64, sizeof(spPropertyId)), "extension.h", 77));
+    internal.events = cast(spEvent**, _spCalloc(128, cast(u64, sizeof(spEvent*)), __file__, __line__));
+    internal.propertyIDs = cast(spPropertyId*, _spCalloc(128, cast(u64, sizeof(spPropertyId)), __file__, __line__));
     internal.propertyIDsCapacity = 128;
     return self;
 }
@@ -5174,7 +5174,7 @@ void _spAnimationState_applyRotateTimeline(spAnimationState* self, spTimeline* t
             lastTotal = timelinesRotation[i];
             lastDiff = timelinesRotation[i + 1];
         }
-        loops = lastTotal - fmodf(lastTotal, 360.0f);
+        loops = lastTotal - fmod(lastTotal, 360.0f);
         total = diff + loops;
         current = diff >= 0.0f;
         dir = lastTotal >= 0.0f;
@@ -5207,7 +5207,7 @@ void _spAnimationState_queueEvents(spAnimationState* self, spTrackEntry* entry, 
     f32 animationStart = entry.animationStart;
     f32 animationEnd = entry.animationEnd;
     f32 duration = animationEnd - animationStart;
-    f32 trackLastWrapped = fmodf(entry.trackLast, duration);
+    f32 trackLastWrapped = fmod(entry.trackLast, duration);
     events = internal.events;
     {
         i = 0;
@@ -5414,7 +5414,7 @@ spTrackEntry* _spAnimationState_expandToIndex(spAnimationState* self, i32 index)
     if index < self.tracksCount {
         return self.tracks[index];
     }
-    newTracks = cast(spTrackEntry**, _spCalloc(cast(u64, index + 1), cast(u64, sizeof(spTrackEntry*)), "extension.h", 77));
+    newTracks = cast(spTrackEntry**, _spCalloc(cast(u64, index + 1), cast(u64, sizeof(spTrackEntry*)), __file__, __line__));
     memcpy(newTracks, self.tracks, cast(u64, self.tracksCount * sizeof(spTrackEntry*)));
     _spFree(cast(void*, self.tracks));
     self.tracks = newTracks;
@@ -5423,7 +5423,7 @@ spTrackEntry* _spAnimationState_expandToIndex(spAnimationState* self, i32 index)
 }
 
 spTrackEntry* _spAnimationState_trackEntry(spAnimationState* self, i32 trackIndex, spAnimation* animation, i32 loop, spTrackEntry* last) {
-    var entry = cast(spTrackEntry*, _spCalloc(1, cast(u64, sizeof(spTrackEntry)), "extension.h", 77));
+    var entry = cast(spTrackEntry*, _spCalloc(1, cast(u64, sizeof(spTrackEntry)), __file__, __line__));
     entry.trackIndex = trackIndex;
     entry.animation = animation;
     entry.loop = loop;
@@ -5496,7 +5496,7 @@ void _spAnimationState_animationsChanged(spAnimationState* self) {
 
 f32* _spAnimationState_resizeTimelinesRotation(spTrackEntry* entry, i32 newSize) {
     if entry.timelinesRotationCount != newSize {
-        var newTimelinesRotation = cast(f32*, _spCalloc(cast(u64, newSize), cast(u64, sizeof(f32)), "extension.h", 77));
+        var newTimelinesRotation = cast(f32*, _spCalloc(cast(u64, newSize), cast(u64, sizeof(f32)), __file__, __line__));
         _spFree(cast(void*, entry.timelinesRotation));
         entry.timelinesRotation = newTimelinesRotation;
         entry.timelinesRotationCount = newSize;
@@ -5507,7 +5507,7 @@ f32* _spAnimationState_resizeTimelinesRotation(spTrackEntry* entry, i32 newSize)
 void _spAnimationState_ensureCapacityPropertyIDs(spAnimationState* self, i32 capacity) {
     var internal = cast(_spAnimationState*, self);
     if internal.propertyIDsCapacity < capacity {
-        var newPropertyIDs = cast(spPropertyId*, _spCalloc(cast(u64, capacity << 1), cast(u64, sizeof(spPropertyId)), "extension.h", 77));
+        var newPropertyIDs = cast(spPropertyId*, _spCalloc(cast(u64, capacity << 1), cast(u64, sizeof(spPropertyId)), __file__, __line__));
         memcpy(newPropertyIDs, internal.propertyIDs, cast(u64, sizeof(spPropertyId) * internal.propertyIDsCount));
         _spFree(cast(void*, internal.propertyIDs));
         internal.propertyIDs = newPropertyIDs;
@@ -5565,7 +5565,7 @@ f32 spTrackEntry_getAnimationTime(spTrackEntry* entry) {
         if duration == 0.0f {
             return entry.animationStart;
         }
-        return fmodf(entry.trackTime, duration) + entry.animationStart;
+        return fmod(entry.trackTime, duration) + entry.animationStart;
     }
     return entry.trackTime + entry.animationStart < entry.animationEnd ? entry.trackTime + entry.animationStart : entry.animationEnd;
 }
@@ -5673,7 +5673,7 @@ void _spTrackEntry_computeHold(spTrackEntry* entry, spAnimationState* state) {
 }
 
 _ToEntry* _ToEntry_create(spAnimation* to, f32 duration) {
-    var self = cast(_ToEntry*, _spCalloc(1, cast(u64, sizeof(_ToEntry)), "extension.h", 109));
+    var self = cast(_ToEntry*, _spCalloc(1, cast(u64, sizeof(_ToEntry)), __file__, __line__));
     self.animation = to;
     self.duration = duration;
     return self;
@@ -5684,7 +5684,7 @@ void _ToEntry_dispose(_ToEntry* self) {
 }
 
 _FromEntry* _FromEntry_create(spAnimation* from_var) {
-    var self = cast(_FromEntry*, _spCalloc(1, cast(u64, sizeof(_FromEntry)), "extension.h", 109));
+    var self = cast(_FromEntry*, _spCalloc(1, cast(u64, sizeof(_FromEntry)), __file__, __line__));
     self.animation = from_var;
     return self;
 }
@@ -5695,7 +5695,7 @@ void _FromEntry_dispose(_FromEntry* self) {
 
 /**/
 spAnimationStateData* spAnimationStateData_create(spSkeletonData* skeletonData) {
-    var self = cast(spAnimationStateData*, _spCalloc(1, cast(u64, sizeof(spAnimationStateData)), "extension.h", 109));
+    var self = cast(spAnimationStateData*, _spCalloc(1, cast(u64, sizeof(spAnimationStateData)), __file__, __line__));
     self.skeletonData = skeletonData;
     return self;
 }
@@ -5777,10 +5777,10 @@ f32 spAnimationStateData_getMix(spAnimationStateData* self, spAnimation* from_va
 }
 
 spFloatArray* spFloatArray_create(i32 initialCapacity) {
-    var array = cast(spFloatArray*, _spCalloc(1, cast(u64, sizeof(spFloatArray)), "extension.h", 44));
+    var array = cast(spFloatArray*, _spCalloc(1, cast(u64, sizeof(spFloatArray)), __file__, __line__));
     array.size = 0;
     array.capacity = initialCapacity;
-    array.items = cast(f32*, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(f32)), "extension.h", 44));
+    array.items = cast(f32*, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(f32)), __file__, __line__));
     return array;
 }
 
@@ -5863,10 +5863,10 @@ f32 spFloatArray_peek(spFloatArray* self) {
 }
 
 spIntArray* spIntArray_create(i32 initialCapacity) {
-    var array = cast(spIntArray*, _spCalloc(1, cast(u64, sizeof(spIntArray)), "extension.h", 44));
+    var array = cast(spIntArray*, _spCalloc(1, cast(u64, sizeof(spIntArray)), __file__, __line__));
     array.size = 0;
     array.capacity = initialCapacity;
-    array.items = cast(i32*, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(i32)), "extension.h", 44));
+    array.items = cast(i32*, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(i32)), __file__, __line__));
     return array;
 }
 
@@ -5949,10 +5949,10 @@ i32 spIntArray_peek(spIntArray* self) {
 }
 
 spShortArray* spShortArray_create(i32 initialCapacity) {
-    var array = cast(spShortArray*, _spCalloc(1, cast(u64, sizeof(spShortArray)), "extension.h", 44));
+    var array = cast(spShortArray*, _spCalloc(1, cast(u64, sizeof(spShortArray)), __file__, __line__));
     array.size = 0;
     array.capacity = initialCapacity;
-    array.items = cast(i16*, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(i16)), "extension.h", 44));
+    array.items = cast(i16*, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(i16)), __file__, __line__));
     return array;
 }
 
@@ -6035,10 +6035,10 @@ i16 spShortArray_peek(spShortArray* self) {
 }
 
 spUnsignedShortArray* spUnsignedShortArray_create(i32 initialCapacity) {
-    var array = cast(spUnsignedShortArray*, _spCalloc(1, cast(u64, sizeof(spUnsignedShortArray)), "extension.h", 44));
+    var array = cast(spUnsignedShortArray*, _spCalloc(1, cast(u64, sizeof(spUnsignedShortArray)), __file__, __line__));
     array.size = 0;
     array.capacity = initialCapacity;
-    array.items = cast(u16*, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(u16)), "extension.h", 44));
+    array.items = cast(u16*, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(u16)), __file__, __line__));
     return array;
 }
 
@@ -6121,10 +6121,10 @@ u16 spUnsignedShortArray_peek(spUnsignedShortArray* self) {
 }
 
 spArrayFloatArray* spArrayFloatArray_create(i32 initialCapacity) {
-    var array = cast(spArrayFloatArray*, _spCalloc(1, cast(u64, sizeof(spArrayFloatArray)), "extension.h", 44));
+    var array = cast(spArrayFloatArray*, _spCalloc(1, cast(u64, sizeof(spArrayFloatArray)), __file__, __line__));
     array.size = 0;
     array.capacity = initialCapacity;
-    array.items = cast(spFloatArray**, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(spFloatArray*)), "extension.h", 44));
+    array.items = cast(spFloatArray**, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(spFloatArray*)), __file__, __line__));
     return array;
 }
 
@@ -6207,10 +6207,10 @@ spFloatArray* spArrayFloatArray_peek(spArrayFloatArray* self) {
 }
 
 spArrayShortArray* spArrayShortArray_create(i32 initialCapacity) {
-    var array = cast(spArrayShortArray*, _spCalloc(1, cast(u64, sizeof(spArrayShortArray)), "extension.h", 44));
+    var array = cast(spArrayShortArray*, _spCalloc(1, cast(u64, sizeof(spArrayShortArray)), __file__, __line__));
     array.size = 0;
     array.capacity = initialCapacity;
-    array.items = cast(spShortArray**, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(spShortArray*)), "extension.h", 44));
+    array.items = cast(spShortArray**, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(spShortArray*)), __file__, __line__));
     return array;
 }
 
@@ -6374,9 +6374,9 @@ spKeyValue spKeyValueArray_peek(spKeyValueArray* self) {
 }
 
 spAtlasPage* spAtlasPage_create(spAtlas* atlas, u8* name) {
-    var self = cast(spAtlasPage*, _spCalloc(1, cast(u64, sizeof(spAtlasPage)), "extension.h", 79));
+    var self = cast(spAtlasPage*, _spCalloc(1, cast(u64, sizeof(spAtlasPage)), __file__, __line__));
     self.atlas = atlas;
-    self.name = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(name) + 1), "extension.h", 77));
+    self.name = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(name) + 1), __file__, __line__));
     strcpy(self.name, name);
     self.minFilter = SP_ATLAS_NEAREST;
     self.magFilter = SP_ATLAS_NEAREST;
@@ -6394,7 +6394,7 @@ void spAtlasPage_dispose(spAtlasPage* self) {
 
 /**/
 spAtlasRegion* spAtlasRegion_create() {
-    var region = cast(spAtlasRegion*, _spCalloc(1, cast(u64, sizeof(spAtlasRegion)), "extension.h", 79));
+    var region = cast(spAtlasRegion*, _spCalloc(1, cast(u64, sizeof(spAtlasRegion)), __file__, __line__));
     region.keyValues = spKeyValueArray_create(2);
     return region;
 }
@@ -6487,7 +6487,7 @@ i32 ss_equals(SimpleString* self, u8* str_var) {
 }
 
 u8* ss_copy(SimpleString* self) {
-    var string_var = cast(u8*, _spCalloc(cast(u64, self.length + 1), cast(u64, sizeof(u8)), "extension.h", 79));  // renamed from: string
+    var string_var = cast(u8*, _spCalloc(cast(u64, self.length + 1), cast(u64, sizeof(u8)), __file__, __line__));  // renamed from: string
     memcpy(string_var, self.start, cast(u64, self.length));
     string_var[self.length] = 0;
     return string_var;
@@ -6580,7 +6580,7 @@ spAtlas* spAtlas_create(u8* begin, i32 length, u8* dir, void* rendererObject) {
     i32 count;
     var dirLength = cast(i32, strlen(dir));
     i32 needsSlash = dirLength > 0 && dir[dirLength - 1] != 47 && dir[dirLength - 1] != 92;
-    self = cast(spAtlas*, _spCalloc(1, cast(u64, sizeof(spAtlas)), "extension.h", 79));
+    self = cast(spAtlas*, _spCalloc(1, cast(u64, sizeof(spAtlas)), __file__, __line__));
     self.rendererObject = rendererObject;
     reader.start = begin;
     reader.end = begin + length;
@@ -6608,7 +6608,7 @@ spAtlas* spAtlas_create(u8* begin, i32 length, u8* dir, void* rendererObject) {
             line = ai_readLine(&reader);
         } else if page == null {
             u8* name = ss_copy(line);
-            var path = cast(u8*, _spCalloc(cast(u64, dirLength + needsSlash) + strlen(name) + 1, cast(u64, sizeof(u8)), "extension.h", 79));
+            var path = cast(u8*, _spCalloc(cast(u64, dirLength + needsSlash) + strlen(name) + 1, cast(u64, sizeof(u8)), __file__, __line__));
             memcpy(path, dir, cast(u64, dirLength));
             if needsSlash != 0 {
                 path[dirLength] = 47;
@@ -6737,7 +6737,7 @@ spAtlas* spAtlas_createFromFile(u8* path, void* rendererObject) {
         lastSlash++;
     }
     dirLength = cast(i32, lastSlash != null ? cast(i64, lastSlash - path) : 0);
-    dir = cast(u8*, _spMalloc(cast(u64, sizeof(u8) * (dirLength + 1)), "extension.h", 77));
+    dir = cast(u8*, _spMalloc(cast(u64, sizeof(u8) * (dirLength + 1)), __file__, __line__));
     memcpy(dir, path, cast(u64, dirLength));
     dir[dirLength] = 0;
     data = _spUtil_readFile(path, &length);
@@ -6781,7 +6781,7 @@ spAtlasRegion* spAtlas_findRegion(spAtlas* self, u8* name) {
 private {
 i32 loadSequence(spAtlas* atlas, u8* basePath, spSequence* sequence) {
     spTextureRegionArray* regions = sequence.regions;
-    var path = cast(u8*, _spCalloc(strlen(basePath) + cast(u64, sequence.digits) + 2, cast(u64, sizeof(u8)), "extension.h", 82));
+    var path = cast(u8*, _spCalloc(strlen(basePath) + cast(u64, sequence.digits) + 2, cast(u64, sizeof(u8)), __file__, __line__));
     i32 i;
     for i = 0; i < regions.size; i++ {
         spSequence_getPath(sequence, basePath, i, path);
@@ -6864,17 +6864,17 @@ spAttachment* _spAtlasAttachmentLoader_createAttachment(spAttachmentLoader* load
 }
 
 spAtlasAttachmentLoader* spAtlasAttachmentLoader_create(spAtlas* atlas) {
-    var self = cast(spAtlasAttachmentLoader*, _spCalloc(1, cast(u64, sizeof(spAtlasAttachmentLoader)), "extension.h", 82));
+    var self = cast(spAtlasAttachmentLoader*, _spCalloc(1, cast(u64, sizeof(spAtlasAttachmentLoader)), __file__, __line__));
     _spAttachmentLoader_init(&self.super, cast(fn(spAttachmentLoader*): void, _spAttachmentLoader_deinit), cast(fn(spAttachmentLoader*, spSkin*, spAttachmentType, u8*, u8*, spSequence*): spAttachment*, _spAtlasAttachmentLoader_createAttachment), null, null);
     self.atlas = atlas;
     return self;
 }
 
 void _spAttachment_init(spAttachment* self, u8* name, spAttachmentType type, fn(spAttachment*): void dispose, fn(spAttachment*): spAttachment* copy) {
-    self.vtable = cast(_spAttachmentVtable*, _spCalloc(1, cast(u64, sizeof(_spAttachmentVtable)), "extension.h", 66));
+    self.vtable = cast(_spAttachmentVtable*, _spCalloc(1, cast(u64, sizeof(_spAttachmentVtable)), __file__, __line__));
     cast(_spAttachmentVtable*, self.vtable).dispose = dispose;
     cast(_spAttachmentVtable*, self.vtable).copy = copy;
-    self.name = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(name) + 1), "extension.h", 66));
+    self.name = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(name) + 1), __file__, __line__));
     strcpy(self.name, name);
     self.type = type;
 }
@@ -6899,7 +6899,7 @@ void spAttachment_dispose(spAttachment* self) {
 }
 
 void _spAttachmentLoader_init(spAttachmentLoader* self, fn(spAttachmentLoader*): void dispose, fn(spAttachmentLoader*, spSkin*, spAttachmentType, u8*, u8*, spSequence*): spAttachment* createAttachment, fn(spAttachmentLoader*, spAttachment*): void configureAttachment, fn(spAttachmentLoader*, spAttachment*): void disposeAttachment) {
-    self.vtable = cast(_spAttachmentLoaderVtable*, _spCalloc(1, cast(u64, sizeof(_spAttachmentLoaderVtable)), "extension.h", 77));
+    self.vtable = cast(_spAttachmentLoaderVtable*, _spCalloc(1, cast(u64, sizeof(_spAttachmentLoaderVtable)), __file__, __line__));
     cast(_spAttachmentLoaderVtable*, self.vtable).dispose = dispose;
     cast(_spAttachmentLoaderVtable*, self.vtable).createAttachment = createAttachment;
     cast(_spAttachmentLoaderVtable*, self.vtable).configureAttachment = configureAttachment;
@@ -6942,9 +6942,9 @@ void spAttachmentLoader_disposeAttachment(spAttachmentLoader* self, spAttachment
 void _spAttachmentLoader_setError(spAttachmentLoader* self, u8* error1, u8* error2) {
     _spFree(cast(void*, self.error1));
     _spFree(cast(void*, self.error2));
-    self.error1 = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(error1) + 1), "extension.h", 74));
+    self.error1 = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(error1) + 1), __file__, __line__));
     strcpy(self.error1, error1);
-    self.error2 = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(error2) + 1), "extension.h", 74));
+    self.error2 = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(error2) + 1), __file__, __line__));
     strcpy(self.error2, error2);
 }
 
@@ -6964,7 +6964,7 @@ i32 spBone_isYDown() {
 }
 
 spBone* spBone_create(spBoneData* data, spSkeleton* skeleton, spBone* parent) {
-    var self = cast(spBone*, _spCalloc(1, cast(u64, sizeof(spBone)), "extension.h", 103));
+    var self = cast(spBone*, _spCalloc(1, cast(u64, sizeof(spBone)), __file__, __line__));
     self.data = data;
     self.skeleton = skeleton;
     self.parent = parent;
@@ -7007,10 +7007,10 @@ void spBone_updateWorldTransformWith(spBone* self, f32 x, f32 y, f32 rotation, f
     if parent == null {
         f32 rx = (rotation + shearX) * (3.141592653589793f / 180.0f);
         f32 ry = (rotation + 90.0f + shearY) * (3.141592653589793f / 180.0f);
-        self.a = cosf(rx) * scaleX * sx;
-        self.b = cosf(ry) * scaleY * sx;
-        self.c = sinf(rx) * scaleX * sy;
-        self.d = sinf(ry) * scaleY * sy;
+        self.a = cos(rx) * scaleX * sx;
+        self.b = cos(ry) * scaleY * sx;
+        self.c = sin(rx) * scaleX * sy;
+        self.d = sin(ry) * scaleY * sy;
         self.worldX = x * sx + self.skeleton.x;
         self.worldY = y * sy + self.skeleton.y;
         return;
@@ -7026,10 +7026,10 @@ void spBone_updateWorldTransformWith(spBone* self, f32 x, f32 y, f32 rotation, f
             {
                 f32 rx = (rotation + shearX) * (3.141592653589793f / 180.0f);
                 f32 ry = (rotation + 90.0f + shearY) * (3.141592653589793f / 180.0f);
-                f32 la = cosf(rx) * scaleX;
-                f32 lb = cosf(ry) * scaleY;
-                f32 lc = sinf(rx) * scaleX;
-                f32 ld = sinf(ry) * scaleY;
+                f32 la = cos(rx) * scaleX;
+                f32 lb = cos(ry) * scaleY;
+                f32 lc = sin(rx) * scaleX;
+                f32 ld = sin(ry) * scaleY;
                 self.a = pa * la + pb * lc;
                 self.b = pa * lb + pb * ld;
                 self.c = pc * la + pd * lc;
@@ -7041,10 +7041,10 @@ void spBone_updateWorldTransformWith(spBone* self, f32 x, f32 y, f32 rotation, f
             {
                 f32 rx = (rotation + shearX) * (3.141592653589793f / 180.0f);
                 f32 ry = (rotation + 90.0f + shearY) * (3.141592653589793f / 180.0f);
-                self.a = cosf(rx) * scaleX;
-                self.b = cosf(ry) * scaleY;
-                self.c = sinf(rx) * scaleX;
-                self.d = sinf(ry) * scaleY;
+                self.a = cos(rx) * scaleX;
+                self.b = cos(ry) * scaleY;
+                self.c = sin(rx) * scaleX;
+                self.d = sin(ry) * scaleY;
                 break case;
             }
         }
@@ -7058,18 +7058,18 @@ void spBone_updateWorldTransformWith(spBone* self, f32 x, f32 y, f32 rotation, f
                     pc /= sy;
                     pb = pc * s;
                     pd = pa * s;
-                    prx = atan2f(pc, pa) * (180.0f / 3.141592653589793f);
+                    prx = atan2(pc, pa) * (180.0f / 3.141592653589793f);
                 } else {
                     pa = 0.0f;
                     pc = 0.0f;
-                    prx = 90.0f - atan2f(pd, pb) * (180.0f / 3.141592653589793f);
+                    prx = 90.0f - atan2(pd, pb) * (180.0f / 3.141592653589793f);
                 }
                 f32 rx = (rotation + shearX - prx) * (3.141592653589793f / 180.0f);
                 f32 ry = (rotation + shearY - prx + 90.0f) * (3.141592653589793f / 180.0f);
-                f32 la = cosf(rx) * scaleX;
-                f32 lb = cosf(ry) * scaleY;
-                f32 lc = sinf(rx) * scaleX;
-                f32 ld = sinf(ry) * scaleY;
+                f32 la = cos(rx) * scaleX;
+                f32 lb = cos(ry) * scaleY;
+                f32 lc = sin(rx) * scaleX;
+                f32 ld = sin(ry) * scaleY;
                 self.a = pa * la - pb * lc;
                 self.b = pa * lb - pb * ld;
                 self.c = pc * la + pd * lc;
@@ -7080,29 +7080,29 @@ void spBone_updateWorldTransformWith(spBone* self, f32 x, f32 y, f32 rotation, f
         case SP_INHERIT_NOSCALE, SP_INHERIT_NOSCALEORREFLECTION: {
             {
                 rotation *= 3.141592653589793f / 180.0f;
-                f32 cosine = cosf(rotation);
-                f32 sine = sinf(rotation);
+                f32 cosine = cos(rotation);
+                f32 sine = sin(rotation);
                 f32 za = (pa * cosine + pb * sine) / sx;
                 f32 zc = (pc * cosine + pd * sine) / sy;
-                f32 s = sqrtf(za * za + zc * zc);
+                f32 s = sqrt(za * za + zc * zc);
                 if s > 1.0e-5f {
                     s = 1.0f / s;
                 }
                 za *= s;
                 zc *= s;
-                s = sqrtf(za * za + zc * zc);
+                s = sqrt(za * za + zc * zc);
                 if self.inherit == SP_INHERIT_NOSCALE && pa * pd - pb * pc < 0.0f != (sx < 0.0f != sy < 0.0f) {
                     s = -s;
                 }
-                rotation = 3.141592653589793f / 2.0f + atan2f(zc, za);
-                f32 zb = cosf(rotation) * s;
-                f32 zd = sinf(rotation) * s;
+                rotation = 3.141592653589793f / 2.0f + atan2(zc, za);
+                f32 zb = cos(rotation) * s;
+                f32 zd = sin(rotation) * s;
                 shearX *= 3.141592653589793f / 180.0f;
                 shearY = (90.0f + shearY) * (3.141592653589793f / 180.0f);
-                f32 la = cosf(shearX) * scaleX;
-                f32 lb = cosf(shearY) * scaleY;
-                f32 lc = sinf(shearX) * scaleX;
-                f32 ld = sinf(shearY) * scaleY;
+                f32 la = cos(shearX) * scaleX;
+                f32 lb = cos(shearY) * scaleY;
+                f32 lc = sin(shearX) * scaleX;
+                f32 ld = sin(shearY) * scaleY;
                 self.a = za * la + zb * lc;
                 self.b = za * lb + zb * ld;
                 self.c = zc * la + zd * lc;
@@ -7128,19 +7128,19 @@ void spBone_setToSetupPose(spBone* self) {
 }
 
 f32 spBone_getWorldRotationX(spBone* self) {
-    return atan2f(self.c, self.a) * (180.0f / 3.141592653589793f);
+    return atan2(self.c, self.a) * (180.0f / 3.141592653589793f);
 }
 
 f32 spBone_getWorldRotationY(spBone* self) {
-    return atan2f(self.d, self.b) * (180.0f / 3.141592653589793f);
+    return atan2(self.d, self.b) * (180.0f / 3.141592653589793f);
 }
 
 f32 spBone_getWorldScaleX(spBone* self) {
-    return sqrtf(self.a * self.a + self.c * self.c);
+    return sqrt(self.a * self.a + self.c * self.c);
 }
 
 f32 spBone_getWorldScaleY(spBone* self) {
-    return sqrtf(self.b * self.b + self.d * self.d);
+    return sqrt(self.b * self.b + self.d * self.d);
 }
 
 /** Computes the individual applied transform values from the world transform. This can be useful to perform processing using
@@ -7173,11 +7173,11 @@ void spBone_updateAppliedTransform(spBone* self) {
     if parent == null {
         self.ax = self.worldX - self.skeleton.x;
         self.ay = self.worldY - self.skeleton.y;
-        self.arotation = atan2f(self.c, self.a) * (180.0f / 3.141592653589793f);
-        self.ascaleX = sqrtf(self.a * self.a + self.c * self.c);
-        self.ascaleY = sqrtf(self.b * self.b + self.d * self.d);
+        self.arotation = atan2(self.c, self.a) * (180.0f / 3.141592653589793f);
+        self.ascaleX = sqrt(self.a * self.a + self.c * self.c);
+        self.ascaleY = sqrt(self.b * self.b + self.d * self.d);
         self.ashearX = 0.0f;
-        self.ashearY = atan2f(self.a * self.b + self.c * self.d, self.a * self.d - self.b * self.c) * (180.0f / 3.141592653589793f);
+        self.ashearY = atan2(self.a * self.b + self.c * self.d, self.a * self.d - self.b * self.c) * (180.0f / 3.141592653589793f);
         return;
     }
     pa = parent.a;
@@ -7216,23 +7216,23 @@ void spBone_updateAppliedTransform(spBone* self) {
             case SP_INHERIT_NOSCALE, SP_INHERIT_NOSCALEORREFLECTION: {
                 {
                     f32 r = self.rotation * (3.141592653589793f / 180.0f);
-                    cosine = cosf(r);
-                    sine = sinf(r);
+                    cosine = cos(r);
+                    sine = sin(r);
                     pa = (pa * cosine + pb * sine) / self.skeleton.scaleX;
                     pc = (pc * cosine + pd * sine) / self.skeleton.scaleY * yDownScale;
-                    s = sqrtf(pa * pa + pc * pc);
+                    s = sqrt(pa * pa + pc * pc);
                     if s > 1.0e-5 {
                         s = 1.0f / s;
                     }
                     pa *= s;
                     pc *= s;
-                    s = sqrtf(pa * pa + pc * pc);
+                    s = sqrt(pa * pa + pc * pc);
                     if self.inherit == SP_INHERIT_NOSCALE && pid < 0.0f != (self.skeleton.scaleX < 0.0f != self.skeleton.scaleY * yDownScale < 0.0f) {
                         s = -s;
                     }
-                    r = 3.141592653589793f / 2.0f + atan2f(pc, pa);
-                    pb = cosf(r) * s;
-                    pd = sinf(r) * s;
+                    r = 3.141592653589793f / 2.0f + atan2(pc, pa);
+                    pb = cos(r) * s;
+                    pd = sin(r) * s;
                     pid = 1.0f / (pa * pd - pb * pc);
                     ia = pd * pid;
                     ib = pb * pid;
@@ -7250,17 +7250,17 @@ void spBone_updateAppliedTransform(spBone* self) {
         rd = id * self.d - ic * self.b;
     }
     self.ashearX = 0.0f;
-    self.ascaleX = sqrtf(ra * ra + rc * rc);
+    self.ascaleX = sqrt(ra * ra + rc * rc);
     if self.ascaleX > 0.0001f {
         f32 det = ra * rd - rb * rc;
         self.ascaleY = det / self.ascaleX;
-        self.ashearY = -(atan2f(ra * rb + rc * rd, det) * (180.0f / 3.141592653589793f));
-        self.arotation = atan2f(rc, ra) * (180.0f / 3.141592653589793f);
+        self.ashearY = -(atan2(ra * rb + rc * rd, det) * (180.0f / 3.141592653589793f));
+        self.arotation = atan2(rc, ra) * (180.0f / 3.141592653589793f);
     } else {
         self.ascaleX = 0.0f;
-        self.ascaleY = sqrtf(rb * rb + rd * rd);
+        self.ascaleY = sqrt(rb * rb + rd * rd);
         self.ashearY = 0.0f;
-        self.arotation = 90.0f - atan2f(rd, rb) * (180.0f / 3.141592653589793f);
+        self.arotation = 90.0f - atan2(rd, rb) * (180.0f / 3.141592653589793f);
     }
 }
 
@@ -7299,22 +7299,22 @@ void spBone_parentToWorld(spBone* self, f32 localX, f32 localY, f32* worldX, f32
 
 f32 spBone_worldToLocalRotation(spBone* self, f32 worldRotation) {
     worldRotation *= 3.141592653589793f / 180.0f;
-    f32 sine = sinf(worldRotation);
-    f32 cosine = cosf(worldRotation);
-    return atan2f(self.a * sine - self.c * cosine, self.d * cosine - self.b * sine) * (180.0f / 3.141592653589793f) + self.rotation - self.shearX;
+    f32 sine = sin(worldRotation);
+    f32 cosine = cos(worldRotation);
+    return atan2(self.a * sine - self.c * cosine, self.d * cosine - self.b * sine) * (180.0f / 3.141592653589793f) + self.rotation - self.shearX;
 }
 
 f32 spBone_localToWorldRotation(spBone* self, f32 localRotation) {
     localRotation = (localRotation - self.rotation - self.shearX) * (3.141592653589793f / 180.0f);
-    f32 sine = sinf(localRotation);
-    f32 cosine = cosf(localRotation);
-    return atan2f(cosine * self.c + sine * self.d, cosine * self.a + sine * self.b) * (180.0f / 3.141592653589793f);
+    f32 sine = sin(localRotation);
+    f32 cosine = cos(localRotation);
+    return atan2(cosine * self.c + sine * self.d, cosine * self.a + sine * self.b) * (180.0f / 3.141592653589793f);
 }
 
 void spBone_rotateWorld(spBone* self, f32 degrees) {
     degrees *= 3.141592653589793f / 180.0f;
-    f32 sine = sinf(degrees);
-    f32 cosine = cosf(degrees);
+    f32 sine = sin(degrees);
+    f32 cosine = cos(degrees);
     f32 ra = self.a;
     f32 rb = self.b;
     self.a = cosine * ra - sine * self.c;
@@ -7324,9 +7324,9 @@ void spBone_rotateWorld(spBone* self, f32 degrees) {
 }
 
 spBoneData* spBoneData_create(i32 index, u8* name, spBoneData* parent) {
-    var self = cast(spBoneData*, _spCalloc(1, cast(u64, sizeof(spBoneData)), "extension.h", 51));
+    var self = cast(spBoneData*, _spCalloc(1, cast(u64, sizeof(spBoneData)), __file__, __line__));
     self.index = index;
-    self.name = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(name) + 1), "extension.h", 51));
+    self.name = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(name) + 1), __file__, __line__));
     strcpy(self.name, name);
     self.parent = parent;
     self.scaleX = 1.0f;
@@ -7357,7 +7357,7 @@ spAttachment* _spBoundingBoxAttachment_copy(spAttachment* attachment) {
 }
 
 spBoundingBoxAttachment* spBoundingBoxAttachment_create(u8* name) {
-    var self = cast(spBoundingBoxAttachment*, _spCalloc(1, cast(u64, sizeof(spBoundingBoxAttachment)), "extension.h", 55));
+    var self = cast(spBoundingBoxAttachment*, _spCalloc(1, cast(u64, sizeof(spBoundingBoxAttachment)), __file__, __line__));
     _spVertexAttachment_init(&self.super);
     _spAttachment_init(&self.super.super, name, SP_ATTACHMENT_BOUNDING_BOX, cast(fn(spAttachment*): void, _spBoundingBoxAttachment_dispose), cast(fn(spAttachment*): spAttachment*, _spBoundingBoxAttachment_copy));
     return self;
@@ -7378,7 +7378,7 @@ spAttachment* _spClippingAttachment_copy(spAttachment* attachment) {
 }
 
 spClippingAttachment* spClippingAttachment_create(u8* name) {
-    var self = cast(spClippingAttachment*, _spCalloc(1, cast(u64, sizeof(spClippingAttachment)), "extension.h", 57));
+    var self = cast(spClippingAttachment*, _spCalloc(1, cast(u64, sizeof(spClippingAttachment)), __file__, __line__));
     _spVertexAttachment_init(&self.super);
     _spAttachment_init(&self.super.super, name, SP_ATTACHMENT_CLIPPING, cast(fn(spAttachment*): void, _spClippingAttachment_dispose), cast(fn(spAttachment*): spAttachment*, _spClippingAttachment_copy));
     self.endSlot = null;
@@ -7386,7 +7386,7 @@ spClippingAttachment* spClippingAttachment_create(u8* name) {
 }
 
 spColor* spColor_create() {
-    return cast(spColor*, _spMalloc(cast(u64, sizeof(spColor) * 1), "extension.h", 109));
+    return cast(spColor*, _spMalloc(cast(u64, sizeof(spColor) * 1), __file__, __line__));
 }
 
 void spColor_dispose(spColor* self) {
@@ -7470,7 +7470,7 @@ void spColor_clamp(spColor* self) {
 }
 
 spEvent* spEvent_create(f32 time, spEventData* data) {
-    var self = cast(spEvent*, _spCalloc(1, cast(u64, sizeof(spEvent)), "extension.h", 44));
+    var self = cast(spEvent*, _spCalloc(1, cast(u64, sizeof(spEvent)), __file__, __line__));
     self.data = data;
     self.time = time;
     return self;
@@ -7482,8 +7482,8 @@ void spEvent_dispose(spEvent* self) {
 }
 
 spEventData* spEventData_create(u8* name) {
-    var self = cast(spEventData*, _spCalloc(1, cast(u64, sizeof(spEventData)), "extension.h", 45));
-    self.name = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(name) + 1), "extension.h", 45));
+    var self = cast(spEventData*, _spCalloc(1, cast(u64, sizeof(spEventData)), __file__, __line__));
+    self.name = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(name) + 1), __file__, __line__));
     strcpy(self.name, name);
     return self;
 }
@@ -7497,7 +7497,7 @@ void spEventData_dispose(spEventData* self) {
 
 spIkConstraint* spIkConstraint_create(spIkConstraintData* data, spSkeleton* skeleton) {
     i32 i;
-    var self = cast(spIkConstraint*, _spCalloc(1, cast(u64, sizeof(spIkConstraint)), "extension.h", 86));
+    var self = cast(spIkConstraint*, _spCalloc(1, cast(u64, sizeof(spIkConstraint)), __file__, __line__));
     self.data = data;
     self.bendDirection = data.bendDirection;
     self.compress = data.compress;
@@ -7505,7 +7505,7 @@ spIkConstraint* spIkConstraint_create(spIkConstraintData* data, spSkeleton* skel
     self.mix = data.mix;
     self.softness = data.softness;
     self.bonesCount = self.data.bonesCount;
-    self.bones = cast(spBone**, _spMalloc(cast(u64, sizeof(spBone*) * self.bonesCount), "extension.h", 83));
+    self.bones = cast(spBone**, _spMalloc(cast(u64, sizeof(spBone*) * self.bonesCount), __file__, __line__));
     for i = 0; i < self.bonesCount; ++i {
         self.bones[i] = spSkeleton_findBone(skeleton, self.data.bones[i].name);
     }
@@ -7566,7 +7566,7 @@ void spIkConstraint_apply1(spBone* bone, f32 targetX, f32 targetY, i32 compress,
                 sc = pc / bone.skeleton.scaleY;
                 pb = -sc * s * bone.skeleton.scaleX;
                 pd = sa * s * bone.skeleton.scaleY;
-                rotationIK += atan2f(sc, sa) * (180.0f / 3.141592653589793f);
+                rotationIK += atan2(sc, sa) * (180.0f / 3.141592653589793f);
             }
             fallthrough;
         }
@@ -7585,7 +7585,7 @@ void spIkConstraint_apply1(spBone* bone, f32 targetX, f32 targetY, i32 compress,
             }
         }
     }
-    rotationIK += atan2f(ty, tx) * (180.0f / 3.141592653589793f);
+    rotationIK += atan2(ty, tx) * (180.0f / 3.141592653589793f);
     if bone.ascaleX < 0.0f {
         rotationIK += 180.0f;
     }
@@ -7609,7 +7609,7 @@ void spIkConstraint_apply1(spBone* bone, f32 targetX, f32 targetY, i32 compress,
             }
         }
         b = bone.data.length * sx;
-        dd = sqrtf(tx * tx + ty * ty);
+        dd = sqrt(tx * tx + ty * ty);
         if compress && dd < b || stretch && dd > b && b > 0.0001f {
             s = (dd / b - 1.0f) * alpha + 1.0f;
             sx *= s;
@@ -7712,7 +7712,7 @@ void spIkConstraint_apply2(spBone* parent, spBone* child, f32 targetX, f32 targe
     y = cwy - pp.worldY;
     dx = (x * d - y * b) * id - px;
     dy = (y * a - x * c) * id - py;
-    l1 = sqrtf(dx * dx + dy * dy);
+    l1 = sqrt(dx * dx + dy * dy);
     l2 = child.data.length * csx;
     if l1 < 0.0001 {
         spIkConstraint_apply1(parent, targetX, targetY, 0, stretch, 0, alpha);
@@ -7726,7 +7726,7 @@ void spIkConstraint_apply2(spBone* parent, spBone* child, f32 targetX, f32 targe
     dd = tx * tx + ty * ty;
     if softness != 0.0f {
         softness *= psx * (csx + 1.0f) * 0.5f;
-        td = sqrtf(dd);
+        td = sqrt(dd);
         sd = td - l1 - l2 * psx + softness;
         if sd > 0.0f {
             p = cast(f32, (1.0f < sd / (softness * 2.0f) ? 1.0f : sd / (softness * 2.0f)) - 1);
@@ -7747,31 +7747,31 @@ void spIkConstraint_apply2(spBone* parent, spBone* child, f32 targetX, f32 targe
             cosine = 1.0f;
             a2 = 0.0f;
             if stretch != 0 {
-                a = (sqrtf(dd) / (l1 + l2) - 1.0f) * alpha + 1.0f;
+                a = (sqrt(dd) / (l1 + l2) - 1.0f) * alpha + 1.0f;
                 sx *= a;
                 if uniform != 0 {
                     sy *= a;
                 }
             }
         } else {
-            a2 = acosf(cosine) * cast(f32, bendDir);
+            a2 = acos(cosine) * cast(f32, bendDir);
         }
         a = l1 + l2 * cosine;
-        b = l2 * sinf(a2);
-        a1 = atan2f(ty * a - tx * b, tx * a + ty * b);
+        b = l2 * sin(a2);
+        a1 = atan2(ty * a - tx * b, tx * a + ty * b);
     } else {
         a = psx * l2;
         b = psy * l2;
         aa = a * a;
         bb = b * b;
         ll = l1 * l1;
-        ta = atan2f(ty, tx);
+        ta = atan2(ty, tx);
         c0 = bb * ll + aa * dd - aa * bb;
         c1 = -2.0f * bb * l1;
         c2 = bb - aa;
         d = c1 * c1 - 4.0f * c2 * c0;
         if d >= 0.0f {
-            f32 q = sqrtf(d);
+            f32 q = sqrt(d);
             f32 r0;
             f32 r1;
             if c1 < 0.0f {
@@ -7783,12 +7783,12 @@ void spIkConstraint_apply2(spBone* parent, spBone* child, f32 targetX, f32 targe
             r = (r0 < 0.0f ? -r0 : r0) < (r1 < 0.0f ? -r1 : r1) ? r0 : r1;
             y = dd - r * r;
             if y > 0.0f {
-                y = sqrtf(y) * cast(f32, bendDir);
-                a1 = ta - atan2f(y, r);
-                a2 = atan2f(y / psy, (r - l1) / psx);
+                y = sqrt(y) * cast(f32, bendDir);
+                a1 = ta - atan2(y, r);
+                a2 = atan2(y / psy, (r - l1) / psx);
                 {
                     {
-                        f32 os = atan2f(cy, cx) * cast(f32, s2);
+                        f32 os = atan2(cy, cx) * cast(f32, s2);
                         f32 rotation = parent.arotation;
                         a1 = (a1 - os) * (180.0f / 3.141592653589793f) + cast(f32, o1) - rotation;
                         if a1 > 180.0f {
@@ -7821,9 +7821,9 @@ void spIkConstraint_apply2(spBone* parent, spBone* child, f32 targetX, f32 targe
             f32 maxY = 0.0f;
             c0 = -a * l1 / (aa - bb);
             if c0 >= -1.0f && c0 <= 1.0f {
-                c0 = acosf(c0);
-                x = a * cosf(c0) + l1;
-                y = b * sinf(c0);
+                c0 = acos(c0);
+                x = a * cos(c0) + l1;
+                y = b * sin(c0);
                 d = x * x + y * y;
                 if d < minDist {
                     minAngle = c0;
@@ -7839,16 +7839,16 @@ void spIkConstraint_apply2(spBone* parent, spBone* child, f32 targetX, f32 targe
                 }
             }
             if dd <= (minDist + maxDist) * 0.5f {
-                a1 = ta - atan2f(minY * cast(f32, bendDir), minX);
+                a1 = ta - atan2(minY * cast(f32, bendDir), minX);
                 a2 = minAngle * cast(f32, bendDir);
             } else {
-                a1 = ta - atan2f(maxY * cast(f32, bendDir), maxX);
+                a1 = ta - atan2(maxY * cast(f32, bendDir), maxX);
                 a2 = maxAngle * cast(f32, bendDir);
             }
         }
     }
     {
-        f32 os = atan2f(cy, cx) * cast(f32, s2);
+        f32 os = atan2(cy, cx) * cast(f32, s2);
         f32 rotation = parent.arotation;
         a1 = (a1 - os) * (180.0f / 3.141592653589793f) + cast(f32, o1) - rotation;
         if a1 > 180.0f {
@@ -7870,8 +7870,8 @@ void spIkConstraint_apply2(spBone* parent, spBone* child, f32 targetX, f32 targe
 }
 
 spIkConstraintData* spIkConstraintData_create(u8* name) {
-    var self = cast(spIkConstraintData*, _spCalloc(1, cast(u64, sizeof(spIkConstraintData)), "extension.h", 49));
-    self.name = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(name) + 1), "extension.h", 49));
+    var self = cast(spIkConstraintData*, _spCalloc(1, cast(u64, sizeof(spIkConstraintData)), __file__, __line__));
+    self.name = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(name) + 1), __file__, __line__));
     strcpy(self.name, name);
     self.bendDirection = 0;
     self.compress = 0;
@@ -7932,7 +7932,7 @@ i32 Json_strcasecmp(u8* s1, u8* s2) {
 
 /* Internal constructor. */
 Json* Json_new() {
-    return cast(Json*, _spCalloc(1, cast(u64, sizeof(Json)), "extension.h", 140));
+    return cast(Json*, _spCalloc(1, cast(u64, sizeof(Json)), __file__, __line__));
 }
 }
 
@@ -7978,7 +7978,7 @@ u8* parse_number(Json* item, u8* num) {
             ++ptr;
             ++n;
         }
-        result += fraction / pow(10.0, cast(f64, n));
+        result += fraction / pow(10.0, n);
     }
     if negative != 0 {
         result = -result;
@@ -8032,7 +8032,7 @@ u8* parse_string(Json* item, u8* str_var) {
             ptr++;
         }
     }
-    out = cast(u8*, _spMalloc(cast(u64, sizeof(u8) * (len + 1)), "extension.h", 135));
+    out = cast(u8*, _spMalloc(cast(u64, sizeof(u8) * (len + 1)), __file__, __line__));
     if out == null {
         return null;
     }
@@ -8367,21 +8367,21 @@ spAttachment* _spMeshAttachment_copy(spAttachment* attachment) {
     copy.rendererObject = self.rendererObject;
     copy.region = self.region;
     copy.sequence = self.sequence != null ? spSequence_copy(self.sequence) : null;
-    copy.path = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(self.path) + 1), "extension.h", 73));
+    copy.path = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(self.path) + 1), __file__, __line__));
     strcpy(copy.path, self.path);
     spColor_setFromColor(&copy.color, &self.color);
     spVertexAttachment_copyTo(&self.super, &copy.super);
-    copy.regionUVs = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * self.super.worldVerticesLength), "extension.h", 73));
+    copy.regionUVs = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * self.super.worldVerticesLength), __file__, __line__));
     memcpy(copy.regionUVs, self.regionUVs, cast(u64, self.super.worldVerticesLength * sizeof(f32)));
-    copy.uvs = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * self.super.worldVerticesLength), "extension.h", 73));
+    copy.uvs = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * self.super.worldVerticesLength), __file__, __line__));
     memcpy(copy.uvs, self.uvs, cast(u64, self.super.worldVerticesLength * sizeof(f32)));
     copy.trianglesCount = self.trianglesCount;
-    copy.triangles = cast(u16*, _spMalloc(cast(u64, sizeof(u16) * self.trianglesCount), "extension.h", 73));
+    copy.triangles = cast(u16*, _spMalloc(cast(u64, sizeof(u16) * self.trianglesCount), __file__, __line__));
     memcpy(copy.triangles, self.triangles, cast(u64, self.trianglesCount * sizeof(i16)));
     copy.hullLength = self.hullLength;
     if self.edgesCount > 0 {
         copy.edgesCount = self.edgesCount;
-        copy.edges = cast(u16*, _spMalloc(cast(u64, sizeof(u16) * self.edgesCount), "extension.h", 73));
+        copy.edges = cast(u16*, _spMalloc(cast(u64, sizeof(u16) * self.edgesCount), __file__, __line__));
         memcpy(copy.edges, self.edges, cast(u64, self.edgesCount * sizeof(i32)));
     }
     copy.width = self.width;
@@ -8393,7 +8393,7 @@ spMeshAttachment* spMeshAttachment_newLinkedMesh(spMeshAttachment* self) {
     spMeshAttachment* copy = spMeshAttachment_create(self.super.super.name);
     copy.rendererObject = self.rendererObject;
     copy.region = self.region;
-    copy.path = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(self.path) + 1), "extension.h", 73));
+    copy.path = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(self.path) + 1), __file__, __line__));
     strcpy(copy.path, self.path);
     spColor_setFromColor(&copy.color, &self.color);
     copy.super.timelineAttachment = self.super.timelineAttachment;
@@ -8405,7 +8405,7 @@ spMeshAttachment* spMeshAttachment_newLinkedMesh(spMeshAttachment* self) {
 }
 
 spMeshAttachment* spMeshAttachment_create(u8* name) {
-    var self = cast(spMeshAttachment*, _spCalloc(1, cast(u64, sizeof(spMeshAttachment)), "extension.h", 76));
+    var self = cast(spMeshAttachment*, _spCalloc(1, cast(u64, sizeof(spMeshAttachment)), __file__, __line__));
     _spVertexAttachment_init(&self.super);
     spColor_setFromFloats(&self.color, 1.0f, 1.0f, 1.0f, 1.0f);
     _spAttachment_init(&self.super.super, name, SP_ATTACHMENT_MESH, cast(fn(spAttachment*): void, _spMeshAttachment_dispose), cast(fn(spAttachment*): spAttachment*, _spMeshAttachment_copy));
@@ -8422,7 +8422,7 @@ void spMeshAttachment_updateRegion(spMeshAttachment* self) {
     f32 height;
     i32 verticesLength = self.super.worldVerticesLength;
     _spFree(cast(void*, self.uvs));
-    self.uvs = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * verticesLength), "extension.h", 73));
+    self.uvs = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * verticesLength), __file__, __line__));
     uvs = self.uvs;
     n = verticesLength;
     u = self.region.u;
@@ -8521,7 +8521,7 @@ spAttachment* _spPathAttachment_copy(spAttachment* attachment) {
     var self = cast(spPathAttachment*, attachment);
     spVertexAttachment_copyTo(&self.super, &copy.super);
     copy.lengthsLength = self.lengthsLength;
-    copy.lengths = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * self.lengthsLength), "extension.h", 60));
+    copy.lengths = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * self.lengthsLength), __file__, __line__));
     memcpy(copy.lengths, self.lengths, cast(u64, self.lengthsLength * sizeof(f32)));
     copy.closed = self.closed;
     copy.constantSpeed = self.constantSpeed;
@@ -8529,7 +8529,7 @@ spAttachment* _spPathAttachment_copy(spAttachment* attachment) {
 }
 
 spPathAttachment* spPathAttachment_create(u8* name) {
-    var self = cast(spPathAttachment*, _spCalloc(1, cast(u64, sizeof(spPathAttachment)), "extension.h", 60));
+    var self = cast(spPathAttachment*, _spCalloc(1, cast(u64, sizeof(spPathAttachment)), __file__, __line__));
     _spVertexAttachment_init(&self.super);
     _spAttachment_init(&self.super.super, name, SP_ATTACHMENT_PATH, cast(fn(spAttachment*): void, _spPathAttachment_dispose), cast(fn(spAttachment*): spAttachment*, _spPathAttachment_copy));
     return self;
@@ -8537,10 +8537,10 @@ spPathAttachment* spPathAttachment_create(u8* name) {
 
 spPathConstraint* spPathConstraint_create(spPathConstraintData* data, spSkeleton* skeleton) {
     i32 i;
-    var self = cast(spPathConstraint*, _spCalloc(1, cast(u64, sizeof(spPathConstraint)), "extension.h", 87));
+    var self = cast(spPathConstraint*, _spCalloc(1, cast(u64, sizeof(spPathConstraint)), __file__, __line__));
     self.data = data;
     self.bonesCount = data.bonesCount;
-    self.bones = cast(spBone**, _spMalloc(cast(u64, sizeof(spBone*) * self.bonesCount), "extension.h", 86));
+    self.bones = cast(spBone**, _spMalloc(cast(u64, sizeof(spBone*) * self.bonesCount), __file__, __line__));
     for i = 0; i < self.bonesCount; ++i {
         self.bones[i] = spSkeleton_findBone(skeleton, self.data.bones[i].name);
     }
@@ -8623,7 +8623,7 @@ void spPathConstraint_update(spPathConstraint* self) {
         if self.spaces != null {
             _spFree(cast(void*, self.spaces));
         }
-        self.spaces = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * spacesCount), "extension.h", 86));
+        self.spaces = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * spacesCount), __file__, __line__));
         self.spacesCount = spacesCount;
     }
     spaces = self.spaces;
@@ -8635,7 +8635,7 @@ void spPathConstraint_update(spPathConstraint* self) {
             if self.lengths != null {
                 _spFree(cast(void*, self.lengths));
             }
-            self.lengths = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * boneCount), "extension.h", 86));
+            self.lengths = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * boneCount), __file__, __line__));
             self.lengthsCount = boneCount;
         }
         lengths = self.lengths;
@@ -8650,7 +8650,7 @@ void spPathConstraint_update(spPathConstraint* self) {
                         setupLength = bone.data.length;
                         x = setupLength * bone.a;
                         y = setupLength * bone.c;
-                        lengths[i] = sqrtf(x * x + y * y);
+                        lengths[i] = sqrt(x * x + y * y);
                     }
                 }
             }
@@ -8677,7 +8677,7 @@ void spPathConstraint_update(spPathConstraint* self) {
                     } else {
                         x = setupLength * bone.a;
                         y = setupLength * bone.c;
-                        length = sqrtf(x * x + y * y);
+                        length = sqrt(x * x + y * y);
                         if scale != 0 {
                             lengths[i] = length;
                         }
@@ -8709,7 +8709,7 @@ void spPathConstraint_update(spPathConstraint* self) {
                     } else {
                         x = setupLength * bone.a;
                         y = setupLength * bone.c;
-                        length = sqrtf(x * x + y * y);
+                        length = sqrt(x * x + y * y);
                         if scale != 0 {
                             lengths[i] = length;
                         }
@@ -8744,7 +8744,7 @@ void spPathConstraint_update(spPathConstraint* self) {
             if scale != 0 {
                 length = lengths[i];
                 if length != 0.0f {
-                    s = (sqrtf(dx * dx + dy * dy) / length - 1.0f) * mixRotate + 1.0f;
+                    s = (sqrt(dx * dx + dy * dy) / length - 1.0f) * mixRotate + 1.0f;
                     bone.a *= s;
                     bone.c *= s;
                 }
@@ -8764,12 +8764,12 @@ void spPathConstraint_update(spPathConstraint* self) {
                 } else if spaces[i + 1] == 0.0f {
                     r = positions[p + 2];
                 } else {
-                    r = atan2f(dy, dx);
+                    r = atan2(dy, dx);
                 }
-                r -= atan2f(c, a) - offsetRotation * (3.141592653589793f / 180.0f);
+                r -= atan2(c, a) - offsetRotation * (3.141592653589793f / 180.0f);
                 if tip != 0 {
-                    cosine = cosf(r);
-                    sine = sinf(r);
+                    cosine = cos(r);
+                    sine = sin(r);
                     length = bone.data.length;
                     boneX += (length * (cosine * a - sine * c) - dx) * mixRotate;
                     boneY += (length * (sine * a + cosine * c) - dy) * mixRotate;
@@ -8782,8 +8782,8 @@ void spPathConstraint_update(spPathConstraint* self) {
                     r += 3.141592653589793f * 2.0f;
                 }
                 r *= mixRotate;
-                cosine = cosf(r);
-                sine = sinf(r);
+                cosine = cos(r);
+                sine = sin(r);
                 bone.a = cosine * a - sine * c;
                 bone.b = cosine * b - sine * d;
                 bone.c = sine * a + cosine * c;
@@ -8810,9 +8810,9 @@ void _addBeforePosition(f32 p, f32* temp, i32 i, f32* out, i32 o) {
     f32 y1 = temp[i + 1];
     f32 dx = temp[i + 2] - x1;
     f32 dy = temp[i + 3] - y1;
-    f32 r = atan2f(dy, dx);
-    out[o] = x1 + p * cosf(r);
-    out[o + 1] = y1 + p * sinf(r);
+    f32 r = atan2(dy, dx);
+    out[o] = x1 + p * cos(r);
+    out[o + 1] = y1 + p * sin(r);
     out[o + 2] = r;
 }
 
@@ -8821,9 +8821,9 @@ void _addAfterPosition(f32 p, f32* temp, i32 i, f32* out, i32 o) {
     f32 y1 = temp[i + 3];
     f32 dx = x1 - temp[i];
     f32 dy = y1 - temp[i + 1];
-    f32 r = atan2f(dy, dx);
-    out[o] = x1 + p * cosf(r);
-    out[o + 1] = y1 + p * sinf(r);
+    f32 r = atan2(dy, dx);
+    out[o] = x1 + p * cos(r);
+    out[o + 1] = y1 + p * sin(r);
     out[o + 2] = r;
 }
 
@@ -8842,7 +8842,7 @@ void _addCurvePosition(f32 p, f32 x1, f32 y1, f32 cx1, f32 cy1, f32 cx2, f32 cy2
     if p == 0.0f || isnan(p) {
         out[o] = x1;
         out[o + 1] = y1;
-        out[o + 2] = atan2f(cy1 - y1, cx1 - x1);
+        out[o + 2] = atan2(cy1 - y1, cx1 - x1);
         return;
     }
     tt = p * p;
@@ -8860,9 +8860,9 @@ void _addCurvePosition(f32 p, f32 x1, f32 y1, f32 cx1, f32 cy1, f32 cx2, f32 cy2
     out[o + 1] = y;
     if tangents != 0 {
         if p < 0.001 {
-            out[o + 2] = atan2f(cy1 - y1, cx1 - x1);
+            out[o + 2] = atan2(cy1 - y1, cx1 - x1);
         } else {
-            out[o + 2] = atan2f(y - (y1 * uu + cy1 * ut * 2.0f + cy2 * tt), x - (x1 * uu + cx1 * ut * 2.0f + cx2 * tt));
+            out[o + 2] = atan2(y - (y1 * uu + cy1 * ut * 2.0f + cy2 * tt), x - (x1 * uu + cx1 * ut * 2.0f + cx2 * tt));
         }
     }
 }
@@ -8909,7 +8909,7 @@ f32* spPathConstraint_computeWorldPositions(spPathConstraint* self, spPathAttach
         if self.positions != null {
             _spFree(cast(void*, self.positions));
         }
-        self.positions = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * (spacesCount * 3 + 2)), "extension.h", 86));
+        self.positions = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * (spacesCount * 3 + 2)), __file__, __line__));
         self.positionsCount = spacesCount * 3 + 2;
     }
     out = self.positions;
@@ -8939,7 +8939,7 @@ f32* spPathConstraint_computeWorldPositions(spPathConstraint* self, spPathAttach
             if self.world != null {
                 _spFree(cast(void*, self.world));
             }
-            self.world = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * 8), "extension.h", 86));
+            self.world = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * 8), __file__, __line__));
             self.worldCount = 8;
         }
         world = self.world;
@@ -8951,7 +8951,7 @@ f32* spPathConstraint_computeWorldPositions(spPathConstraint* self, spPathAttach
                 position += space;
                 p = position;
                 if closed != 0 {
-                    p = fmodf(p, pathLength);
+                    p = fmod(p, pathLength);
                     if p < 0.0f {
                         p += pathLength;
                     }
@@ -9011,7 +9011,7 @@ f32* spPathConstraint_computeWorldPositions(spPathConstraint* self, spPathAttach
             if self.world != null {
                 _spFree(cast(void*, self.world));
             }
-            self.world = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * verticesLength), "extension.h", 86));
+            self.world = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * verticesLength), __file__, __line__));
             self.worldCount = verticesLength;
         }
         world = self.world;
@@ -9026,7 +9026,7 @@ f32* spPathConstraint_computeWorldPositions(spPathConstraint* self, spPathAttach
             if self.world != null {
                 _spFree(cast(void*, self.world));
             }
-            self.world = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * verticesLength), "extension.h", 86));
+            self.world = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * verticesLength), __file__, __line__));
             self.worldCount = verticesLength;
         }
         world = self.world;
@@ -9036,7 +9036,7 @@ f32* spPathConstraint_computeWorldPositions(spPathConstraint* self, spPathAttach
         if self.curves != null {
             _spFree(cast(void*, self.curves));
         }
-        self.curves = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * curveCount), "extension.h", 86));
+        self.curves = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * curveCount), __file__, __line__));
         self.curvesCount = curveCount;
     }
     curves = self.curves;
@@ -9066,18 +9066,18 @@ f32* spPathConstraint_computeWorldPositions(spPathConstraint* self, spPathAttach
             ddfy = tmpy * 2.0f + dddfy;
             dfx = (cx1 - x1) * 0.75f + tmpx + dddfx * 0.16666667f;
             dfy = (cy1 - y1) * 0.75f + tmpy + dddfy * 0.16666667f;
-            pathLength += sqrtf(dfx * dfx + dfy * dfy);
+            pathLength += sqrt(dfx * dfx + dfy * dfy);
             dfx += ddfx;
             dfy += ddfy;
             ddfx += dddfx;
             ddfy += dddfy;
-            pathLength += sqrtf(dfx * dfx + dfy * dfy);
+            pathLength += sqrt(dfx * dfx + dfy * dfy);
             dfx += ddfx;
             dfy += ddfy;
-            pathLength += sqrtf(dfx * dfx + dfy * dfy);
+            pathLength += sqrt(dfx * dfx + dfy * dfy);
             dfx += ddfx + dddfx;
             dfy += ddfy + dddfy;
-            pathLength += sqrtf(dfx * dfx + dfy * dfy);
+            pathLength += sqrt(dfx * dfx + dfy * dfy);
             curves[i] = pathLength;
             x1 = x2;
             y1 = y2;
@@ -9109,7 +9109,7 @@ f32* spPathConstraint_computeWorldPositions(spPathConstraint* self, spPathAttach
             position += space;
             p = position;
             if closed != 0 {
-                p = fmodf(p, pathLength);
+                p = fmod(p, pathLength);
                 if p < 0.0f {
                     p += pathLength;
                 }
@@ -9160,23 +9160,23 @@ f32* spPathConstraint_computeWorldPositions(spPathConstraint* self, spPathAttach
                 ddfy = tmpy * 2.0f + dddfy;
                 dfx = (cx1 - x1) * 0.3f + tmpx + dddfx * 0.16666667f;
                 dfy = (cy1 - y1) * 0.3f + tmpy + dddfy * 0.16666667f;
-                curveLength = sqrtf(dfx * dfx + dfy * dfy);
+                curveLength = sqrt(dfx * dfx + dfy * dfy);
                 segments[0] = curveLength;
                 for ii = 1; ii < 8; ii++ {
                     dfx += ddfx;
                     dfy += ddfy;
                     ddfx += dddfx;
                     ddfy += dddfy;
-                    curveLength += sqrtf(dfx * dfx + dfy * dfy);
+                    curveLength += sqrt(dfx * dfx + dfy * dfy);
                     segments[ii] = curveLength;
                 }
                 dfx += ddfx;
                 dfy += ddfy;
-                curveLength += sqrtf(dfx * dfx + dfy * dfy);
+                curveLength += sqrt(dfx * dfx + dfy * dfy);
                 segments[8] = curveLength;
                 dfx += ddfx + dddfx;
                 dfy += ddfy + dddfy;
-                curveLength += sqrtf(dfx * dfx + dfy * dfy);
+                curveLength += sqrt(dfx * dfx + dfy * dfy);
                 segments[9] = curveLength;
                 segment = 0;
             }
@@ -9202,8 +9202,8 @@ f32* spPathConstraint_computeWorldPositions(spPathConstraint* self, spPathAttach
 }
 
 spPathConstraintData* spPathConstraintData_create(u8* name) {
-    var self = cast(spPathConstraintData*, _spCalloc(1, cast(u64, sizeof(spPathConstraintData)), "extension.h", 44));
-    self.name = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(name) + 1), "extension.h", 44));
+    var self = cast(spPathConstraintData*, _spCalloc(1, cast(u64, sizeof(spPathConstraintData)), __file__, __line__));
+    self.name = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(name) + 1), __file__, __line__));
     strcpy(self.name, name);
     return self;
 }
@@ -9215,7 +9215,7 @@ void spPathConstraintData_dispose(spPathConstraintData* self) {
 }
 
 spPhysicsConstraint* spPhysicsConstraint_create(spPhysicsConstraintData* data, spSkeleton* skeleton) {
-    var self = cast(spPhysicsConstraint*, _spCalloc(1, cast(u64, sizeof(spPhysicsConstraint)), "extension.h", 101));
+    var self = cast(spPhysicsConstraint*, _spCalloc(1, cast(u64, sizeof(spPhysicsConstraint)), __file__, __line__));
     self.data = data;
     self.skeleton = skeleton;
     self.bone = skeleton.bones[data.bone.index];
@@ -9324,7 +9324,7 @@ void spPhysicsConstraint_update(spPhysicsConstraint* self, spPhysics physics) {
                             self.uy = by;
                         }
                         if a >= t {
-                            var d = cast(f32, pow(self.damping, 60.0f * t));
+                            var d = cast(f32, pow(cast(f64, self.damping), cast(f64, 60.0f * t)));
                             f32 m = self.massInverse * t;
                             f32 e = self.strength;
                             f32 w = self.wind * f * self.skeleton.scaleX;
@@ -9352,7 +9352,7 @@ void spPhysicsConstraint_update(spPhysicsConstraint* self, spPhysics physics) {
                         }
                     }
                     if rotateOrShearX || scaleX {
-                        f32 ca = atan2f(bone.c, bone.a);
+                        f32 ca = atan2(bone.c, bone.a);
                         f32 c;
                         f32 s;
                         f32 mr = 0.0f;
@@ -9370,11 +9370,11 @@ void spPhysicsConstraint_update(spPhysicsConstraint* self, spPhysics physics) {
                         }
                         if rotateOrShearX != 0 {
                             mr = (self.data.rotate + self.data.shearX) * mix;
-                            f32 r = atan2f(dy + self.ty, dx + self.tx) - ca - self.rotateOffset * mr;
-                            self.rotateOffset += (r - cast(f32, ceil(r * (1.0f / (3.141592653589793f * 2.0f)) - 0.5f)) * (3.141592653589793f * 2.0f)) * i;
+                            f32 r = atan2(dy + self.ty, dx + self.tx) - ca - self.rotateOffset * mr;
+                            self.rotateOffset += (r - ceil(r * (1.0f / (3.141592653589793f * 2.0f)) - 0.5f) * (3.141592653589793f * 2.0f)) * i;
                             r = self.rotateOffset * mr + ca;
-                            c = cosf(r);
-                            s = sinf(r);
+                            c = cos(r);
+                            s = sin(r);
                             if scaleX != 0 {
                                 r = l * spBone_getWorldScaleX(bone);
                                 if r > 0.0f {
@@ -9382,8 +9382,8 @@ void spPhysicsConstraint_update(spPhysicsConstraint* self, spPhysics physics) {
                                 }
                             }
                         } else {
-                            c = cosf(ca);
-                            s = sinf(ca);
+                            c = cos(ca);
+                            s = sin(ca);
                             f32 r = l * spBone_getWorldScaleX(bone);
                             if r > 0.0f {
                                 self.scaleOffset += (dx * c + dy * s) * i / r;
@@ -9396,7 +9396,7 @@ void spPhysicsConstraint_update(spPhysicsConstraint* self, spPhysics physics) {
                             f32 w = self.wind;
                             f32 g = self.gravity;
                             f32 h = l / f;
-                            var d = cast(f32, pow(self.damping, 60.0f * t));
+                            var d = cast(f32, pow(cast(f64, self.damping), cast(f64, 60.0f * t)));
                             while -1 != 0 {
                                 a -= t;
                                 if scaleX != 0 {
@@ -9412,8 +9412,8 @@ void spPhysicsConstraint_update(spPhysicsConstraint* self, spPhysics physics) {
                                         break;
                                     }
                                     f32 r = self.rotateOffset * mr + ca;
-                                    c = cosf(r);
-                                    s = sinf(r);
+                                    c = cos(r);
+                                    s = sin(r);
                                 } else if a < t {
                                     break;
                                 }
@@ -9448,22 +9448,22 @@ void spPhysicsConstraint_update(spPhysicsConstraint* self, spPhysics physics) {
             f32 r = 0.0f;
             if self.data.rotate > 0.0f {
                 r = o * self.data.rotate;
-                s = sinf(r);
-                c = cosf(r);
+                s = sin(r);
+                c = cos(r);
                 a = bone.b;
                 bone.b = c * a - s * bone.d;
                 bone.d = s * a + c * bone.d;
             }
             r += o * self.data.shearX;
-            s = sinf(r);
-            c = cosf(r);
+            s = sin(r);
+            c = cos(r);
             a = bone.a;
             bone.a = c * a - s * bone.c;
             bone.c = s * a + c * bone.c;
         } else {
             o *= self.data.rotate;
-            s = sinf(o);
-            c = cosf(o);
+            s = sin(o);
+            c = cos(o);
             a = bone.a;
             bone.a = c * a - s * bone.c;
             bone.c = s * a + c * bone.c;
@@ -9486,8 +9486,8 @@ void spPhysicsConstraint_update(spPhysicsConstraint* self, spPhysics physics) {
 
 void spPhysicsConstraint_rotate(spPhysicsConstraint* self, f32 x, f32 y, f32 degrees) {
     f32 r = degrees * (3.141592653589793f / 180.0f);
-    f32 cosine = cosf(r);
-    f32 sine = sinf(r);
+    f32 cosine = cos(r);
+    f32 sine = sin(r);
     f32 dx = self.cx - x;
     f32 dy = self.cy - y;
     spPhysicsConstraint_translate(self, dx * cosine - dy * sine - dx, dx * sine + dy * cosine - dy);
@@ -9501,8 +9501,8 @@ void spPhysicsConstraint_translate(spPhysicsConstraint* self, f32 x, f32 y) {
 }
 
 spPhysicsConstraintData* spPhysicsConstraintData_create(u8* name) {
-    var self = cast(spPhysicsConstraintData*, _spCalloc(1, cast(u64, sizeof(spPhysicsConstraintData)), "extension.h", 65));
-    self.name = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(name) + 1), "extension.h", 65));
+    var self = cast(spPhysicsConstraintData*, _spCalloc(1, cast(u64, sizeof(spPhysicsConstraintData)), __file__, __line__));
+    self.name = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(name) + 1), __file__, __line__));
     strcpy(self.name, name);
     self.bone = null;
     self.x = 0.0f;
@@ -9551,7 +9551,7 @@ spAttachment* _spPointAttachment_copy(spAttachment* attachment) {
 }
 
 spPointAttachment* spPointAttachment_create(u8* name) {
-    var self = cast(spPointAttachment*, _spCalloc(1, cast(u64, sizeof(spPointAttachment)), "extension.h", 66));
+    var self = cast(spPointAttachment*, _spCalloc(1, cast(u64, sizeof(spPointAttachment)), __file__, __line__));
     _spAttachment_init(&self.super, name, SP_ATTACHMENT_POINT, cast(fn(spAttachment*): void, _spPointAttachment_dispose), cast(fn(spAttachment*): spAttachment*, _spPointAttachment_copy));
     return self;
 }
@@ -9563,11 +9563,11 @@ void spPointAttachment_computeWorldPosition(spPointAttachment* self, spBone* bon
 
 f32 spPointAttachment_computeWorldRotation(spPointAttachment* self, spBone* bone) {
     f32 r = self.rotation * (3.141592653589793f / 180.0f);
-    f32 cosine = cosf(r);
-    f32 sine = sinf(r);
+    f32 cosine = cos(r);
+    f32 sine = sin(r);
     f32 x = cosine * bone.a + sine * bone.b;
     f32 y = cosine * bone.c + sine * bone.d;
-    return atan2f(y, x) * (180.0f / 3.141592653589793f);
+    return atan2(y, x) * (180.0f / 3.141592653589793f);
 }
 
 void _spRegionAttachment_dispose(spAttachment* attachment) {
@@ -9585,7 +9585,7 @@ spAttachment* _spRegionAttachment_copy(spAttachment* attachment) {
     spRegionAttachment* copy = spRegionAttachment_create(attachment.name);
     copy.region = self.region;
     copy.rendererObject = self.rendererObject;
-    copy.path = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(self.path) + 1), "extension.h", 84));
+    copy.path = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(self.path) + 1), __file__, __line__));
     strcpy(copy.path, self.path);
     copy.x = self.x;
     copy.y = self.y;
@@ -9602,7 +9602,7 @@ spAttachment* _spRegionAttachment_copy(spAttachment* attachment) {
 }
 
 spRegionAttachment* spRegionAttachment_create(u8* name) {
-    var self = cast(spRegionAttachment*, _spCalloc(1, cast(u64, sizeof(spRegionAttachment)), "extension.h", 89));
+    var self = cast(spRegionAttachment*, _spCalloc(1, cast(u64, sizeof(spRegionAttachment)), __file__, __line__));
     self.scaleX = 1.0f;
     self.scaleY = 1.0f;
     spColor_setFromFloats(&self.color, 1.0f, 1.0f, 1.0f, 1.0f);
@@ -9646,8 +9646,8 @@ void spRegionAttachment_updateRegion(spRegionAttachment* self) {
     localX2 = localX + cast(f32, self.region.width) * regionScaleX;
     localY2 = localY + cast(f32, self.region.height) * regionScaleY;
     radians = self.rotation * (3.141592653589793f / 180.0f);
-    cosine = cosf(radians);
-    sine = sinf(radians);
+    cosine = cos(radians);
+    sine = sin(radians);
     localXCos = localX * cosine + self.x;
     localXSin = localX * sine;
     localYCos = localY * cosine + self.y;
@@ -9717,10 +9717,10 @@ void spRegionAttachment_computeWorldVertices(spRegionAttachment* self, spSlot* s
 }
 
 spTextureRegionArray* spTextureRegionArray_create(i32 initialCapacity) {
-    var array = cast(spTextureRegionArray*, _spCalloc(1, cast(u64, sizeof(spTextureRegionArray)), "extension.h", 93));
+    var array = cast(spTextureRegionArray*, _spCalloc(1, cast(u64, sizeof(spTextureRegionArray)), __file__, __line__));
     array.size = 0;
     array.capacity = initialCapacity;
-    array.items = cast(spTextureRegion**, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(spTextureRegion*)), "extension.h", 93));
+    array.items = cast(spTextureRegion**, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(spTextureRegion*)), __file__, __line__));
     return array;
 }
 
@@ -9804,7 +9804,7 @@ spTextureRegion* spTextureRegionArray_peek(spTextureRegionArray* self) {
 private { i32 nextSequenceId = 0; }
 
 spSequence* spSequence_create(i32 numRegions) {
-    var self = cast(spSequence*, _spCalloc(1, cast(u64, sizeof(spSequence)), "extension.h", 93));
+    var self = cast(spSequence*, _spCalloc(1, cast(u64, sizeof(spSequence)), __file__, __line__));
     self.id = nextSequenceId++;
     self.regions = spTextureRegionArray_create(numRegions);
     spTextureRegionArray_setSize(self.regions, numRegions);
@@ -9892,7 +9892,7 @@ void spSequence_getPath(spSequence* self, u8* basePath, i32 index, u8* path) {
 spSkeleton* spSkeleton_create(spSkeletonData* data) {
     i32 i;
     i32* childrenCounts;
-    var internal = cast(_spSkeleton*, _spCalloc(1, cast(u64, sizeof(_spSkeleton)), "extension.h", 101));
+    var internal = cast(_spSkeleton*, _spCalloc(1, cast(u64, sizeof(_spSkeleton)), __file__, __line__));
     spSkeleton* self = &internal.super;
     self.data = data;
     self.skin = null;
@@ -9901,8 +9901,8 @@ spSkeleton* spSkeleton_create(spSkeletonData* data) {
     self.scaleY = 1.0f;
     self.time = 0.0f;
     self.bonesCount = self.data.bonesCount;
-    self.bones = cast(spBone**, _spMalloc(cast(u64, sizeof(spBone*) * self.bonesCount), "extension.h", 99));
-    childrenCounts = cast(i32*, _spCalloc(cast(u64, self.bonesCount), cast(u64, sizeof(i32)), "extension.h", 101));
+    self.bones = cast(spBone**, _spMalloc(cast(u64, sizeof(spBone*) * self.bonesCount), __file__, __line__));
+    childrenCounts = cast(i32*, _spCalloc(cast(u64, self.bonesCount), cast(u64, sizeof(i32)), __file__, __line__));
     for i = 0; i < self.bonesCount; ++i {
         spBoneData* boneData = self.data.bones[i];
         spBone* newBone;
@@ -9918,7 +9918,7 @@ spSkeleton* spSkeleton_create(spSkeletonData* data) {
     for i = 0; i < self.bonesCount; ++i {
         spBoneData* boneData = self.data.bones[i];
         spBone* bone = self.bones[i];
-        bone.children = cast(spBone**, _spMalloc(cast(u64, sizeof(spBone*) * childrenCounts[boneData.index]), "extension.h", 99));
+        bone.children = cast(spBone**, _spMalloc(cast(u64, sizeof(spBone*) * childrenCounts[boneData.index]), __file__, __line__));
     }
     for i = 0; i < self.bonesCount; ++i {
         spBone* bone = self.bones[i];
@@ -9929,31 +9929,31 @@ spSkeleton* spSkeleton_create(spSkeletonData* data) {
     }
     self.root = self.bonesCount > 0 ? self.bones[0] : null;
     self.slotsCount = data.slotsCount;
-    self.slots = cast(spSlot**, _spMalloc(cast(u64, sizeof(spSlot*) * self.slotsCount), "extension.h", 99));
+    self.slots = cast(spSlot**, _spMalloc(cast(u64, sizeof(spSlot*) * self.slotsCount), __file__, __line__));
     for i = 0; i < self.slotsCount; ++i {
         spSlotData* slotData = data.slots[i];
         spBone* bone = self.bones[slotData.boneData.index];
         self.slots[i] = spSlot_create(slotData, bone);
     }
-    self.drawOrder = cast(spSlot**, _spMalloc(cast(u64, sizeof(spSlot*) * self.slotsCount), "extension.h", 99));
+    self.drawOrder = cast(spSlot**, _spMalloc(cast(u64, sizeof(spSlot*) * self.slotsCount), __file__, __line__));
     memcpy(self.drawOrder, self.slots, cast(u64, sizeof(spSlot*) * self.slotsCount));
     self.ikConstraintsCount = data.ikConstraintsCount;
-    self.ikConstraints = cast(spIkConstraint**, _spMalloc(cast(u64, sizeof(spIkConstraint*) * self.ikConstraintsCount), "extension.h", 99));
+    self.ikConstraints = cast(spIkConstraint**, _spMalloc(cast(u64, sizeof(spIkConstraint*) * self.ikConstraintsCount), __file__, __line__));
     for i = 0; i < self.data.ikConstraintsCount; ++i {
         self.ikConstraints[i] = spIkConstraint_create(self.data.ikConstraints[i], self);
     }
     self.transformConstraintsCount = data.transformConstraintsCount;
-    self.transformConstraints = cast(spTransformConstraint**, _spMalloc(cast(u64, sizeof(spTransformConstraint*) * self.transformConstraintsCount), "extension.h", 99));
+    self.transformConstraints = cast(spTransformConstraint**, _spMalloc(cast(u64, sizeof(spTransformConstraint*) * self.transformConstraintsCount), __file__, __line__));
     for i = 0; i < self.data.transformConstraintsCount; ++i {
         self.transformConstraints[i] = spTransformConstraint_create(self.data.transformConstraints[i], self);
     }
     self.pathConstraintsCount = data.pathConstraintsCount;
-    self.pathConstraints = cast(spPathConstraint**, _spMalloc(cast(u64, sizeof(spPathConstraint*) * self.pathConstraintsCount), "extension.h", 99));
+    self.pathConstraints = cast(spPathConstraint**, _spMalloc(cast(u64, sizeof(spPathConstraint*) * self.pathConstraintsCount), __file__, __line__));
     for i = 0; i < self.data.pathConstraintsCount; i++ {
         self.pathConstraints[i] = spPathConstraint_create(self.data.pathConstraints[i], self);
     }
     self.physicsConstraintsCount = data.physicsConstraintsCount;
-    self.physicsConstraints = cast(spPhysicsConstraint**, _spMalloc(cast(u64, sizeof(spPhysicsConstraint*) * self.physicsConstraintsCount), "extension.h", 99));
+    self.physicsConstraints = cast(spPhysicsConstraint**, _spMalloc(cast(u64, sizeof(spPhysicsConstraint*) * self.physicsConstraintsCount), __file__, __line__));
     for i = 0; i < self.data.physicsConstraintsCount; i++ {
         self.physicsConstraints[i] = spPhysicsConstraint_create(self.data.physicsConstraints[i], self);
     }
@@ -10204,7 +10204,7 @@ void spSkeleton_updateCache(spSkeleton* self) {
     var internal = cast(_spSkeleton*, self);
     internal.updateCacheCapacity = self.bonesCount + self.ikConstraintsCount + self.transformConstraintsCount + self.pathConstraintsCount + self.physicsConstraintsCount;
     _spFree(cast(void*, internal.updateCache));
-    internal.updateCache = cast(_spUpdate*, _spMalloc(cast(u64, sizeof(_spUpdate) * internal.updateCacheCapacity), "extension.h", 99));
+    internal.updateCache = cast(_spUpdate*, _spMalloc(cast(u64, sizeof(_spUpdate) * internal.updateCacheCapacity), __file__, __line__));
     internal.updateCacheCount = 0;
     bones = self.bones;
     for i = 0; i < self.bonesCount; ++i {
@@ -10374,10 +10374,10 @@ void spSkeleton_updateWorldTransformWith(spSkeleton* self, spBone* parent, spPhy
     rootBone.worldX = pa * self.x + pb * self.y + parent.worldX;
     rootBone.worldY = pc * self.x + pd * self.y + parent.worldY;
     rotationY = rootBone.rotation + 90.0f + rootBone.shearY;
-    la = cosf((rootBone.rotation + rootBone.shearX) * (3.141592653589793f / 180.0f)) * rootBone.scaleX;
-    lb = cosf(rotationY * (3.141592653589793f / 180.0f)) * rootBone.scaleY;
-    lc = sinf((rootBone.rotation + rootBone.shearX) * (3.141592653589793f / 180.0f)) * rootBone.scaleX;
-    ld = sinf(rotationY * (3.141592653589793f / 180.0f)) * rootBone.scaleY;
+    la = cos((rootBone.rotation + rootBone.shearX) * (3.141592653589793f / 180.0f)) * rootBone.scaleX;
+    lb = cos(rotationY * (3.141592653589793f / 180.0f)) * rootBone.scaleY;
+    lc = sin((rootBone.rotation + rootBone.shearX) * (3.141592653589793f / 180.0f)) * rootBone.scaleX;
+    ld = sin(rotationY * (3.141592653589793f / 180.0f)) * rootBone.scaleY;
     rootBone.a = (pa * la + pb * lc) * self.scaleX;
     rootBone.b = (pa * lb + pb * ld) * self.scaleX;
     rootBone.c = (pc * la + pd * lc) * self.scaleY;
@@ -10626,7 +10626,7 @@ u8* string_copy(u8* str_var) {
 }
 
 spSkeletonBinary* spSkeletonBinary_createWithLoader(spAttachmentLoader* attachmentLoader) {
-    spSkeletonBinary* self = &cast(_spSkeletonBinary*, _spCalloc(1, cast(u64, sizeof(_spSkeletonBinary)), "extension.h", 100)).super;
+    spSkeletonBinary* self = &cast(_spSkeletonBinary*, _spCalloc(1, cast(u64, sizeof(_spSkeletonBinary)), __file__, __line__)).super;
     self.scale = 1.0f;
     self.attachmentLoader = attachmentLoader;
     return self;
@@ -10658,7 +10658,7 @@ void _spSkeletonBinary_setError(spSkeletonBinary* self, u8* value1, u8* value2) 
     if value2 != null {
         strncat(message + length, value2, cast(u64, 255 - length));
     }
-    self.error = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(message) + 1), "extension.h", 97));
+    self.error = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(message) + 1), __file__, __line__));
     strcpy(self.error, message);
 }
 
@@ -10723,7 +10723,7 @@ u8* readString(_dataInput* input) {
     if length == 0 {
         return null;
     }
-    string_var = cast(u8*, _spMalloc(cast(u64, sizeof(u8) * length), "extension.h", 97));
+    string_var = cast(u8*, _spMalloc(cast(u64, sizeof(u8) * length), __file__, __line__));
     memcpy(string_var, input.cursor, cast(u64, length - 1));
     input.cursor += length - 1;
     string_var[length - 1] = 0;
@@ -10839,7 +10839,7 @@ void _spSkeletonBinary_addLinkedMesh(spSkeletonBinary* self, spMeshAttachment* m
         if internal.linkedMeshCapacity < 8 {
             internal.linkedMeshCapacity = 8;
         }
-        linkedMeshes = cast(_spLinkedMeshBinary*, _spMalloc(cast(u64, sizeof(_spLinkedMeshBinary) * internal.linkedMeshCapacity), "extension.h", 97));
+        linkedMeshes = cast(_spLinkedMeshBinary*, _spMalloc(cast(u64, sizeof(_spLinkedMeshBinary) * internal.linkedMeshCapacity), __file__, __line__));
         memcpy(linkedMeshes, internal.linkedMeshes, cast(u64, sizeof(_spLinkedMeshBinary) * internal.linkedMeshCount));
         _spFree(cast(void*, internal.linkedMeshes));
         internal.linkedMeshes = linkedMeshes;
@@ -11471,7 +11471,7 @@ spAnimation* _spSkeletonBinary_readAnimation(spSkeletonBinary* self, u8* name, _
                                         spDeformTimeline* timeline;
                                         weighted = attachment.bones != null;
                                         deformLength = weighted != 0 ? attachment.verticesCount / 3 * 2 : attachment.verticesCount;
-                                        tempDeform = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * deformLength), "extension.h", 97));
+                                        tempDeform = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * deformLength), __file__, __line__));
                                         bezierCount = readVarint(input, 1);
                                         timeline = spDeformTimeline_create(frameCount, deformLength, bezierCount, slotIndex, attachment);
                                         time = readFloat(input);
@@ -11559,8 +11559,8 @@ spAnimation* _spSkeletonBinary_readAnimation(spSkeletonBinary* self, u8* name, _
         for i = 0; i < drawOrderCount; ++i {
             f32 time = readFloat(input);
             i32 offsetCount = readVarint(input, 1);
-            var drawOrder = cast(i32*, _spMalloc(cast(u64, sizeof(i32) * skeletonData.slotsCount), "extension.h", 97));
-            var unchanged = cast(i32*, _spMalloc(cast(u64, sizeof(i32) * (skeletonData.slotsCount - offsetCount)), "extension.h", 97));
+            var drawOrder = cast(i32*, _spMalloc(cast(u64, sizeof(i32) * skeletonData.slotsCount), __file__, __line__));
+            var unchanged = cast(i32*, _spMalloc(cast(u64, sizeof(i32) * (skeletonData.slotsCount - offsetCount)), __file__, __line__));
             i32 originalIndex = 0;
             i32 unchangedIndex = 0;
             memset(drawOrder, -1, cast(u64, sizeof(i32) * skeletonData.slotsCount));
@@ -11622,7 +11622,7 @@ spAnimation* _spSkeletonBinary_readAnimation(spSkeletonBinary* self, u8* name, _
 }
 
 f32* _readFloatArray(_dataInput* input, i32 n, f32 scale) {
-    var array = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * n), "extension.h", 97));
+    var array = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * n), __file__, __line__));
     i32 i;
     if scale == 1.0f {
         for i = 0; i < n; ++i {
@@ -11637,7 +11637,7 @@ f32* _readFloatArray(_dataInput* input, i32 n, f32 scale) {
 }
 
 u16* _readShortArray(_dataInput* input, i32 n) {
-    var array = cast(u16*, _spMalloc(cast(u64, sizeof(u16) * n), "extension.h", 97));
+    var array = cast(u16*, _spMalloc(cast(u64, sizeof(u16) * n), __file__, __line__));
     i32 i;
     for i = 0; i < n; ++i {
         array[i] = cast(u16, readVarint(input, 1));
@@ -11654,8 +11654,8 @@ i32 SkeletonBinary___readVertices(_dataInput* input, f32** vertices, i32* vertic
         *bonesCount = 0;
         return *verticesLength;
     }
-    var v = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * (*verticesLength * 3 * 3)), "extension.h", 97));
-    var b = cast(i32*, _spMalloc(cast(u64, sizeof(i32) * (*verticesLength * 3)), "extension.h", 97));
+    var v = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * (*verticesLength * 3 * 3)), __file__, __line__));
+    var b = cast(i32*, _spMalloc(cast(u64, sizeof(i32) * (*verticesLength * 3)), __file__, __line__));
     i32 boneIdx = 0;
     i32 vertexIdx = 0;
     for i32 i = 0; i < vertexCount; ++i {
@@ -11822,7 +11822,7 @@ spAttachment* spSkeletonBinary_readAttachment(spSkeletonBinary* self, _dataInput
                 mesh.path = path;
                 if mesh.path != null {
                     u8* tmp = null;
-                    tmp = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(mesh.path) + 1), "extension.h", 97));
+                    tmp = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(mesh.path) + 1), __file__, __line__));
                     strcpy(tmp, mesh.path);
                     mesh.path = tmp;
                 }
@@ -11847,7 +11847,7 @@ spAttachment* spSkeletonBinary_readAttachment(spSkeletonBinary* self, _dataInput
                 i32 verticesLength = SkeletonBinary___readVertices(input, &path.super.vertices, &path.super.verticesCount, &path.super.bones, &path.super.bonesCount, cast(i32, (flags & 64) != 0), self.scale);
                 path.super.worldVerticesLength = verticesLength;
                 path.lengthsLength = verticesLength / 6;
-                path.lengths = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * path.lengthsLength), "extension.h", 97));
+                path.lengths = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * path.lengthsLength), __file__, __line__));
                 for i32 i = 0; i < path.lengthsLength; ++i {
                     path.lengths[i] = readFloat(input) * self.scale;
                 }
@@ -11991,7 +11991,7 @@ spSkeletonData* spSkeletonBinary_readSkeletonData(spSkeletonBinary* self, u8* bi
     i32 highHash;
     spSkeletonData* skeletonData;
     var internal = cast(_spSkeletonBinary*, self);
-    var input = cast(_dataInput*, _spCalloc(1, cast(u64, sizeof(_dataInput)), "extension.h", 100));
+    var input = cast(_dataInput*, _spCalloc(1, cast(u64, sizeof(_dataInput)), __file__, __line__));
     input.cursor = binary;
     input.end = binary + length;
     _spFree(cast(void*, self.error));
@@ -12002,7 +12002,7 @@ spSkeletonData* spSkeletonBinary_readSkeletonData(spSkeletonBinary* self, u8* bi
     highHash = readInt(input);
     snprintf(buffer, 32, "%x%x", highHash, lowHash);
     buffer[31] = 0;
-    skeletonData.hash = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(buffer) + 1), "extension.h", 97));
+    skeletonData.hash = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(buffer) + 1), __file__, __line__));
     strcpy(skeletonData.hash, buffer);
     skeletonData.version = readString(input);
     if strlen(skeletonData.version) == 0 {
@@ -12039,12 +12039,12 @@ spSkeletonData* spSkeletonBinary_readSkeletonData(spSkeletonBinary* self, u8* bi
     }
     n = readVarint(input, 1);
     skeletonData.stringsCount = n;
-    skeletonData.strings = cast(u8**, _spMalloc(cast(u64, sizeof(u8*) * skeletonData.stringsCount), "extension.h", 97));
+    skeletonData.strings = cast(u8**, _spMalloc(cast(u64, sizeof(u8*) * skeletonData.stringsCount), __file__, __line__));
     for i = 0; i < n; i++ {
         skeletonData.strings[i] = readString(input);
     }
     skeletonData.bonesCount = readVarint(input, 1);
-    skeletonData.bones = cast(spBoneData**, _spMalloc(cast(u64, sizeof(spBoneData*) * skeletonData.bonesCount), "extension.h", 97));
+    skeletonData.bones = cast(spBoneData**, _spMalloc(cast(u64, sizeof(spBoneData*) * skeletonData.bonesCount), __file__, __line__));
     for i = 0; i < skeletonData.bonesCount; ++i {
         u8* name = readString(input);
         spBoneData* parent = i == 0 ? null : skeletonData.bones[readVarint(input, 1)];
@@ -12068,7 +12068,7 @@ spSkeletonData* spSkeletonBinary_readSkeletonData(spSkeletonBinary* self, u8* bi
         skeletonData.bones[i] = data;
     }
     skeletonData.slotsCount = readVarint(input, 1);
-    skeletonData.slots = cast(spSlotData**, _spMalloc(cast(u64, sizeof(spSlotData*) * skeletonData.slotsCount), "extension.h", 97));
+    skeletonData.slots = cast(spSlotData**, _spMalloc(cast(u64, sizeof(spSlotData*) * skeletonData.slotsCount), __file__, __line__));
     for i = 0; i < skeletonData.slotsCount; ++i {
         u8* slotName = readString(input);
         spBoneData* boneData = skeletonData.bones[readVarint(input, 1)];
@@ -12085,7 +12085,7 @@ spSkeletonData* spSkeletonBinary_readSkeletonData(spSkeletonBinary* self, u8* bi
         }
         u8* attachmentName = readStringRef(input, skeletonData);
         if attachmentName != null {
-            slotData.attachmentName = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(attachmentName) + 1), "extension.h", 97));
+            slotData.attachmentName = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(attachmentName) + 1), __file__, __line__));
             strcpy(slotData.attachmentName, attachmentName);
         } else {
             slotData.attachmentName = null;
@@ -12097,14 +12097,14 @@ spSkeletonData* spSkeletonBinary_readSkeletonData(spSkeletonBinary* self, u8* bi
         skeletonData.slots[i] = slotData;
     }
     skeletonData.ikConstraintsCount = readVarint(input, 1);
-    skeletonData.ikConstraints = cast(spIkConstraintData**, _spMalloc(cast(u64, sizeof(spIkConstraintData*) * skeletonData.ikConstraintsCount), "extension.h", 97));
+    skeletonData.ikConstraints = cast(spIkConstraintData**, _spMalloc(cast(u64, sizeof(spIkConstraintData*) * skeletonData.ikConstraintsCount), __file__, __line__));
     for i = 0; i < skeletonData.ikConstraintsCount; ++i {
         u8* name = readString(input);
         spIkConstraintData* data = spIkConstraintData_create(name);
         _spFree(cast(void*, name));
         data.order = readVarint(input, 1);
         data.bonesCount = readVarint(input, 1);
-        data.bones = cast(spBoneData**, _spMalloc(cast(u64, sizeof(spBoneData*) * data.bonesCount), "extension.h", 97));
+        data.bones = cast(spBoneData**, _spMalloc(cast(u64, sizeof(spBoneData*) * data.bonesCount), __file__, __line__));
         for ii = 0; ii < data.bonesCount; ++ii {
             data.bones[ii] = skeletonData.bones[readVarint(input, 1)];
         }
@@ -12124,14 +12124,14 @@ spSkeletonData* spSkeletonBinary_readSkeletonData(spSkeletonBinary* self, u8* bi
         skeletonData.ikConstraints[i] = data;
     }
     skeletonData.transformConstraintsCount = readVarint(input, 1);
-    skeletonData.transformConstraints = cast(spTransformConstraintData**, _spMalloc(cast(u64, sizeof(spTransformConstraintData*) * skeletonData.transformConstraintsCount), "extension.h", 97));
+    skeletonData.transformConstraints = cast(spTransformConstraintData**, _spMalloc(cast(u64, sizeof(spTransformConstraintData*) * skeletonData.transformConstraintsCount), __file__, __line__));
     for i = 0; i < skeletonData.transformConstraintsCount; ++i {
         u8* name = readString(input);
         spTransformConstraintData* data = spTransformConstraintData_create(name);
         _spFree(cast(void*, name));
         data.order = readVarint(input, 1);
         data.bonesCount = readVarint(input, 1);
-        data.bones = cast(spBoneData**, _spMalloc(cast(u64, sizeof(spBoneData*) * data.bonesCount), "extension.h", 97));
+        data.bones = cast(spBoneData**, _spMalloc(cast(u64, sizeof(spBoneData*) * data.bonesCount), __file__, __line__));
         for ii = 0; ii < data.bonesCount; ++ii {
             data.bones[ii] = skeletonData.bones[readVarint(input, 1)];
         }
@@ -12180,7 +12180,7 @@ spSkeletonData* spSkeletonBinary_readSkeletonData(spSkeletonBinary* self, u8* bi
         skeletonData.transformConstraints[i] = data;
     }
     skeletonData.pathConstraintsCount = readVarint(input, 1);
-    skeletonData.pathConstraints = cast(spPathConstraintData**, _spMalloc(cast(u64, sizeof(spPathConstraintData*) * skeletonData.pathConstraintsCount), "extension.h", 97));
+    skeletonData.pathConstraints = cast(spPathConstraintData**, _spMalloc(cast(u64, sizeof(spPathConstraintData*) * skeletonData.pathConstraintsCount), __file__, __line__));
     for i = 0; i < skeletonData.pathConstraintsCount; ++i {
         u8* name = readString(input);
         spPathConstraintData* data = spPathConstraintData_create(name);
@@ -12188,7 +12188,7 @@ spSkeletonData* spSkeletonBinary_readSkeletonData(spSkeletonBinary* self, u8* bi
         data.order = readVarint(input, 1);
         data.skinRequired = readBoolean(input);
         data.bonesCount = readVarint(input, 1);
-        data.bones = cast(spBoneData**, _spMalloc(cast(u64, sizeof(spBoneData*) * data.bonesCount), "extension.h", 97));
+        data.bones = cast(spBoneData**, _spMalloc(cast(u64, sizeof(spBoneData*) * data.bonesCount), __file__, __line__));
         for ii = 0; ii < data.bonesCount; ++ii {
             data.bones[ii] = skeletonData.bones[readVarint(input, 1)];
         }
@@ -12214,7 +12214,7 @@ spSkeletonData* spSkeletonBinary_readSkeletonData(spSkeletonBinary* self, u8* bi
         skeletonData.pathConstraints[i] = data;
     }
     skeletonData.physicsConstraintsCount = readVarint(input, 1);
-    skeletonData.physicsConstraints = cast(spPhysicsConstraintData**, _spMalloc(cast(u64, sizeof(spPhysicsConstraintData*) * skeletonData.physicsConstraintsCount), "extension.h", 97));
+    skeletonData.physicsConstraints = cast(spPhysicsConstraintData**, _spMalloc(cast(u64, sizeof(spPhysicsConstraintData*) * skeletonData.physicsConstraintsCount), __file__, __line__));
     for i = 0; i < skeletonData.physicsConstraintsCount; i++ {
         u8* name = readString(input);
         spPhysicsConstraintData* data = spPhysicsConstraintData_create(name);
@@ -12283,7 +12283,7 @@ spSkeletonData* spSkeletonBinary_readSkeletonData(spSkeletonBinary* self, u8* bi
     if skeletonData.defaultSkin != null {
         ++skeletonData.skinsCount;
     }
-    skeletonData.skins = cast(spSkin**, _spMalloc(cast(u64, sizeof(spSkin*) * skeletonData.skinsCount), "extension.h", 97));
+    skeletonData.skins = cast(spSkin**, _spMalloc(cast(u64, sizeof(spSkin*) * skeletonData.skinsCount), __file__, __line__));
     if skeletonData.defaultSkin != null {
         skeletonData.skins[0] = skeletonData.defaultSkin;
     }
@@ -12322,7 +12322,7 @@ spSkeletonData* spSkeletonBinary_readSkeletonData(spSkeletonBinary* self, u8* bi
         spAttachmentLoader_configureAttachment(self.attachmentLoader, &linkedMesh.mesh.super.super);
     }
     skeletonData.eventsCount = readVarint(input, 1);
-    skeletonData.events = cast(spEventData**, _spMalloc(cast(u64, sizeof(spEventData*) * skeletonData.eventsCount), "extension.h", 97));
+    skeletonData.events = cast(spEventData**, _spMalloc(cast(u64, sizeof(spEventData*) * skeletonData.eventsCount), __file__, __line__));
     for i = 0; i < skeletonData.eventsCount; ++i {
         u8* name = readString(input);
         spEventData* eventData = spEventData_create(name);
@@ -12338,7 +12338,7 @@ spSkeletonData* spSkeletonBinary_readSkeletonData(spSkeletonBinary* self, u8* bi
         skeletonData.events[i] = eventData;
     }
     skeletonData.animationsCount = readVarint(input, 1);
-    skeletonData.animations = cast(spAnimation**, _spMalloc(cast(u64, sizeof(spAnimation*) * skeletonData.animationsCount), "extension.h", 97));
+    skeletonData.animations = cast(spAnimation**, _spMalloc(cast(u64, sizeof(spAnimation*) * skeletonData.animationsCount), __file__, __line__));
     for i = 0; i < skeletonData.animationsCount; ++i {
         u8* name = readString(input);
         spAnimation* animation = _spSkeletonBinary_readAnimation(self, name, input, skeletonData);
@@ -12357,9 +12357,9 @@ spSkeletonData* spSkeletonBinary_readSkeletonData(spSkeletonBinary* self, u8* bi
 }
 
 spPolygon* spPolygon_create(i32 capacity) {
-    var self = cast(spPolygon*, _spCalloc(1, cast(u64, sizeof(spPolygon)), "extension.h", 92));
+    var self = cast(spPolygon*, _spCalloc(1, cast(u64, sizeof(spPolygon)), __file__, __line__));
     self.capacity = capacity;
-    self.vertices = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * capacity), "extension.h", 88));
+    self.vertices = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * capacity), __file__, __line__));
     return self;
 }
 
@@ -12414,7 +12414,7 @@ i32 spPolygon_intersectsSegment(spPolygon* self, f32 x1, f32 y1, f32 x2, f32 y2)
 }
 
 spSkeletonBounds* spSkeletonBounds_create() {
-    return &cast(_spSkeletonBounds*, _spCalloc(1, cast(u64, sizeof(_spSkeletonBounds)), "extension.h", 92)).super;
+    return &cast(_spSkeletonBounds*, _spCalloc(1, cast(u64, sizeof(_spSkeletonBounds)), __file__, __line__)).super;
 }
 
 void spSkeletonBounds_dispose(spSkeletonBounds* self) {
@@ -12435,8 +12435,8 @@ void spSkeletonBounds_update(spSkeletonBounds* self, spSkeleton* skeleton, i32 u
     if internal.capacity < skeleton.slotsCount {
         spPolygon** newPolygons;
         _spFree(cast(void*, self.boundingBoxes));
-        self.boundingBoxes = cast(spBoundingBoxAttachment**, _spMalloc(cast(u64, sizeof(spBoundingBoxAttachment*) * skeleton.slotsCount), "extension.h", 88));
-        newPolygons = cast(spPolygon**, _spCalloc(cast(u64, skeleton.slotsCount), cast(u64, sizeof(spPolygon*)), "extension.h", 92));
+        self.boundingBoxes = cast(spBoundingBoxAttachment**, _spMalloc(cast(u64, sizeof(spBoundingBoxAttachment*) * skeleton.slotsCount), __file__, __line__));
+        newPolygons = cast(spPolygon**, _spCalloc(cast(u64, skeleton.slotsCount), cast(u64, sizeof(spPolygon*)), __file__, __line__));
         memcpy(newPolygons, self.polygons, cast(u64, sizeof(spPolygon*) * internal.capacity));
         _spFree(cast(void*, self.polygons));
         self.polygons = newPolygons;
@@ -12560,7 +12560,7 @@ spPolygon* spSkeletonBounds_getPolygon(spSkeletonBounds* self, spBoundingBoxAtta
 }
 
 spSkeletonClipping* spSkeletonClipping_create() {
-    var clipping = cast(spSkeletonClipping*, _spCalloc(1, cast(u64, sizeof(spSkeletonClipping)), "extension.h", 87));
+    var clipping = cast(spSkeletonClipping*, _spCalloc(1, cast(u64, sizeof(spSkeletonClipping)), __file__, __line__));
     clipping.triangulator = spTriangulator_create();
     clipping.clippingPolygon = spFloatArray_create(128);
     clipping.clipOutput = spFloatArray_create(128);
@@ -12913,7 +12913,7 @@ void spSkeletonClipping_clipTriangles(spSkeletonClipping* self, f32* vertices, i
 }
 
 spSkeletonData* spSkeletonData_create() {
-    return cast(spSkeletonData*, _spCalloc(1, cast(u64, sizeof(spSkeletonData)), "extension.h", 98));
+    return cast(spSkeletonData*, _spCalloc(1, cast(u64, sizeof(spSkeletonData)), __file__, __line__));
 }
 
 void spSkeletonData_dispose(spSkeletonData* self) {
@@ -13056,7 +13056,7 @@ spPhysicsConstraintData* spSkeletonData_findPhysicsConstraint(spSkeletonData* se
 }
 
 spSkeletonJson* spSkeletonJson_createWithLoader(spAttachmentLoader* attachmentLoader) {
-    spSkeletonJson* self = &cast(_spSkeletonJson*, _spCalloc(1, cast(u64, sizeof(_spSkeletonJson)), "extension.h", 99)).super;
+    spSkeletonJson* self = &cast(_spSkeletonJson*, _spCalloc(1, cast(u64, sizeof(_spSkeletonJson)), __file__, __line__)).super;
     self.scale = 1.0f;
     self.attachmentLoader = attachmentLoader;
     return self;
@@ -13088,7 +13088,7 @@ void _spSkeletonJson_setError(spSkeletonJson* self, Json* root, u8* value1, u8* 
     if value2 != null {
         strncat(message + length, value2, cast(u64, 255 - length));
     }
-    self.error = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(message) + 1), "extension.h", 96));
+    self.error = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(message) + 1), __file__, __line__));
     strcpy(self.error, message);
     if root != null {
         Json_dispose(root);
@@ -13232,7 +13232,7 @@ void _spSkeletonJson_addLinkedMesh(spSkeletonJson* self, spMeshAttachment* mesh,
         if internal.linkedMeshCapacity < 8 {
             internal.linkedMeshCapacity = 8;
         }
-        linkedMeshes = cast(_spLinkedMesh*, _spMalloc(cast(u64, sizeof(_spLinkedMesh) * internal.linkedMeshCapacity), "extension.h", 96));
+        linkedMeshes = cast(_spLinkedMesh*, _spMalloc(cast(u64, sizeof(_spLinkedMesh) * internal.linkedMeshCapacity), __file__, __line__));
         memcpy(linkedMeshes, internal.linkedMeshes, cast(u64, sizeof(_spLinkedMesh) * internal.linkedMeshCount));
         _spFree(cast(void*, internal.linkedMeshes));
         internal.linkedMeshes = linkedMeshes;
@@ -13848,7 +13848,7 @@ spAnimation* _spSkeletonJson_readAnimation(spSkeletonJson* self, Json* root, spS
                         vertexAttachment = cast(spVertexAttachment*, baseAttachment);
                         weighted = vertexAttachment.bones != null;
                         deformLength = weighted != 0 ? vertexAttachment.verticesCount / 3 * 2 : vertexAttachment.verticesCount;
-                        tempDeform = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * deformLength), "extension.h", 96));
+                        tempDeform = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * deformLength), __file__, __line__));
                         timeline = spDeformTimeline_create(timelineMap.size, deformLength, timelineMap.size, slotIndex, vertexAttachment);
                         time = Json_getFloat(keyMap, "time", 0.0f);
                         {
@@ -13958,10 +13958,10 @@ spAnimation* _spSkeletonJson_readAnimation(spSkeletonJson* self, Json* root, spS
                 Json* offsets = Json_getItem(keyMap, "offsets");
                 if offsets != null {
                     Json* offsetMap;
-                    var unchanged = cast(i32*, _spMalloc(cast(u64, sizeof(i32) * (skeletonData.slotsCount - offsets.size)), "extension.h", 96));
+                    var unchanged = cast(i32*, _spMalloc(cast(u64, sizeof(i32) * (skeletonData.slotsCount - offsets.size)), __file__, __line__));
                     i32 originalIndex = 0;
                     i32 unchangedIndex = 0;
-                    drawOrder = cast(i32*, _spMalloc(cast(u64, sizeof(i32) * skeletonData.slotsCount), "extension.h", 96));
+                    drawOrder = cast(i32*, _spMalloc(cast(u64, sizeof(i32) * skeletonData.slotsCount), __file__, __line__));
                     for ii = skeletonData.slotsCount - 1; ii >= 0; --ii {
                         drawOrder[ii] = -1;
                     }
@@ -14011,7 +14011,7 @@ spAnimation* _spSkeletonJson_readAnimation(spSkeletonJson* self, Json* root, spS
                 event.floatValue = Json_getFloat(keyMap, "float", eventData.floatValue);
                 stringValue = Json_getString(keyMap, "string", eventData.stringValue);
                 if stringValue != null {
-                    event.stringValue = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(stringValue) + 1), "extension.h", 96));
+                    event.stringValue = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(stringValue) + 1), __file__, __line__));
                     strcpy(event.stringValue, stringValue);
                 }
                 if eventData.audioPath != null {
@@ -14046,7 +14046,7 @@ void SkeletonJson___readVertices(spSkeletonJson* self, Json* attachmentMap, spVe
     attachment.worldVerticesLength = verticesLength;
     entry = Json_getItem(attachmentMap, "vertices");
     entrySize = entry.size;
-    vertices = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * entrySize), "extension.h", 96));
+    vertices = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * entrySize), __file__, __line__));
     {
         entry = entry.child;
         for i = 0; entry != null; entry = entry.next {
@@ -14155,9 +14155,9 @@ spSkeletonData* spSkeletonJson_readSkeletonData(spSkeletonJson* self, u8* json) 
     skeletonData = spSkeletonData_create();
     skeleton = Json_getItem(root, "skeleton");
     if skeleton != null {
-        skeletonData.hash = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(Json_getString(skeleton, "hash", "0")) + 1), "extension.h", 96));
+        skeletonData.hash = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(Json_getString(skeleton, "hash", "0")) + 1), __file__, __line__));
         strcpy(skeletonData.hash, Json_getString(skeleton, "hash", "0"));
-        skeletonData.version = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(Json_getString(skeleton, "spine", "0")) + 1), "extension.h", 96));
+        skeletonData.version = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(Json_getString(skeleton, "spine", "0")) + 1), __file__, __line__));
         strcpy(skeletonData.version, Json_getString(skeleton, "spine", "0"));
         if SkeletonJson__string_starts_with(skeletonData.version, "4.2") == 0 {
             noinit u8[255] errorMsg;
@@ -14174,20 +14174,20 @@ spSkeletonData* spSkeletonJson_readSkeletonData(spSkeletonJson* self, u8* json) 
         skeletonData.imagesPath = Json_getString(skeleton, "images", null);
         if skeletonData.imagesPath != null {
             u8* tmp = null;
-            tmp = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(skeletonData.imagesPath) + 1), "extension.h", 96));
+            tmp = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(skeletonData.imagesPath) + 1), __file__, __line__));
             strcpy(tmp, skeletonData.imagesPath);
             skeletonData.imagesPath = tmp;
         }
         skeletonData.audioPath = Json_getString(skeleton, "audio", null);
         if skeletonData.audioPath != null {
             u8* tmp = null;
-            tmp = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(skeletonData.audioPath) + 1), "extension.h", 96));
+            tmp = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(skeletonData.audioPath) + 1), __file__, __line__));
             strcpy(tmp, skeletonData.audioPath);
             skeletonData.audioPath = tmp;
         }
     }
     bones = Json_getItem(root, "bones");
-    skeletonData.bones = cast(spBoneData**, _spMalloc(cast(u64, sizeof(spBoneData*) * bones.size), "extension.h", 96));
+    skeletonData.bones = cast(spBoneData**, _spMalloc(cast(u64, sizeof(spBoneData*) * bones.size), __file__, __line__));
     {
         boneMap = bones.child;
         for i = 0; boneMap != null; boneMap = boneMap.next {
@@ -14234,7 +14234,7 @@ spSkeletonData* spSkeletonJson_readSkeletonData(spSkeletonJson* self, u8* json) 
             data.icon = Json_getString(boneMap, "icon", "");
             if data.icon != null {
                 u8* tmp = null;
-                tmp = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(data.icon) + 1), "extension.h", 96));
+                tmp = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(data.icon) + 1), __file__, __line__));
                 strcpy(tmp, data.icon);
                 data.icon = tmp;
             }
@@ -14247,7 +14247,7 @@ spSkeletonData* spSkeletonJson_readSkeletonData(spSkeletonJson* self, u8* json) 
     slots = Json_getItem(root, "slots");
     if slots != null {
         Json* slotMap;
-        skeletonData.slots = cast(spSlotData**, _spMalloc(cast(u64, sizeof(spSlotData*) * slots.size), "extension.h", 96));
+        skeletonData.slots = cast(spSlotData**, _spMalloc(cast(u64, sizeof(spSlotData*) * slots.size), __file__, __line__));
         {
             slotMap = slots.child;
             for i = 0; slotMap != null; slotMap = slotMap.next {
@@ -14297,7 +14297,7 @@ spSkeletonData* spSkeletonJson_readSkeletonData(spSkeletonJson* self, u8* json) 
     ik = Json_getItem(root, "ik");
     if ik != null {
         Json* constraintMap;
-        skeletonData.ikConstraints = cast(spIkConstraintData**, _spMalloc(cast(u64, sizeof(spIkConstraintData*) * ik.size), "extension.h", 96));
+        skeletonData.ikConstraints = cast(spIkConstraintData**, _spMalloc(cast(u64, sizeof(spIkConstraintData*) * ik.size), __file__, __line__));
         {
             constraintMap = ik.child;
             for i = 0; constraintMap != null; constraintMap = constraintMap.next {
@@ -14307,7 +14307,7 @@ spSkeletonData* spSkeletonJson_readSkeletonData(spSkeletonJson* self, u8* json) 
                 data.skinRequired = Json_getInt(constraintMap, "skin", 0) != 0 ? 1 : 0;
                 boneMap = Json_getItem(constraintMap, "bones");
                 data.bonesCount = boneMap.size;
-                data.bones = cast(spBoneData**, _spMalloc(cast(u64, sizeof(spBoneData*) * boneMap.size), "extension.h", 96));
+                data.bones = cast(spBoneData**, _spMalloc(cast(u64, sizeof(spBoneData*) * boneMap.size), __file__, __line__));
                 {
                     boneMap = boneMap.child;
                     for ii = 0; boneMap != null; boneMap = boneMap.next {
@@ -14344,7 +14344,7 @@ spSkeletonData* spSkeletonJson_readSkeletonData(spSkeletonJson* self, u8* json) 
     transform = Json_getItem(root, "transform");
     if transform != null {
         Json* constraintMap;
-        skeletonData.transformConstraints = cast(spTransformConstraintData**, _spMalloc(cast(u64, sizeof(spTransformConstraintData*) * transform.size), "extension.h", 96));
+        skeletonData.transformConstraints = cast(spTransformConstraintData**, _spMalloc(cast(u64, sizeof(spTransformConstraintData*) * transform.size), __file__, __line__));
         {
             constraintMap = transform.child;
             for i = 0; constraintMap != null; constraintMap = constraintMap.next {
@@ -14354,7 +14354,7 @@ spSkeletonData* spSkeletonJson_readSkeletonData(spSkeletonJson* self, u8* json) 
                 data.skinRequired = Json_getInt(constraintMap, "skin", 0) != 0 ? 1 : 0;
                 boneMap = Json_getItem(constraintMap, "bones");
                 data.bonesCount = boneMap.size;
-                data.bones = cast(spBoneData**, _spMalloc(cast(u64, sizeof(spBoneData*) * boneMap.size), "extension.h", 96));
+                data.bones = cast(spBoneData**, _spMalloc(cast(u64, sizeof(spBoneData*) * boneMap.size), __file__, __line__));
                 {
                     boneMap = boneMap.child;
                     for ii = 0; boneMap != null; boneMap = boneMap.next {
@@ -14399,7 +14399,7 @@ spSkeletonData* spSkeletonJson_readSkeletonData(spSkeletonJson* self, u8* json) 
     pathJson = Json_getItem(root, "path");
     if pathJson != null {
         Json* constraintMap;
-        skeletonData.pathConstraints = cast(spPathConstraintData**, _spMalloc(cast(u64, sizeof(spPathConstraintData*) * pathJson.size), "extension.h", 96));
+        skeletonData.pathConstraints = cast(spPathConstraintData**, _spMalloc(cast(u64, sizeof(spPathConstraintData*) * pathJson.size), __file__, __line__));
         {
             constraintMap = pathJson.child;
             for i = 0; constraintMap != null; constraintMap = constraintMap.next {
@@ -14410,7 +14410,7 @@ spSkeletonData* spSkeletonJson_readSkeletonData(spSkeletonJson* self, u8* json) 
                 data.skinRequired = Json_getInt(constraintMap, "skin", 0) != 0 ? 1 : 0;
                 boneMap = Json_getItem(constraintMap, "bones");
                 data.bonesCount = boneMap.size;
-                data.bones = cast(spBoneData**, _spMalloc(cast(u64, sizeof(spBoneData*) * boneMap.size), "extension.h", 96));
+                data.bones = cast(spBoneData**, _spMalloc(cast(u64, sizeof(spBoneData*) * boneMap.size), __file__, __line__));
                 {
                     boneMap = boneMap.child;
                     for ii = 0; boneMap != null; boneMap = boneMap.next {
@@ -14478,7 +14478,7 @@ spSkeletonData* spSkeletonJson_readSkeletonData(spSkeletonJson* self, u8* json) 
     if physics != null {
         Json* constraintMap;
         skeletonData.physicsConstraintsCount = physics.size;
-        skeletonData.physicsConstraints = cast(spPhysicsConstraintData**, _spMalloc(cast(u64, sizeof(spPhysicsConstraintData*) * physics.size), "extension.h", 96));
+        skeletonData.physicsConstraints = cast(spPhysicsConstraintData**, _spMalloc(cast(u64, sizeof(spPhysicsConstraintData*) * physics.size), __file__, __line__));
         {
             constraintMap = physics.child;
             for i = 0; constraintMap != null; constraintMap = constraintMap.next {
@@ -14522,7 +14522,7 @@ spSkeletonData* spSkeletonJson_readSkeletonData(spSkeletonJson* self, u8* json) 
     skins = Json_getItem(root, "skins");
     if skins != null {
         Json* skinMap;
-        skeletonData.skins = cast(spSkin**, _spMalloc(cast(u64, sizeof(spSkin*) * skins.size), "extension.h", 96));
+        skeletonData.skins = cast(spSkin**, _spMalloc(cast(u64, sizeof(spSkin*) * skins.size), __file__, __line__));
         {
             skinMap = skins.child;
             for i = 0; skinMap != null; skinMap = skinMap.next {
@@ -14647,7 +14647,7 @@ spSkeletonData* spSkeletonJson_readSkeletonData(spSkeletonJson* self, u8* json) 
                                     {
                                         var region = cast(spRegionAttachment*, attachment);
                                         if path != null {
-                                            region.path = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(path) + 1), "extension.h", 96));
+                                            region.path = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(path) + 1), __file__, __line__));
                                             strcpy(region.path, path);
                                         }
                                         region.x = Json_getFloat(attachmentMap, "x", 0.0f) * self.scale;
@@ -14672,7 +14672,7 @@ spSkeletonData* spSkeletonJson_readSkeletonData(spSkeletonJson* self, u8* json) 
                                 case SP_ATTACHMENT_MESH, SP_ATTACHMENT_LINKED_MESH: {
                                     {
                                         var mesh = cast(spMeshAttachment*, attachment);
-                                        mesh.path = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(path) + 1), "extension.h", 96));
+                                        mesh.path = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(path) + 1), __file__, __line__));
                                         strcpy(mesh.path, path);
                                         color = Json_getString(attachmentMap, "color", null);
                                         if color != null {
@@ -14686,7 +14686,7 @@ spSkeletonData* spSkeletonJson_readSkeletonData(spSkeletonJson* self, u8* json) 
                                             i32 verticesLength;
                                             entry = Json_getItem(attachmentMap, "triangles");
                                             mesh.trianglesCount = entry.size;
-                                            mesh.triangles = cast(u16*, _spMalloc(cast(u64, sizeof(u16) * entry.size), "extension.h", 96));
+                                            mesh.triangles = cast(u16*, _spMalloc(cast(u64, sizeof(u16) * entry.size), __file__, __line__));
                                             {
                                                 entry = entry.child;
                                                 for ii = 0; entry != null; entry = entry.next {
@@ -14696,7 +14696,7 @@ spSkeletonData* spSkeletonJson_readSkeletonData(spSkeletonJson* self, u8* json) 
                                             }
                                             entry = Json_getItem(attachmentMap, "uvs");
                                             verticesLength = entry.size;
-                                            mesh.regionUVs = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * verticesLength), "extension.h", 96));
+                                            mesh.regionUVs = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * verticesLength), __file__, __line__));
                                             {
                                                 entry = entry.child;
                                                 for ii = 0; entry != null; entry = entry.next {
@@ -14712,7 +14712,7 @@ spSkeletonData* spSkeletonJson_readSkeletonData(spSkeletonJson* self, u8* json) 
                                             entry = Json_getItem(attachmentMap, "edges");
                                             if entry != null {
                                                 mesh.edgesCount = entry.size;
-                                                mesh.edges = cast(u16*, _spMalloc(cast(u64, sizeof(u16) * entry.size), "extension.h", 96));
+                                                mesh.edges = cast(u16*, _spMalloc(cast(u64, sizeof(u16) * entry.size), __file__, __line__));
                                                 {
                                                     entry = entry.child;
                                                     for ii = 0; entry != null; entry = entry.next {
@@ -14752,7 +14752,7 @@ spSkeletonData* spSkeletonJson_readSkeletonData(spSkeletonJson* self, u8* json) 
                                         vertexCount = Json_getInt(attachmentMap, "vertexCount", 0);
                                         SkeletonJson___readVertices(self, attachmentMap, &pathAttachment.super, vertexCount << 1);
                                         pathAttachment.lengthsLength = vertexCount / 3;
-                                        pathAttachment.lengths = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * pathAttachment.lengthsLength), "extension.h", 96));
+                                        pathAttachment.lengths = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * pathAttachment.lengthsLength), __file__, __line__));
                                         curves = Json_getItem(attachmentMap, "lengths");
                                         {
                                             curves = curves.child;
@@ -14837,7 +14837,7 @@ spSkeletonData* spSkeletonJson_readSkeletonData(spSkeletonJson* self, u8* json) 
         u8* stringValue;
         u8* audioPath;
         skeletonData.eventsCount = events.size;
-        skeletonData.events = cast(spEventData**, _spMalloc(cast(u64, sizeof(spEventData*) * events.size), "extension.h", 96));
+        skeletonData.events = cast(spEventData**, _spMalloc(cast(u64, sizeof(spEventData*) * events.size), __file__, __line__));
         {
             eventMap = events.child;
             for i = 0; eventMap != null; eventMap = eventMap.next {
@@ -14846,12 +14846,12 @@ spSkeletonData* spSkeletonJson_readSkeletonData(spSkeletonJson* self, u8* json) 
                 eventData.floatValue = Json_getFloat(eventMap, "float", 0.0f);
                 stringValue = Json_getString(eventMap, "string", null);
                 if stringValue != null {
-                    eventData.stringValue = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(stringValue) + 1), "extension.h", 96));
+                    eventData.stringValue = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(stringValue) + 1), __file__, __line__));
                     strcpy(eventData.stringValue, stringValue);
                 }
                 audioPath = Json_getString(eventMap, "audio", null);
                 if audioPath != null {
-                    eventData.audioPath = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(audioPath) + 1), "extension.h", 96));
+                    eventData.audioPath = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(audioPath) + 1), __file__, __line__));
                     strcpy(eventData.audioPath, audioPath);
                     eventData.volume = Json_getFloat(eventMap, "volume", 1.0f);
                     eventData.balance = Json_getFloat(eventMap, "balance", 0.0f);
@@ -14864,7 +14864,7 @@ spSkeletonData* spSkeletonJson_readSkeletonData(spSkeletonJson* self, u8* json) 
     animations = Json_getItem(root, "animations");
     if animations != null {
         Json* animationMap;
-        skeletonData.animations = cast(spAnimation**, _spMalloc(cast(u64, sizeof(spAnimation*) * animations.size), "extension.h", 96));
+        skeletonData.animations = cast(spAnimation**, _spMalloc(cast(u64, sizeof(spAnimation*) * animations.size), __file__, __line__));
         for animationMap = animations.child; animationMap != null; animationMap = animationMap.next {
             spAnimation* animation = _spSkeletonJson_readAnimation(self, animationMap, skeletonData);
             if animation == null {
@@ -14880,10 +14880,10 @@ spSkeletonData* spSkeletonJson_readSkeletonData(spSkeletonJson* self, u8* json) 
 }
 
 spBoneDataArray* spBoneDataArray_create(i32 initialCapacity) {
-    var array = cast(spBoneDataArray*, _spCalloc(1, cast(u64, sizeof(spBoneDataArray)), "extension.h", 95));
+    var array = cast(spBoneDataArray*, _spCalloc(1, cast(u64, sizeof(spBoneDataArray)), __file__, __line__));
     array.size = 0;
     array.capacity = initialCapacity;
-    array.items = cast(spBoneData**, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(spBoneData*)), "extension.h", 95));
+    array.items = cast(spBoneData**, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(spBoneData*)), __file__, __line__));
     return array;
 }
 
@@ -14966,10 +14966,10 @@ spBoneData* spBoneDataArray_peek(spBoneDataArray* self) {
 }
 
 spIkConstraintDataArray* spIkConstraintDataArray_create(i32 initialCapacity) {
-    var array = cast(spIkConstraintDataArray*, _spCalloc(1, cast(u64, sizeof(spIkConstraintDataArray)), "extension.h", 95));
+    var array = cast(spIkConstraintDataArray*, _spCalloc(1, cast(u64, sizeof(spIkConstraintDataArray)), __file__, __line__));
     array.size = 0;
     array.capacity = initialCapacity;
-    array.items = cast(spIkConstraintData**, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(spIkConstraintData*)), "extension.h", 95));
+    array.items = cast(spIkConstraintData**, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(spIkConstraintData*)), __file__, __line__));
     return array;
 }
 
@@ -15052,10 +15052,10 @@ spIkConstraintData* spIkConstraintDataArray_peek(spIkConstraintDataArray* self) 
 }
 
 spTransformConstraintDataArray* spTransformConstraintDataArray_create(i32 initialCapacity) {
-    var array = cast(spTransformConstraintDataArray*, _spCalloc(1, cast(u64, sizeof(spTransformConstraintDataArray)), "extension.h", 95));
+    var array = cast(spTransformConstraintDataArray*, _spCalloc(1, cast(u64, sizeof(spTransformConstraintDataArray)), __file__, __line__));
     array.size = 0;
     array.capacity = initialCapacity;
-    array.items = cast(spTransformConstraintData**, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(spTransformConstraintData*)), "extension.h", 95));
+    array.items = cast(spTransformConstraintData**, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(spTransformConstraintData*)), __file__, __line__));
     return array;
 }
 
@@ -15138,10 +15138,10 @@ spTransformConstraintData* spTransformConstraintDataArray_peek(spTransformConstr
 }
 
 spPathConstraintDataArray* spPathConstraintDataArray_create(i32 initialCapacity) {
-    var array = cast(spPathConstraintDataArray*, _spCalloc(1, cast(u64, sizeof(spPathConstraintDataArray)), "extension.h", 95));
+    var array = cast(spPathConstraintDataArray*, _spCalloc(1, cast(u64, sizeof(spPathConstraintDataArray)), __file__, __line__));
     array.size = 0;
     array.capacity = initialCapacity;
-    array.items = cast(spPathConstraintData**, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(spPathConstraintData*)), "extension.h", 95));
+    array.items = cast(spPathConstraintData**, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(spPathConstraintData*)), __file__, __line__));
     return array;
 }
 
@@ -15224,10 +15224,10 @@ spPathConstraintData* spPathConstraintDataArray_peek(spPathConstraintDataArray* 
 }
 
 spPhysicsConstraintDataArray* spPhysicsConstraintDataArray_create(i32 initialCapacity) {
-    var array = cast(spPhysicsConstraintDataArray*, _spCalloc(1, cast(u64, sizeof(spPhysicsConstraintDataArray)), "extension.h", 95));
+    var array = cast(spPhysicsConstraintDataArray*, _spCalloc(1, cast(u64, sizeof(spPhysicsConstraintDataArray)), __file__, __line__));
     array.size = 0;
     array.capacity = initialCapacity;
-    array.items = cast(spPhysicsConstraintData**, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(spPhysicsConstraintData*)), "extension.h", 95));
+    array.items = cast(spPhysicsConstraintData**, _spCalloc(cast(u64, initialCapacity), cast(u64, sizeof(spPhysicsConstraintData*)), __file__, __line__));
     return array;
 }
 
@@ -15310,9 +15310,9 @@ spPhysicsConstraintData* spPhysicsConstraintDataArray_peek(spPhysicsConstraintDa
 }
 
 _Entry* _Entry_create(i32 slotIndex, u8* name, spAttachment* attachment) {
-    var self = cast(_Entry*, _spCalloc(1, cast(u64, sizeof(_Entry)), "extension.h", 95));
+    var self = cast(_Entry*, _spCalloc(1, cast(u64, sizeof(_Entry)), __file__, __line__));
     self.slotIndex = slotIndex;
-    self.name = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(name) + 1), "extension.h", 92));
+    self.name = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(name) + 1), __file__, __line__));
     strcpy(self.name, name);
     self.attachment = attachment;
     return self;
@@ -15326,7 +15326,7 @@ void _Entry_dispose(_Entry* self) {
 
 private {
 _SkinHashTableEntry* _SkinHashTableEntry_create(_Entry* entry) {
-    var self = cast(_SkinHashTableEntry*, _spCalloc(1, cast(u64, sizeof(_SkinHashTableEntry)), "extension.h", 95));
+    var self = cast(_SkinHashTableEntry*, _spCalloc(1, cast(u64, sizeof(_SkinHashTableEntry)), __file__, __line__));
     self.entry = entry;
     return self;
 }
@@ -15338,8 +15338,8 @@ void _SkinHashTableEntry_dispose(_SkinHashTableEntry* self) {
 
 /**/
 spSkin* spSkin_create(u8* name) {
-    spSkin* self = &cast(_spSkin*, _spCalloc(1, cast(u64, sizeof(_spSkin)), "extension.h", 95)).super;
-    self.name = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(name) + 1), "extension.h", 92));
+    spSkin* self = &cast(_spSkin*, _spCalloc(1, cast(u64, sizeof(_spSkin)), __file__, __line__)).super;
+    self.name = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(name) + 1), __file__, __line__));
     strcpy(self.name, name);
     self.bones = spBoneDataArray_create(4);
     self.ikConstraints = spIkConstraintDataArray_create(4);
@@ -15561,7 +15561,7 @@ void spSkin_clear(spSkin* self) {
 }
 
 spSlot* spSlot_create(spSlotData* data, spBone* bone) {
-    var self = cast(spSlot*, _spCalloc(1, cast(u64, sizeof(spSlot)), "extension.h", 87));
+    var self = cast(spSlot*, _spCalloc(1, cast(u64, sizeof(spSlot)), __file__, __line__));
     self.data = data;
     self.bone = bone;
     spColor_setFromFloats(&self.color, 1.0f, 1.0f, 1.0f, 1.0f);
@@ -15618,9 +15618,9 @@ void spSlot_setToSetupPose(spSlot* self) {
 }
 
 spSlotData* spSlotData_create(i32 index, u8* name, spBoneData* boneData) {
-    var self = cast(spSlotData*, _spCalloc(1, cast(u64, sizeof(spSlotData)), "extension.h", 57));
+    var self = cast(spSlotData*, _spCalloc(1, cast(u64, sizeof(spSlotData)), __file__, __line__));
     self.index = index;
-    self.name = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(name) + 1), "extension.h", 57));
+    self.name = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(name) + 1), __file__, __line__));
     strcpy(self.name, name);
     self.boneData = boneData;
     spColor_setFromFloats(&self.color, 1.0f, 1.0f, 1.0f, 1.0f);
@@ -15638,7 +15638,7 @@ void spSlotData_dispose(spSlotData* self) {
 void spSlotData_setAttachmentName(spSlotData* self, u8* attachmentName) {
     _spFree(cast(void*, self.attachmentName));
     if attachmentName != null {
-        self.attachmentName = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(attachmentName) + 1), "extension.h", 57));
+        self.attachmentName = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(attachmentName) + 1), __file__, __line__));
         strcpy(self.attachmentName, attachmentName);
     } else {
         self.attachmentName = null;
@@ -15647,7 +15647,7 @@ void spSlotData_setAttachmentName(spSlotData* self, u8* attachmentName) {
 
 spTransformConstraint* spTransformConstraint_create(spTransformConstraintData* data, spSkeleton* skeleton) {
     i32 i;
-    var self = cast(spTransformConstraint*, _spCalloc(1, cast(u64, sizeof(spTransformConstraint)), "extension.h", 78));
+    var self = cast(spTransformConstraint*, _spCalloc(1, cast(u64, sizeof(spTransformConstraint)), __file__, __line__));
     self.data = data;
     self.mixRotate = data.mixRotate;
     self.mixX = data.mixX;
@@ -15656,7 +15656,7 @@ spTransformConstraint* spTransformConstraint_create(spTransformConstraintData* d
     self.mixScaleY = data.mixScaleY;
     self.mixShearY = data.mixShearY;
     self.bonesCount = data.bonesCount;
-    self.bones = cast(spBone**, _spMalloc(cast(u64, sizeof(spBone*) * self.bonesCount), "extension.h", 74));
+    self.bones = cast(spBone**, _spMalloc(cast(u64, sizeof(spBone*) * self.bonesCount), __file__, __line__));
     for i = 0; i < self.bonesCount; ++i {
         self.bones[i] = spSkeleton_findBone(skeleton, self.data.bones[i].name);
     }
@@ -15704,15 +15704,15 @@ void _spTransformConstraint_applyAbsoluteWorld(spTransformConstraint* self) {
             b = bone.b;
             c = bone.c;
             d = bone.d;
-            r = atan2f(tc, ta) - atan2f(c, a) + offsetRotation;
+            r = atan2(tc, ta) - atan2(c, a) + offsetRotation;
             if r > 3.141592653589793f {
                 r -= 3.141592653589793f * 2.0f;
             } else if r < -3.141592653589793f {
                 r += 3.141592653589793f * 2.0f;
             }
             r *= mixRotate;
-            cosine = cosf(r);
-            sine = sinf(r);
+            cosine = cos(r);
+            sine = sin(r);
             bone.a = cosine * a - sine * c;
             bone.b = cosine * b - sine * d;
             bone.c = sine * a + cosine * c;
@@ -15724,17 +15724,17 @@ void _spTransformConstraint_applyAbsoluteWorld(spTransformConstraint* self) {
             bone.worldY += (y - bone.worldY) * mixY;
         }
         if mixScaleX > 0.0f {
-            s = sqrtf(bone.a * bone.a + bone.c * bone.c);
+            s = sqrt(bone.a * bone.a + bone.c * bone.c);
             if s != 0.0f {
-                s = (s + (sqrtf(ta * ta + tc * tc) - s + self.data.offsetScaleX) * mixScaleX) / s;
+                s = (s + (sqrt(ta * ta + tc * tc) - s + self.data.offsetScaleX) * mixScaleX) / s;
             }
             bone.a *= s;
             bone.c *= s;
         }
         if mixScaleY != 0.0f {
-            s = sqrtf(bone.b * bone.b + bone.d * bone.d);
+            s = sqrt(bone.b * bone.b + bone.d * bone.d);
             if s != 0.0f {
-                s = (s + (sqrtf(tb * tb + td * td) - s + self.data.offsetScaleY) * mixScaleY) / s;
+                s = (s + (sqrt(tb * tb + td * td) - s + self.data.offsetScaleY) * mixScaleY) / s;
             }
             bone.b *= s;
             bone.d *= s;
@@ -15742,17 +15742,17 @@ void _spTransformConstraint_applyAbsoluteWorld(spTransformConstraint* self) {
         if mixShearY > 0.0f {
             b = bone.b;
             d = bone.d;
-            by = atan2f(d, b);
-            r = atan2f(td, tb) - atan2f(tc, ta) - (by - atan2f(bone.c, bone.a));
-            s = sqrtf(b * b + d * d);
+            by = atan2(d, b);
+            r = atan2(td, tb) - atan2(tc, ta) - (by - atan2(bone.c, bone.a));
+            s = sqrt(b * b + d * d);
             if r > 3.141592653589793f {
                 r -= 3.141592653589793f * 2.0f;
             } else if r < -3.141592653589793f {
                 r += 3.141592653589793f * 2.0f;
             }
             r = by + (r + offsetShearY) * mixShearY;
-            bone.b = cosf(r) * s;
-            bone.d = sinf(r) * s;
+            bone.b = cos(r) * s;
+            bone.d = sin(r) * s;
         }
         spBone_updateAppliedTransform(bone);
     }
@@ -15792,15 +15792,15 @@ void _spTransformConstraint_applyRelativeWorld(spTransformConstraint* self) {
             b = bone.b;
             c = bone.c;
             d = bone.d;
-            r = atan2f(tc, ta) + offsetRotation;
+            r = atan2(tc, ta) + offsetRotation;
             if r > 3.141592653589793f {
                 r -= 3.141592653589793f * 2.0f;
             } else if r < -3.141592653589793f {
                 r += 3.141592653589793f * 2.0f;
             }
             r *= mixRotate;
-            cosine = cosf(r);
-            sine = sinf(r);
+            cosine = cos(r);
+            sine = sin(r);
             bone.a = cosine * a - sine * c;
             bone.b = cosine * b - sine * d;
             bone.c = sine * a + cosine * c;
@@ -15812,17 +15812,17 @@ void _spTransformConstraint_applyRelativeWorld(spTransformConstraint* self) {
             bone.worldY += y * mixY;
         }
         if mixScaleX != 0.0f {
-            s = (sqrtf(ta * ta + tc * tc) - 1.0f + self.data.offsetScaleX) * mixScaleX + 1.0f;
+            s = (sqrt(ta * ta + tc * tc) - 1.0f + self.data.offsetScaleX) * mixScaleX + 1.0f;
             bone.a *= s;
             bone.c *= s;
         }
         if mixScaleY > 0.0f {
-            s = (sqrtf(tb * tb + td * td) - 1.0f + self.data.offsetScaleY) * mixScaleY + 1.0f;
+            s = (sqrt(tb * tb + td * td) - 1.0f + self.data.offsetScaleY) * mixScaleY + 1.0f;
             bone.b *= s;
             bone.d *= s;
         }
         if mixShearY > 0.0f {
-            r = atan2f(td, tb) - atan2f(tc, ta);
+            r = atan2(td, tb) - atan2(tc, ta);
             if r > 3.141592653589793f {
                 r -= 3.141592653589793f * 2.0f;
             } else if r < -3.141592653589793f {
@@ -15830,10 +15830,10 @@ void _spTransformConstraint_applyRelativeWorld(spTransformConstraint* self) {
             }
             b = bone.b;
             d = bone.d;
-            r = atan2f(d, b) + (r - 3.141592653589793f / 2.0f + offsetShearY) * mixShearY;
-            s = sqrtf(b * b + d * d);
-            bone.b = cosf(r) * s;
-            bone.d = sinf(r) * s;
+            r = atan2(d, b) + (r - 3.141592653589793f / 2.0f + offsetShearY) * mixShearY;
+            s = sqrt(b * b + d * d);
+            bone.b = cos(r) * s;
+            bone.d = sin(r) * s;
         }
         spBone_updateAppliedTransform(bone);
     }
@@ -15942,8 +15942,8 @@ void spTransformConstraint_setToSetupPose(spTransformConstraint* self) {
 }
 
 spTransformConstraintData* spTransformConstraintData_create(u8* name) {
-    var self = cast(spTransformConstraintData*, _spCalloc(1, cast(u64, sizeof(spTransformConstraintData)), "extension.h", 44));
-    self.name = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(name) + 1), "extension.h", 44));
+    var self = cast(spTransformConstraintData*, _spCalloc(1, cast(u64, sizeof(spTransformConstraintData)), __file__, __line__));
+    self.name = cast(u8*, _spMalloc(cast(u64, sizeof(u8)) * (strlen(name) + 1), __file__, __line__));
     strcpy(self.name, name);
     return self;
 }
@@ -15955,7 +15955,7 @@ void spTransformConstraintData_dispose(spTransformConstraintData* self) {
 }
 
 spTriangulator* spTriangulator_create() {
-    var triangulator = cast(spTriangulator*, _spCalloc(1, cast(u64, sizeof(spTriangulator)), "extension.h", 88));
+    var triangulator = cast(spTriangulator*, _spCalloc(1, cast(u64, sizeof(spTriangulator)), __file__, __line__));
     triangulator.convexPolygons = spArrayFloatArray_create(16);
     triangulator.convexPolygonsIndices = spArrayShortArray_create(16);
     triangulator.indicesArray = spShortArray_create(128);
@@ -16434,7 +16434,7 @@ void spVertexAttachment_computeWorldVertices(spVertexAttachment* self, spSlot* s
 void spVertexAttachment_copyTo(spVertexAttachment* from_var, spVertexAttachment* to) {
     if from_var.bonesCount != 0 {
         to.bonesCount = from_var.bonesCount;
-        to.bones = cast(i32*, _spMalloc(cast(u64, sizeof(i32) * from_var.bonesCount), "extension.h", 90));
+        to.bones = cast(i32*, _spMalloc(cast(u64, sizeof(i32) * from_var.bonesCount), __file__, __line__));
         memcpy(to.bones, from_var.bones, cast(u64, from_var.bonesCount * sizeof(i32)));
     } else {
         to.bonesCount = 0;
@@ -16445,7 +16445,7 @@ void spVertexAttachment_copyTo(spVertexAttachment* from_var, spVertexAttachment*
     }
     if from_var.verticesCount != 0 {
         to.verticesCount = from_var.verticesCount;
-        to.vertices = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * from_var.verticesCount), "extension.h", 90));
+        to.vertices = cast(f32*, _spMalloc(cast(u64, sizeof(f32) * from_var.verticesCount), __file__, __line__));
         memcpy(to.vertices, from_var.vertices, cast(u64, from_var.verticesCount * sizeof(f32)));
     } else {
         to.verticesCount = 0;
@@ -16525,7 +16525,7 @@ u8* _spReadFile(u8* path, i32* length) {
     fseek(file, 0, SEEK_END);
     *length = cast(i32, ftell(file));
     fseek(file, 0, SEEK_SET);
-    data = cast(u8*, _spMalloc(cast(u64, sizeof(u8) * *length), "extension.h", 114));
+    data = cast(u8*, _spMalloc(cast(u64, sizeof(u8) * *length), __file__, __line__));
     result = fread(data, cast(u64, 1), cast(u64, *length), file);
     ignore result;
     fclose(file);
@@ -16544,9 +16544,9 @@ f32 _spMath_randomTriangularWith(f32 min, f32 max, f32 mode) {
     f32 u = _spRandom();
     f32 d = max - min;
     if u <= (mode - min) / d {
-        return min + sqrtf(u * d * (mode - min));
+        return min + sqrt(u * d * (mode - min));
     }
-    return max - sqrtf((1.0f - u) * d * (max - mode));
+    return max - sqrt((1.0f - u) * d * (max - mode));
 }
 
 f32 _spMath_interpolate(fn(f32): f32 apply, f32 start, f32 end, f32 a) {
@@ -16555,13 +16555,13 @@ f32 _spMath_interpolate(fn(f32): f32 apply, f32 start, f32 end, f32 a) {
 
 f32 _spMath_pow2_apply(f32 a) {
     if a <= 0.5 {
-        return cast(f32, pow(a * 2.0f, 2.0) / 2.0);
+        return cast(f32, pow(cast(f64, a * 2.0f), 2.0) / 2.0);
     }
-    return cast(f32, pow((a - 1.0f) * 2.0f, 2.0) / -2.0 + 1.0);
+    return cast(f32, pow(cast(f64, (a - 1.0f) * 2.0f), 2.0) / -2.0 + 1.0);
 }
 
 f32 _spMath_pow2out_apply(f32 a) {
-    return cast(f32, pow(a - 1.0f, 2.0) * -1.0 + 1.0);
+    return cast(f32, pow(cast(f64, a - 1.0f), 2.0) * -1.0 + 1.0);
 }
 
 // spine-c support shims. The sapp concat gets its libc surface from
@@ -16569,14 +16569,14 @@ f32 _spMath_pow2out_apply(f32 a) {
 // symbols spine-c needs; they live here instead of cstdlib_shim.mc
 // (concatenating that would duplicate ext_libc's definitions).
 
-// libc surface ext_libc lacks: rand (PhysicsConstraint jitter) and
-// the FILE api (extension.c's default _spReadFile, dead code in the
-// samples, data arrives via sokol_fetch, but it must compile).
+// libc surface ext_libc lacks: the FILE api (extension.c's default
+// _spReadFile, dead code in the samples, data arrives via sokol_fetch,
+// but it must compile). rand, strtol and the str*/ctype entry points
+// come from the math module, which sapp_pre.mc imports.
 // Extern shapes match ext/cstdlib_shim.mc exactly (program-wide
 // extern signature law). Samples are windows-only today.
 when os(windows) {
     extern "msvcrt.dll" {
-        i32 rand();
         @must_use void* fopen(u8* path, u8* mode);
         i32 fclose(void* file);
         u64 fread(void* p, u64 sz, u64 n, void* f);
@@ -16602,51 +16602,9 @@ when os(wasm) {
 
 }
 
-// rand and strtol are pure minc and wanted by spine's parsers on every
-// target msvcrt does not cover. The file entry points above stay
-// wasm-only: on linux/macos sokol_fetch_post.mc's POSIX arm already
-// defines them, and every spine sample pre_shims it ahead of this file.
-when !os(windows) {
-    // xorshift32, masked to RAND_MAX; spine only wants a cheap sequence
-    u32 g_tm_rand_state = 305419896;
-    i32 rand() {
-        u32 x = g_tm_rand_state;
-        x = x ^ (x << 13);
-        x = x ^ (x >> 17);
-        x = x ^ (x << 5);
-        g_tm_rand_state = x;
-        return cast(i32, x & 32767);
-    }
-
-}
-
-// strtol stays wasm-only: on linux and macos ext_libc binds libc's,
-// and a second definition collides with it.
-when os(wasm) {
-    i64 strtol(u8* s, u8** endptr, i32 base) {
-        u8* p = s;
-        while *p == 32 || (*p >= 9 && *p <= 13) { p = p + 1; }
-        i64 sign = 1;
-        if *p == 43 { p = p + 1; }
-        else if *p == 45 { sign = 0 - 1; p = p + 1; }
-        // base 0 means decimal here, not C's 0x/0-prefix detection
-        i64 b = cast(i64, base);
-        if b == 0 { b = 10; }
-        i64 v = 0;
-        while true {
-            i32 c = cast(i32, *p);
-            i32 d = 0 - 1;
-            if c >= 48 && c <= 57 { d = c - 48; }
-            else if c >= 97 && c <= 122 { d = c - 97 + 10; }
-            else if c >= 65 && c <= 90 { d = c - 65 + 10; }
-            if d < 0 || cast(i64, d) >= b { break; }
-            v = v * b + cast(i64, d);
-            p = p + 1;
-        }
-        if endptr != null { *endptr = p; }
-        return sign * v;
-    }
-}
+// The file entry points above stay wasm-only: on linux/macos
+// sokol_fetch_post.mc's POSIX arm already defines them, and every spine
+// sample pre_shims it ahead of this file.
 
 // Allocator wrappers taken by address (spine's mallocFunc /
 // reallocFunc / freeFunc hooks). Same shapes as cstdlib_shim.mc.
@@ -16654,23 +16612,8 @@ void* __tm_malloc(u64 n)           { return alloc(cast(i64, n)); }
 void* __tm_realloc(void* p, u64 n) { return realloc(p, cast(i64, n)); }
 void  __tm_free(void* p)           { free(p); }
 
-// strrchr: last occurrence of byte c, or null (Atlas.c path split).
-u8* strrchr(u8* s, i32 c) {
-    u8* found = null;
-    u8* p = s;
-    while *p != 0 {
-        if cast(i32, *p) == c { found = p; }
-        p = p + 1;
-    }
-    if c == 0 { return p; }
-    return found;
-}
-
-// isspace: C's " \t\n\v\f\r" set (Json.c whitespace skipping).
-i32 isspace(i32 c) {
-    if c == 32 || (c >= 9 && c <= 13) { return 1; }
-    return 0;
-}
+// strrchr (Atlas.c path split) and isspace (Json.c whitespace
+// skipping) come from the math module.
 
 // _stricmp: MSVC's case-insensitive strcmp (spine maps strcasecmp
 // onto it under _MSC_VER).
@@ -16688,19 +16631,7 @@ i32 _stricmp(u8* a, u8* b) {
     return 0;
 }
 
-// strncat: append at most n bytes of src, always 0-terminate.
-u8* strncat(u8* dst, u8* src, u64 n) {
-    u8* d = dst;
-    while *d != 0 { d = d + 1; }
-    u64 i = 0;
-    while i < n && *(src + i) != 0 {
-        *d = *(src + i);
-        d = d + 1;
-        i = i + 1;
-    }
-    *d = 0;
-    return dst;
-}
+// strncat comes from the math module.
 
 // strtoul base-16 subset (Atlas.c color parsing: strtoul(s, &end, 16)).
 u64 strtoul(u8* s, u8** endptr, i32 base) {

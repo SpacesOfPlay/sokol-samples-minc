@@ -1026,7 +1026,7 @@ struct mat44_t {
 // If we are running tests on windows
 f32 internal_vecmath_frac(f32 v) {
     f32 t;
-    return fabsf(modff(v, &t));
+    return fabs(modff(v, &t));
 }
 
 f32 internal_vecmath_round(f32 x) {
@@ -1039,11 +1039,11 @@ f32 internal_vecmath_round(f32 x) {
 
 // functions
 f32 vecmath_abs(f32 v) {
-    return fabsf(v);
+    return fabs(v);
 }
 
 f32 vecmath_acos(f32 v) {
-    return acosf(v);
+    return acos(v);
 }
 
 i32 vecmath_all(f32 v) {
@@ -1055,19 +1055,19 @@ i32 vecmath_any(f32 v) {
 }
 
 f32 vecmath_asin(f32 v) {
-    return asinf(v);
+    return asin(v);
 }
 
 f32 vecmath_atan(f32 v) {
-    return atanf(v);
+    return atan(v);
 }
 
 f32 vecmath_atan2(f32 y, f32 x) {
-    return atan2f(y, x);
+    return atan2(y, x);
 }
 
 f32 vecmath_ceil(f32 v) {
-    return ceilf(v);
+    return ceil(v);
 }
 
 f32 vecmath_clamp(f32 v, f32 min_v, f32 max_v) {
@@ -1075,11 +1075,11 @@ f32 vecmath_clamp(f32 v, f32 min_v, f32 max_v) {
 }
 
 f32 vecmath_cos(f32 v) {
-    return cosf(v);
+    return cos(v);
 }
 
 f32 vecmath_cosh(f32 v) {
-    return coshf(v);
+    return cosh(v);
 }
 
 f32 vecmath_degrees(f32 v) {
@@ -1093,7 +1093,7 @@ f32 vecmath_distancesq(f32 a, f32 b) {
 }
 
 f32 vecmath_distance(f32 a, f32 b) {
-    return fabsf(b - a);
+    return fabs(b - a);
 }
 
 f32 vecmath_dot(f32 a, f32 b) {
@@ -1101,19 +1101,19 @@ f32 vecmath_dot(f32 a, f32 b) {
 }
 
 f32 vecmath_exp(f32 v) {
-    return expf(v);
+    return exp(v);
 }
 
 f32 vecmath_exp2(f32 v) {
-    return powf(2.0f, v);
+    return pow(2.0f, v);
 }
 
 f32 vecmath_floor(f32 v) {
-    return floorf(v);
+    return floor(v);
 }
 
 f32 vecmath_fmod(f32 a, f32 b) {
-    return fmodf(a, b);
+    return fmod(a, b);
 }
 
 f32 vecmath_frac(f32 v) {
@@ -1125,7 +1125,7 @@ f32 vecmath_lengthsq(f32 v) {
 }
 
 f32 vecmath_length(f32 v) {
-    return sqrtf(v * v);
+    return sqrt(v * v);
 }
 
 f32 vecmath_lerp(f32 a, f32 b, f32 s) {
@@ -1133,32 +1133,32 @@ f32 vecmath_lerp(f32 a, f32 b, f32 s) {
 }
 
 f32 vecmath_log(f32 v) {
-    return logf(v);
+    return log(v);
 }
 
 f32 vecmath_log2(f32 v) {
-    return log10f(v) / log10f(2.0f);
+    return log10(v) / log10(2.0f);
 }
 
 f32 vecmath_log10(f32 v) {
-    return log10f(v);
+    return log10(v);
 }
 
 f32 vecmath_max(f32 a, f32 b) {
-    return max(a, b);
+    return fmax(a, b);
 }
 
 f32 vecmath_min(f32 a, f32 b) {
-    return min(a, b);
+    return fmin(a, b);
 }
 
 f32 vecmath_normalize(f32 v) {
-    var l = sqrtf(v * v);
+    var l = sqrt(v * v);
     return l == 0.0f ? v : v / l;
 }
 
 f32 vecmath_pow(f32 a, f32 b) {
-    return powf(a, b);
+    return pow(a, b);
 }
 
 f32 vecmath_radians(f32 v) {
@@ -1177,7 +1177,7 @@ f32 vecmath_reflect(f32 i, f32 n) {
 f32 vecmath_refract(f32 i, f32 n, f32 r) {
     f32 n_i = vecmath_dot(n, i);
     f32 k = 1.0f - r * r * (1.0f - n_i * n_i);
-    return k < 0.0f ? 0.0f : r * i - (r * n_i + sqrtf(k)) * n;
+    return k < 0.0f ? 0.0f : r * i - (r * n_i + sqrt(k)) * n;
 }
 
 f32 vecmath_round(f32 v) {
@@ -1185,7 +1185,7 @@ f32 vecmath_round(f32 v) {
 }
 
 f32 vecmath_rsqrt(f32 v) {
-    return 1.0f / sqrtf(v);
+    return 1.0f / sqrt(v);
 }
 
 f32 vecmath_saturate(f32 v) {
@@ -1197,11 +1197,11 @@ f32 vecmath_sign(f32 v) {
 }
 
 f32 vecmath_sin(f32 v) {
-    return sinf(v);
+    return sin(v);
 }
 
 f32 vecmath_sinh(f32 v) {
-    return sinhf(v);
+    return sinh(v);
 }
 
 f32 vecmath_smoothstep(f32 min_v, f32 max_v, f32 v) {
@@ -1225,7 +1225,7 @@ f32 vecmath_smootherstep(f32 min_v, f32 max_v, f32 v) {
 }
 
 f32 vecmath_sqrt(f32 v) {
-    return sqrtf(v);
+    return sqrt(v);
 }
 
 f32 vecmath_step(f32 edge, f32 x) {
@@ -1233,15 +1233,15 @@ f32 vecmath_step(f32 edge, f32 x) {
 }
 
 f32 vecmath_tan(f32 v) {
-    return tanf(v);
+    return tan(v);
 }
 
 f32 vecmath_tanh(f32 v) {
-    return tanhf(v);
+    return tanh(v);
 }
 
 f32 vecmath_trunc(f32 v) {
-    return v > 0.0f ? floorf(v) : ceilf(v);
+    return v > 0.0f ? floor(v) : ceil(v);
 }
 
 // helpers for making `vm_*` generics easier to implement

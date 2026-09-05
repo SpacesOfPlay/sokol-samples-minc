@@ -33,11 +33,11 @@
 // The compiler is taken from MINC, then PATH, then this folder
 // (install: https://minc.dev).
 
-@minc_min_version "0.9.12"
+@minc_min_version "0.9.14"
 
 // Older minc ignores the tag above; this forces an error instead.
-when !defined(MINC_VERSION) || MINC_VERSION < 9012 {
-    minc_0_9_12_or_newer_required please_update_minc;
+when !defined(MINC_VERSION) || MINC_VERSION < 9014 {
+    minc_0_9_14_or_newer_required please_update_minc;
 }
 
 import process;
@@ -188,9 +188,7 @@ i32 build_one_quiet(str cc, str stem) {
 
 // The sample list, one stem per line.
 string read_list() {
-    FileData fd = file_read("samples/LIST.txt");
-    string s = { .data = fd.data, .len = fd.len };
-    return s;
+    return file_read_str("samples/LIST.txt");
 }
 
 const i32 MAX_SAMPLES = 256;
@@ -231,24 +229,22 @@ void list_samples() {
 }
 
 void list_wasm_samples() {
-    FileData fd = file_read("samples/LIST_WASM.txt");
-    if fd.data == null {
+    string lst = file_read_str("samples/LIST_WASM.txt");
+    if lst.data == null {
         print("samples/LIST_WASM.txt missing; dist is incomplete\n");
         return;
     }
-    string lst = { .data = fd.data, .len = fd.len };
     defer free(lst);
     print("wasm-capable samples (run one with `minc wasm <name>`):\n{}", lst);
     return;
 }
 
 void list_wgpu_samples() {
-    FileData fd = file_read("samples/LIST_WASM_WGPU.txt");
-    if fd.data == null {
+    string lst = file_read_str("samples/LIST_WASM_WGPU.txt");
+    if lst.data == null {
         print("samples/LIST_WASM_WGPU.txt missing; dist is incomplete\n");
         return;
     }
-    string lst = { .data = fd.data, .len = fd.len };
     defer free(lst);
     print("WebGPU-capable samples (run one with `minc wasm <name> --wgpu`):\n{}", lst);
     return;

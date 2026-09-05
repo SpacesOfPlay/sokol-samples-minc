@@ -5546,7 +5546,7 @@ f32 b3Dot(b3Vec3 a, b3Vec3 b) {
 
 /// Vector length.
 f32 b3Length(b3Vec3 v) {
-    return cast(f32, sqrtf(b3Dot(v, v)));
+    return sqrt(b3Dot(v, v));
 }
 
 /// Vector length squared.
@@ -5570,7 +5570,7 @@ f32 b3DistanceSquared(b3Vec3 a, b3Vec3 b) {
 b3Vec3 b3Normalize(b3Vec3 a) {
     f32 lengthSquared = a.x * a.x + a.y * a.y + a.z * a.z;
     if lengthSquared > 1000.0f * FLT_MIN {
-        f32 s = 1.0f / cast(f32, sqrtf(lengthSquared));
+        f32 s = 1.0f / sqrt(lengthSquared);
         var u = b3Vec3{s * a.x, s * a.y, s * a.z};
         return u;
     }
@@ -5745,7 +5745,7 @@ b3Quat b3NegateQuat(b3Quat q) {
 b3Quat b3NormalizeQuat(b3Quat q) {
     f32 lengthSq = b3DotQuat(q, q);
     if lengthSq > 1000.0f * FLT_MIN {
-        f32 s = 1.0f / cast(f32, sqrtf(lengthSq));
+        f32 s = 1.0f / sqrt(lengthSq);
         var qn = b3Quat{b3Vec3{s * q.v.x, s * q.v.y, s * q.v.z}, s * q.s};
         return qn;
     }
@@ -5761,7 +5761,7 @@ b3Quat b3MakeQuatFromAxisAngle(b3Vec3 axis, f32 radians) {
 
 /// Get the axis and angle from a quaternion. Assumes the quaternion is normalized.
 b3Vec3 b3GetAxisAngle(f32* radians, b3Quat q) {
-    f32 length = sqrtf(q.v.x * q.v.x + q.v.y * q.v.y + q.v.z * q.v.z);
+    f32 length = sqrt(q.v.x * q.v.x + q.v.y * q.v.y + q.v.z * q.v.z);
     *radians = 2.0f * b3Atan2(length, q.s);
     if length > 0.0f {
         f32 invLength = 1.0f / length;
@@ -5773,7 +5773,7 @@ b3Vec3 b3GetAxisAngle(f32* radians, b3Quat q) {
 
 /// Get the angle for a quaternion in radians
 f32 b3GetQuatAngle(b3Quat q) {
-    f32 length = sqrtf(q.v.x * q.v.x + q.v.y * q.v.y + q.v.z * q.v.z);
+    f32 length = sqrt(q.v.x * q.v.x + q.v.y * q.v.y + q.v.z * q.v.z);
     return 2.0f * b3Atan2(length, q.s);
 }
 
@@ -5786,8 +5786,8 @@ f32 b3GetTwistAngle(b3Quat q) {
 
 /// Swing angle used for cone limit
 f32 b3GetSwingAngle(b3Quat q) {
-    f32 x = sqrtf(q.v.z * q.v.z + q.s * q.s);
-    f32 y = sqrtf(q.v.x * q.v.x + q.v.y * q.v.y);
+    f32 x = sqrt(q.v.z * q.v.z + q.s * q.s);
+    f32 y = sqrt(q.v.x * q.v.x + q.v.y * q.v.y);
     f32 swing = 2.0f * b3Atan2(y, x);
     return swing;
 }
@@ -6441,7 +6441,7 @@ f32 b3Dot2(b3Vec2 v1, b3Vec2 v2) {
 }
 
 f32 b3Length2(b3Vec2 v) {
-    return cast(f32, sqrtf(b3Dot2(v, v)));
+    return sqrt(b3Dot2(v, v));
 }
 
 f32 b3LengthSquared2(b3Vec2 v) {
@@ -6473,7 +6473,7 @@ b3Vec3 b3ClampLength(b3Vec3 v, f32 maxLength) {
     if lengthSq <= maxLength * maxLength {
         return v;
     }
-    f32 length = sqrtf(lengthSq);
+    f32 length = sqrt(lengthSq);
     return b3MulSV(maxLength / length, v);
 }
 
@@ -9633,7 +9633,7 @@ b3CastOutput b3RayCastCapsule(b3Capsule* shape, b3RayCastInput* input) {
         return b3RayCastSphere(&sphere, input);
     }
     b3Vec3 s = b3Sub(input.origin, c1);
-    f32 length = sqrtf(lengthSquared);
+    f32 length = sqrt(lengthSquared);
     b3Vec3 axis = b3MulSV(1.0f / length, d);
     f32 u = b3Dot(s, axis);
     b3Vec3 c = b3MulSV(u, axis);
@@ -9676,7 +9676,7 @@ b3CastOutput b3RayCastCapsule(b3Capsule* shape, b3RayCastInput* input) {
         if beta >= 0.0f || disc < 0.0f {
             return output;
         }
-        tr = gamma / (-beta + cast(f32, sqrtf(disc)));
+        tr = gamma / (-beta + sqrt(disc));
     } else {
         f32 invDet = 1.0f / det;
         f32 sa1 = u;
@@ -9690,7 +9690,7 @@ b3CastOutput b3RayCastCapsule(b3Capsule* shape, b3RayCastInput* input) {
         if g2 > r * r {
             return output;
         }
-        f32 h = sqrtf((r * r - g2) * invDet);
+        f32 h = sqrt((r * r - g2) * invDet);
         tr = t2 - h;
     }
     if tr < 0.0f || input.maxFraction * rayLength < tr {
@@ -14247,7 +14247,7 @@ void b3SolveContacts_Mesh(b3SolverBlock block, b3StepContext* context, bool useB
                 f32 maxImpulse = rollingResistance * totalNormalImpulse;
                 f32 magSqr = b3Dot(constraint.rollingImpulse, constraint.rollingImpulse);
                 if magSqr > maxImpulse * maxImpulse + FLT_EPSILON {
-                    constraint.rollingImpulse = b3MulSV(maxImpulse / cast(f32, sqrtf(magSqr)), constraint.rollingImpulse);
+                    constraint.rollingImpulse = b3MulSV(maxImpulse / sqrt(magSqr), constraint.rollingImpulse);
                 }
                 deltaImpulse = b3Sub(constraint.rollingImpulse, oldImpulse);
                 wA = b3Sub(wA, b3MulMV(iA, deltaImpulse));
@@ -14274,7 +14274,7 @@ void b3SolveContacts_Mesh(b3SolverBlock block, b3StepContext* context, bool useB
                 f32 maxImpulse = friction * totalNormalImpulse;
                 f32 lengthSquared = b3Dot2(newImpulse, newImpulse);
                 if lengthSquared > maxImpulse * maxImpulse {
-                    f32 scale = maxImpulse / cast(f32, sqrtf(lengthSquared));
+                    f32 scale = maxImpulse / sqrt(lengthSquared);
                     newImpulse.x *= scale;
                     newImpulse.y *= scale;
                 }
@@ -16002,7 +16002,7 @@ void b3CollideSpheres(b3LocalManifold* manifold, i32 capacity, b3Sphere* sphereA
         return;
     }
     var normal = b3Vec3{0.0f, 1.0f, 0.0f};
-    f32 distance = sqrtf(distanceSq);
+    f32 distance = sqrt(distanceSq);
     if distance * distance > 1000.0f * FLT_MIN {
         normal = b3MulSV(1.0f / distance, offset);
     }
@@ -16031,7 +16031,7 @@ void b3CollideCapsuleAndSphere(b3LocalManifold* manifold, i32 capacity, b3Capsul
         return;
     }
     var normal = b3Vec3{0.0f, 1.0f, 0.0f};
-    f32 distance = sqrtf(distanceSq);
+    f32 distance = sqrt(distanceSq);
     if distance * distance > 1000.0f * FLT_MIN {
         normal = b3MulSV(1.0f / distance, offset);
     }
@@ -16807,7 +16807,7 @@ b3AxisQuery b3ComputeSeparatingAxis(b3HullData* hullA, b3HullData* hullB, b3Tran
                 f32 ny = Cy + t * (Dy - Cy);
                 f32 nz = Cz + t * (Dz - Cz);
                 f32 len2 = nx * nx + (ny * ny + nz * nz);
-                f32 inv = 1.0f / cast(f32, sqrtf(len2));
+                f32 inv = 1.0f / sqrt(len2);
                 nx *= inv;
                 ny *= inv;
                 nz *= inv;
@@ -20481,10 +20481,10 @@ b3CastOutput b3ShapeCastHeightField(b3HeightFieldData* heightField, b3ShapeCastI
         signZ = -1.0f;
     }
     clampedEnd = b3Add(clampedStart, clampedDelta);
-    var columnStart = cast(i32, floorf(clampedStart.x / scale.x));
-    var columnEnd = cast(i32, floorf(clampedEnd.x / scale.x));
-    var rowStart = cast(i32, floorf(clampedStart.z / scale.z));
-    var rowEnd = cast(i32, floorf(clampedEnd.z / scale.z));
+    var columnStart = cast(i32, floor(clampedStart.x / scale.x));
+    var columnEnd = cast(i32, floor(clampedEnd.x / scale.x));
+    var rowStart = cast(i32, floor(clampedStart.z / scale.z));
+    var rowEnd = cast(i32, floor(clampedEnd.z / scale.z));
     b3Vec3 absClampedDelta = b3Abs(clampedDelta);
     f32 deltaAlphaX;
     f32 nextFractionX;
@@ -20520,8 +20520,8 @@ b3CastOutput b3ShapeCastHeightField(b3HeightFieldData* heightField, b3ShapeCastI
     }
     i32 boxColumnHead = columnStart;
     i32 boxRowHead = rowStart;
-    var boxColumnTail = cast(i32, floorf((clampedStart.x - 2.0f * signX * shapeExtents.x) / scale.x));
-    var boxRowTail = cast(i32, floorf((clampedStart.z - 2.0f * signZ * shapeExtents.z) / scale.z));
+    var boxColumnTail = cast(i32, floor((clampedStart.x - 2.0f * signX * shapeExtents.x) / scale.x));
+    var boxRowTail = cast(i32, floor((clampedStart.z - 2.0f * signZ * shapeExtents.z) / scale.z));
     f32 bestFraction = input.maxFraction;
     f32 gridFractionScale = input.maxFraction * (maxFraction - minFraction);
     f32 gridFractionOffset = input.maxFraction * minFraction;
@@ -20690,7 +20690,7 @@ b3CastOutput b3ShapeCastHeightField(b3HeightFieldData* heightField, b3ShapeCastI
                 boxRowTail = boxRowHead;
             } else {
                 f32 rowIntercept = clampedStart.z + nextFractionX * clampedDelta.z;
-                boxRowTail = cast(i32, floorf((rowIntercept - 2.0f * signZ * shapeExtents.z) / scale.z));
+                boxRowTail = cast(i32, floor((rowIntercept - 2.0f * signZ * shapeExtents.z) / scale.z));
             }
             nextFractionX += deltaAlphaX;
         } else {
@@ -20703,7 +20703,7 @@ b3CastOutput b3ShapeCastHeightField(b3HeightFieldData* heightField, b3ShapeCastI
                 boxColumnTail = boxColumnHead;
             } else {
                 f32 columnIntercept = clampedStart.x + nextFractionZ * clampedDelta.x;
-                boxColumnTail = cast(i32, floorf((columnIntercept - 2.0f * signX * shapeExtents.x) / scale.x));
+                boxColumnTail = cast(i32, floor((columnIntercept - 2.0f * signX * shapeExtents.x) / scale.x));
             }
             nextFractionZ += deltaAlphaZ;
         }
@@ -20716,10 +20716,10 @@ bool b3OverlapHeightField(b3HeightFieldData* shape, b3Transform shapeTransform, 
     b3ShapeProxy localProxy = b3MakeLocalProxy(proxy, shapeTransform, buffer);
     b3AABB aabb = b3ComputeProxyAABB(&localProxy);
     b3Vec3 scale = shape.scale;
-    var minRow = cast(i32, floorf(aabb.lowerBound.z / scale.z));
-    var maxRow = cast(i32, floorf(aabb.upperBound.z / scale.z));
-    var minCol = cast(i32, floorf(aabb.lowerBound.x / scale.x));
-    var maxCol = cast(i32, floorf(aabb.upperBound.x / scale.x));
+    var minRow = cast(i32, floor(aabb.lowerBound.z / scale.z));
+    var maxRow = cast(i32, floor(aabb.upperBound.z / scale.z));
+    var minCol = cast(i32, floor(aabb.lowerBound.x / scale.x));
+    var maxCol = cast(i32, floor(aabb.upperBound.x / scale.x));
     b3V32 boundsMin = b3LoadV(&aabb.lowerBound.x);
     b3V32 boundsMax = b3LoadV(&aabb.upperBound.x);
     b3V32 boundsCenter = b3MulV(b3_halfV, b3AddV(boundsMin, boundsMax));
@@ -20779,10 +20779,10 @@ bool b3OverlapHeightField(b3HeightFieldData* shape, b3Transform shapeTransform, 
 
 void b3QueryHeightField(b3HeightFieldData* heightField, b3AABB bounds, b3MeshQueryFcn fcn, void* context) {
     b3Vec3 scale = heightField.scale;
-    var minRow = cast(i32, floorf(bounds.lowerBound.z / scale.z));
-    var maxRow = cast(i32, floorf(bounds.upperBound.z / scale.z));
-    var minCol = cast(i32, floorf(bounds.lowerBound.x / scale.x));
-    var maxCol = cast(i32, floorf(bounds.upperBound.x / scale.x));
+    var minRow = cast(i32, floor(bounds.lowerBound.z / scale.z));
+    var maxRow = cast(i32, floor(bounds.upperBound.z / scale.z));
+    var minCol = cast(i32, floor(bounds.lowerBound.x / scale.x));
+    var maxCol = cast(i32, floor(bounds.upperBound.x / scale.x));
     for i32 row = minRow; row <= maxRow; ++row {
         if row < 0 || heightField.rowCount - 1 <= row {
             continue;
@@ -20839,10 +20839,10 @@ i32 b3CollideMoverAndHeightField(b3PlaneResult* planes, i32 capacity, b3HeightFi
     f32 localMaxX = b3GetXV(boundsMax);
     f32 localMaxZ = b3GetZV(boundsMax);
     b3Vec3 scale = shape.scale;
-    var minRow = cast(i32, floorf(localMinZ / scale.z));
-    var maxRow = cast(i32, floorf(localMaxZ / scale.z));
-    var minCol = cast(i32, floorf(localMinX / scale.x));
-    var maxCol = cast(i32, floorf(localMaxX / scale.x));
+    var minRow = cast(i32, floor(localMinZ / scale.z));
+    var maxRow = cast(i32, floor(localMaxZ / scale.z));
+    var minCol = cast(i32, floor(localMinX / scale.x));
+    var maxCol = cast(i32, floor(localMaxX / scale.x));
     i32 planeCount = 0;
     for i32 row = minRow; row <= maxRow; ++row {
         if row < 0 || shape.rowCount - 1 <= row {
@@ -22025,14 +22025,14 @@ b3HullData* b3CreateCone(f32 height, f32 radius1, f32 radius2, i32 slices) {
 
 b3HullData* b3CreateRock(f32 radius) {
     i32 pointCount = 10;
-    f32 phi = (1.0f + cast(f32, sqrtf(5.0f))) / 2.0f;
+    f32 phi = (1.0f + sqrt(5.0f)) / 2.0f;
     noinit b3Vec3[10] points;
     f32 theta = 2.0f * 3.14159265359f / phi;
     var cs = b3CosSin{1.0f, 0.0f};
     b3CosSin deltaCS = b3ComputeCosSin(theta);
     for i32 i = 0; i < pointCount; ++i {
         f32 z = 1.0f - (2.0f * cast(f32, i) + 1.0f) / cast(f32, pointCount);
-        f32 radius_XY = sqrtf(1.0f - z * z);
+        f32 radius_XY = sqrt(1.0f - z * z);
         points[i].x = radius * radius_XY * cs.cosine;
         points[i].y = radius * radius_XY * cs.sine;
         points[i].z = radius * z;
@@ -25227,7 +25227,7 @@ void b3GetJointReaction(b3World* world, b3JointSim* sim, f32 invTimeStep, f32* f
                 b3WheelJoint* joint = &sim.wheelJoint;
                 b3Vec2 perpImpulse = joint.linearImpulse;
                 f32 axialImpulse = joint.suspensionSpringImpulse + joint.lowerSuspensionImpulse - joint.upperSuspensionImpulse;
-                linearImpulse = sqrtf(perpImpulse.x * perpImpulse.x + perpImpulse.y * perpImpulse.y + axialImpulse * axialImpulse);
+                linearImpulse = sqrt(perpImpulse.x * perpImpulse.x + perpImpulse.y * perpImpulse.y + axialImpulse * axialImpulse);
                 angularImpulse = b3AbsFloat(joint.spinImpulse);
             }
         }
@@ -25378,7 +25378,7 @@ f32 b3Joint_GetLinearSeparation(b3JointId jointId) {
                         limitSeparation = translation - prismaticJoint.upperTranslation;
                     }
                 }
-                return cast(f32, sqrtf(perpendicularSeparation * perpendicularSeparation + limitSeparation * limitSeparation));
+                return sqrt(perpendicularSeparation * perpendicularSeparation + limitSeparation * limitSeparation);
             }
         }
         case b3_revoluteJoint: {
@@ -25412,7 +25412,7 @@ f32 b3Joint_GetLinearSeparation(b3JointId jointId) {
                         limitSeparation = translation - wheelJoint.upperSuspensionLimit;
                     }
                 }
-                return cast(f32, sqrtf(perpendicularSeparation * perpendicularSeparation + limitSeparation * limitSeparation));
+                return sqrt(perpendicularSeparation * perpendicularSeparation + limitSeparation * limitSeparation);
             }
         }
         default: {
@@ -25982,7 +25982,7 @@ b3CosSin b3ComputeCosSin(f32 radians) {
     } else {
         s = 16.0f * x * (3.14159265359f - x) / (5.0f * pi2 - 4.0f * x * (3.14159265359f - x));
     }
-    f32 mag = sqrtf(s * s + c * c);
+    f32 mag = sqrt(s * s + c * c);
     f32 invMag = mag > 0.0f ? 1.0f / mag : 0.0f;
     var cs = b3CosSin{c * invMag, s * invMag};
     return cs;
@@ -27276,9 +27276,9 @@ i32 b3SpatialHash_FindDuplicate(b3SpatialHash* h, i32 currentIndex) {
     b3Vec3 vertex = h.vertices[currentIndex];
     f32 cellSize = h.cellSize;
     f32 tolerance = h.tolerance;
-    var baseX = cast(i32, floorf(vertex.x / cellSize));
-    var baseY = cast(i32, floorf(vertex.y / cellSize));
-    var baseZ = cast(i32, floorf(vertex.z / cellSize));
+    var baseX = cast(i32, floor(vertex.x / cellSize));
+    var baseY = cast(i32, floor(vertex.y / cellSize));
+    var baseZ = cast(i32, floor(vertex.z / cellSize));
     for i32 dx = -1; dx <= 1; ++dx {
         for i32 dy = -1; dy <= 1; ++dy {
             for i32 dz = -1; dz <= 1; ++dz {
@@ -27296,7 +27296,7 @@ i32 b3SpatialHash_FindDuplicate(b3SpatialHash* h, i32 currentIndex) {
                         b3VertexNode node = h.nodes.data[nodeIndex];
                         i32 existingIndex = node.vertexIndex;
                         b3Vec3 other = h.vertices[existingIndex];
-                        if cast(f32, fabsf(vertex.x - other.x)) <= tolerance && cast(f32, fabsf(vertex.y - other.y)) <= tolerance && cast(f32, fabsf(vertex.z - other.z)) <= tolerance {
+                        if fabs(vertex.x - other.x) <= tolerance && fabs(vertex.y - other.y) <= tolerance && fabs(vertex.z - other.z) <= tolerance {
                             return existingIndex;
                         }
                         nodeIndex = node.nextNodeIndex;
@@ -32553,7 +32553,7 @@ void b3DefaultFinishTaskFcn(void* userTask, void* userContext) {
 f32 b3DefaultFrictionCallback(f32 frictionA, u64 materialA, f32 frictionB, u64 materialB) {
     ignore materialA;
     ignore materialB;
-    return cast(f32, sqrtf(frictionA * frictionB));
+    return sqrt(frictionA * frictionB);
 }
 
 f32 b3DefaultRestitutionCallback(f32 restitutionA, u64 materialA, f32 restitutionB, u64 materialB) {
@@ -33304,7 +33304,7 @@ void b3CollideTask(i32 startIndex, i32 endIndex, i32 workerIndex, void* context)
             b3Vec3 maxExtent = b3Max(maxExtentA, maxExtentB);
             f32 distSquared = b3DistanceSquared(xf.p, xfc.p);
             if angularDistance > 0.99240388f && distSquared < recycleTolerance * recycleTolerance {
-                f32 distance = sqrtf(distSquared);
+                f32 distance = sqrt(distSquared);
                 f32 slack = recycleTolerance - distance;
                 b3Quat qr = b3InvMulQuat(xfc.q, xf.q);
                 b3Vec3 arc = b3ModifiedCross(b3Abs(qr.v), maxExtent);
@@ -47468,7 +47468,7 @@ f32 b3ComputeShapeMargin(b3Shape* shape) {
                     f32 distSqr = b3DistanceSquared(points[i], hull.center);
                     maxExtentSqr = b3MaxFloat(maxExtentSqr, distSqr);
                 }
-                margin = sqrtf(maxExtentSqr);
+                margin = sqrt(maxExtentSqr);
             }
         }
         case b3_meshShape, b3_heightShape, b3_compoundShape: {
@@ -51226,7 +51226,7 @@ b3CastOutput b3RayCastSphere(b3Sphere* shape, b3RayCastInput* input) {
     if cc > rr {
         return output;
     }
-    f32 h = sqrtf(rr - cc);
+    f32 h = sqrt(rr - cc);
     f32 fraction = t - h;
     if fraction < 0.0f || input.maxFraction * length < fraction {
         if b3LengthSquared(s) < rr {
@@ -51263,7 +51263,7 @@ b3CastOutput b3RayCastHollowSphere(b3Sphere* sphere, b3RayCastInput* input) {
     if cc > rr {
         return output;
     }
-    f32 h = sqrtf(rr - cc);
+    f32 h = sqrt(rr - cc);
     f32 fraction = t - h;
     if fraction < 0.0f {
         fraction = t + h;
@@ -51637,7 +51637,7 @@ void b3PrepareSphericalJoint(b3JointSim* base, b3StepContext* context) {
     }
     if joint.enableTwistLimit != 0 {
         b3Quat relQ = b3InvMulQuat(joint.frameA.q, joint.frameB.q);
-        f32 tanThetaOver2 = sqrtf((relQ.v.x * relQ.v.x + relQ.v.y * relQ.v.y) / (relQ.v.z * relQ.v.z + relQ.s * relQ.s));
+        f32 tanThetaOver2 = sqrt((relQ.v.x * relQ.v.x + relQ.v.y * relQ.v.y) / (relQ.v.z * relQ.v.z + relQ.s * relQ.s));
         b3Vec3 swingAxis = b3Normalize(b3Cross(coneAxis, twistAxis));
         b3Vec3 perpAxis = b3Cross(swingAxis, coneAxis);
         b3Vec3 twistJacobian = b3MulAdd(coneAxis, tanThetaOver2, perpAxis);
@@ -52118,7 +52118,7 @@ void b3CollideTriangleAndSphere(b3LocalManifold* manifold, i32 capacity, b3Vec3*
     if squaredDistance > maxDistance * maxDistance {
         return;
     }
-    f32 distance = sqrtf(squaredDistance);
+    f32 distance = sqrt(squaredDistance);
     noinit b3Vec3 normal;
     if distance * distance > 1000.0f * FLT_MIN {
         normal = b3MulSV(1.0f / distance, b3Sub(center, closest.point));

@@ -241,7 +241,7 @@ void init() {
 mat44_t compute_viewproj() {
     f32 w = sapp_widthf();
     f32 h = sapp_heightf();
-    state.angle = fmodf(state.angle + 0.01f, 360.0f);
+    state.angle = fmod(state.angle + 0.01f, 360.0f);
     f32 dist = 4.5f;
     vec3_t eye = vec3(vecmath_sin(state.angle) * dist, 1.5f, vecmath_cos(state.angle) * dist);
     mat44_t proj = mat44_perspective_fov_rh(vecmath_radians(60.0f), w / h, 0.01f, 10.0f);

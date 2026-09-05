@@ -98,19 +98,19 @@ void draw_ball(f32 x, f32 y, f32 r, f32 rotz, f32 rotx, sg_color c0, sg_color c1
         var latf = cast(f32, lat);
         f32 t1 = cast(f32, M_PI) * (latf / cast(f32, bands)) - cast(f32, M_PI) * 0.5f;
         f32 t2 = cast(f32, M_PI) * ((latf + 1.0f) / cast(f32, bands)) - cast(f32, M_PI) * 0.5f;
-        f32 sint1 = sinf(t1);
-        f32 cost1 = cosf(t1);
-        f32 sint2 = sinf(t2);
-        f32 cost2 = cosf(t2);
+        f32 sint1 = sin(t1);
+        f32 cost1 = cos(t1);
+        f32 sint2 = sin(t2);
+        f32 cost2 = cos(t2);
         for i32 lon = 0; lon < segs; lon++ {
             var lonf = cast(f32, lon);
             f32 p1 = 2.0f * cast(f32, M_PI) * (lonf / cast(f32, segs));
             f32 p2 = 2.0f * cast(f32, M_PI) * ((lonf + 1.0f) / cast(f32, segs));
             bool is_red = 0 != (lat + lon & 1);
-            f32 sinp1 = sinf(p1);
-            f32 cosp1 = cosf(p1);
-            f32 sinp2 = sinf(p2);
-            f32 cosp2 = cosf(p2);
+            f32 sinp1 = sin(p1);
+            f32 cosp1 = cos(p1);
+            f32 sinp2 = sin(p2);
+            f32 cosp2 = cos(p2);
             if is_red != 0 {
                 sgl_c3f(c0.r, c0.g, c0.b);
             } else {

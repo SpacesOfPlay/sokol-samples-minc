@@ -2,12 +2,13 @@
 import sokol_all;
 
 // sokol_time
-when os(windows) {
-    extern "kernel32.dll" {
-        i32 QueryPerformanceFrequency(LARGE_INTEGER* lp);
-        i32 QueryPerformanceCounter(LARGE_INTEGER* lp);
-    }
-}
+//
+// QueryPerformanceCounter / QueryPerformanceFrequency used to be bound
+// from kernel32 here. cstdlib_shim.mc (ext_libc) defines them over
+// minc's qpc/qpf builtins now, and every sample that pre_shims this
+// file also imports sokol_all, which pulls ext_libc — so an extern
+// here collides with that definition. Nothing else in this file is
+// needed, but it stays as the manifests' pre_shim slot.
 
 when os(ios) {
 struct timespec {

@@ -498,7 +498,7 @@ void gen_pixels_8(u8 val) {
 }
 
 void gen_pixels_16(u16 val) {
-    var ptr = cast(u16*, pixels);
+    var ptr = cast(u16*, &pixels[0]);
     for i32 y = 0; y < 8; y++ {
         for i32 x = 0; x < 8; x++ {
             *ptr++ = ((x ^ y) & 1) != 0 ? val : 0;
@@ -507,7 +507,7 @@ void gen_pixels_16(u16 val) {
 }
 
 void gen_pixels_32(u32 val) {
-    var ptr = cast(u32*, pixels);
+    var ptr = cast(u32*, &pixels[0]);
     for i32 y = 0; y < 8; y++ {
         for i32 x = 0; x < 8; x++ {
             *ptr++ = ((x ^ y) & 1) != 0 ? val : 0;
@@ -516,7 +516,7 @@ void gen_pixels_32(u32 val) {
 }
 
 void gen_pixels_64(u64 val) {
-    var ptr = cast(u64*, pixels);
+    var ptr = cast(u64*, &pixels[0]);
     for i32 y = 0; y < 8; y++ {
         for i32 x = 0; x < 8; x++ {
             *ptr++ = ((x ^ y) & 1) != 0 ? val : 0;
@@ -525,7 +525,7 @@ void gen_pixels_64(u64 val) {
 }
 
 void gen_pixels_128(u64 hi, u64 lo) {
-    var ptr = cast(u64*, pixels);
+    var ptr = cast(u64*, &pixels[0]);
     for i32 y = 0; y < 8; y++ {
         for i32 x = 0; x < 8; x++ {
             *ptr++ = ((x ^ y) & 1) != 0 ? lo : 0;

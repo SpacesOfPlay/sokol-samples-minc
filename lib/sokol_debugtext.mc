@@ -1585,7 +1585,7 @@ u8*[6] _sdtx_log_messages = {
 
 void _sdtx_log(sdtx_log_item_t log_item, u32 log_level, u32 line_nr) {
     if _sdtx.desc.logger.func != null {
-        u8* filename = "sokol_debugtext.h";
+        u8* filename = __file__;
         u8* message = _sdtx_log_messages[log_item];
         _sdtx.desc.logger.func("sdtx", log_level, cast(u32, log_item), message, line_nr, filename, _sdtx.desc.logger.user_data);
     } else {
@@ -1616,7 +1616,7 @@ void* _sdtx_malloc(u64 size) {
         ptr = alloc(cast(i64, size));
     }
     if null == ptr {
-        _sdtx_log(SDTX_LOGITEM_MALLOC_FAILED, 0, 3710);
+        _sdtx_log(SDTX_LOGITEM_MALLOC_FAILED, 0, __line__);
     }
     return ptr;
 }
@@ -1855,7 +1855,7 @@ void _sdtx_init_context(sdtx_context ctx_id, sdtx_context_desc_t* in_desc) {
     ctx.tab_width = cast(f32, ctx.desc.tab_width);
     ctx.color = 0xFF00FFFF;
     if sg_add_commit_listener(_sdtx_make_commit_listener(ctx)) == 0 {
-        _sdtx_log(SDTX_LOGITEM_ADD_COMMIT_LISTENER_FAILED, 1, 3711);
+        _sdtx_log(SDTX_LOGITEM_ADD_COMMIT_LISTENER_FAILED, 1, __line__);
     }
     sg_pop_debug_group();
 }
@@ -1998,7 +1998,7 @@ void _sdtx_ctrl_char(_sdtx_context_t* ctx, u8 c) {
             ctx.pos.y += 1.0f;
         }
         case 9: {
-            ctx.pos.x = ctx.pos.x - fmodf(ctx.pos.x, ctx.tab_width) + ctx.tab_width;
+            ctx.pos.x = ctx.pos.x - fmod(ctx.pos.x, ctx.tab_width) + ctx.tab_width;
         }
         case 32: {
             ctx.pos.x += 1.0f;
@@ -2028,7 +2028,7 @@ _sdtx_command_t* _sdtx_next_command(_sdtx_context_t* ctx) {
     if ctx.commands.next < ctx.commands.cap {
         return &ctx.commands.ptr[ctx.commands.next++];
     } else {
-        _sdtx_log(SDTX_LOGITEM_COMMAND_BUFFER_FULL, 1, 3711);
+        _sdtx_log(SDTX_LOGITEM_COMMAND_BUFFER_FULL, 1, __line__);
         return null;
     }
 }
@@ -2240,7 +2240,7 @@ sdtx_context sdtx_make_context(sdtx_context_desc_t* desc) {
     if ctx_id.id != cast(u32, SG_INVALID_ID) {
         _sdtx_init_context(ctx_id, desc);
     } else {
-        _sdtx_log(SDTX_LOGITEM_CONTEXT_POOL_EXHAUSTED, 1, 3711);
+        _sdtx_log(SDTX_LOGITEM_CONTEXT_POOL_EXHAUSTED, 1, __line__);
     }
     return ctx_id;
 }
@@ -2248,7 +2248,7 @@ sdtx_context sdtx_make_context(sdtx_context_desc_t* desc) {
 void sdtx_destroy_context(sdtx_context ctx_id) {
     assert(0xACBAABCA == _sdtx.init_cookie);
     if _sdtx_is_default_context(ctx_id) != 0 {
-        _sdtx_log(SDTX_LOGITEM_CANNOT_DESTROY_DEFAULT_CONTEXT, 1, 3711);
+        _sdtx_log(SDTX_LOGITEM_CANNOT_DESTROY_DEFAULT_CONTEXT, 1, __line__);
         return;
     }
     _sdtx_destroy_context(ctx_id);

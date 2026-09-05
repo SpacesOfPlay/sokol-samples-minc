@@ -1047,7 +1047,7 @@ u8*[7] _sgl_log_messages = {
 
 void _sgl_log(sgl_log_item_t log_item, u32 log_level, u32 line_nr) {
     if _sgl.desc.logger.func != null {
-        u8* filename = "sokol_gl.h";
+        u8* filename = __file__;
         u8* message = _sgl_log_messages[log_item];
         _sgl.desc.logger.func("sgl", log_level, cast(u32, log_item), message, line_nr, filename, _sgl.desc.logger.user_data);
     } else {
@@ -1078,7 +1078,7 @@ void* _sgl_malloc(u64 size) {
         ptr = alloc(cast(i64, size));
     }
     if null == ptr {
-        _sgl_log(SGL_LOGITEM_MALLOC_FAILED, 0, 2587);
+        _sgl_log(SGL_LOGITEM_MALLOC_FAILED, 0, __line__);
     }
     return ptr;
 }
@@ -1306,7 +1306,7 @@ void _sgl_init_pipeline(sgl_pipeline pip_id, sg_pipeline_desc* in_desc, sgl_cont
         } else {
             pip.pip[i] = sg_make_pipeline(&desc);
             if pip.pip[i].id == cast(u32, SG_INVALID_ID) {
-                _sgl_log(SGL_LOGITEM_MAKE_PIPELINE_FAILED, 1, 2588);
+                _sgl_log(SGL_LOGITEM_MAKE_PIPELINE_FAILED, 1, __line__);
                 pip.slot.state = SG_RESOURCESTATE_FAILED;
             }
         }
@@ -1319,7 +1319,7 @@ sgl_pipeline _sgl_make_pipeline(sg_pipeline_desc* desc, sgl_context_desc_t* ctx_
     if pip_id.id != cast(u32, SG_INVALID_ID) {
         _sgl_init_pipeline(pip_id, desc, ctx_desc);
     } else {
-        _sgl_log(SGL_LOGITEM_PIPELINE_POOL_EXHAUSTED, 1, 2588);
+        _sgl_log(SGL_LOGITEM_PIPELINE_POOL_EXHAUSTED, 1, __line__);
     }
     return pip_id;
 }
@@ -1453,7 +1453,7 @@ void _sgl_init_context(sgl_context ctx_id, sgl_context_desc_t* in_desc) {
     def_pip_desc.depth.write_enabled = true;
     ctx.def_pip = _sgl_make_pipeline(&def_pip_desc, &ctx.desc);
     if sg_add_commit_listener(_sgl_make_commit_listener(ctx)) == 0 {
-        _sgl_log(SGL_LOGITEM_ADD_COMMIT_LISTENER_FAILED, 1, 2588);
+        _sgl_log(SGL_LOGITEM_ADD_COMMIT_LISTENER_FAILED, 1, __line__);
     }
     sg_pop_debug_group();
     ctx.rgba = 0xFFFFFFFF;
@@ -1471,7 +1471,7 @@ sgl_context _sgl_make_context(sgl_context_desc_t* desc) {
     if ctx_id.id != cast(u32, SG_INVALID_ID) {
         _sgl_init_context(ctx_id, desc);
     } else {
-        _sgl_log(SGL_LOGITEM_CONTEXT_POOL_EXHAUSTED, 1, 2588);
+        _sgl_log(SGL_LOGITEM_CONTEXT_POOL_EXHAUSTED, 1, __line__);
     }
     return ctx_id;
 }
@@ -1672,9 +1672,9 @@ void _sgl_mul(_sgl_matrix_t* dst, _sgl_matrix_t* m) {
 }
 
 void _sgl_rotate(_sgl_matrix_t* dst, f32 a, f32 x, f32 y, f32 z) {
-    f32 s = sinf(a);
-    f32 c = cosf(a);
-    f32 mag = sqrtf(x * x + y * y + z * z);
+    f32 s = sin(a);
+    f32 c = cos(a);
+    f32 mag = sqrt(x * x + y * y + z * z);
     if mag < 0.0001f {
         return;
     }
@@ -1775,12 +1775,12 @@ void _sgl_ortho(_sgl_matrix_t* dst, f32 left, f32 right, f32 bottom, f32 top, f3
 
 /* _sgl_perspective, _sgl_lookat from Regal project.c */
 void _sgl_perspective(_sgl_matrix_t* dst, f32 fovy, f32 aspect, f32 znear, f32 zfar) {
-    f32 sine = sinf(fovy / 2.0f);
+    f32 sine = sin(fovy / 2.0f);
     f32 delta_z = zfar - znear;
     if delta_z == 0.0f || sine == 0.0f || aspect == 0.0f {
         return;
     }
-    f32 cotan = cosf(fovy / 2.0f) / sine;
+    f32 cotan = cos(fovy / 2.0f) / sine;
     noinit _sgl_matrix_t m;
     _sgl_identity(&m);
     m.v[0][0] = cotan / aspect;
@@ -1793,7 +1793,7 @@ void _sgl_perspective(_sgl_matrix_t* dst, f32 fovy, f32 aspect, f32 znear, f32 z
 }
 
 void _sgl_normalize(f32* v) {
-    f32 r = sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+    f32 r = sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
     if r == 0.0f {
         return;
     }
@@ -2075,7 +2075,7 @@ sgl_context sgl_make_context(sgl_context_desc_t* desc) {
 void sgl_destroy_context(sgl_context ctx_id) {
     assert(0xABCDABCD == _sgl.init_cookie);
     if _sgl_is_default_context(ctx_id) != 0 {
-        _sgl_log(SGL_LOGITEM_CANNOT_DESTROY_DEFAULT_CONTEXT, 2, 2589);
+        _sgl_log(SGL_LOGITEM_CANNOT_DESTROY_DEFAULT_CONTEXT, 2, __line__);
         return;
     }
     _sgl_destroy_context(ctx_id);
