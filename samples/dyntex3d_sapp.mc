@@ -122,7 +122,10 @@ void init() {
 void frame() {
     if state.immutable == 0 {
         update_pixels(sapp_frame_count());
-        sg_update_image(state.img, &sg_image_data{.mip_levels[0] = pixels_as_range()});
+        sg_write_image_transient(&sg_write_image_desc{
+            .src = sg_write_image_source{.data = pixels_as_range()},
+            .dst = sg_image_location{.image = state.img},
+        });
     }
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     sg_apply_pipeline(state.pip);
@@ -194,7 +197,7 @@ void recreate_image() {
     update_pixels(sapp_frame_count());
     sg_init_image(state.img, &sg_image_desc{
         .type = SG_IMAGETYPE_3D,
-        .usage = sg_image_usage{.immutable = state.immutable, .stream_update = !state.immutable},
+        .usage = sg_image_usage{.immutable = state.immutable, .write_transient = !state.immutable},
         .width = state.width_height,
         .height = state.width_height,
         .num_slices = 3,

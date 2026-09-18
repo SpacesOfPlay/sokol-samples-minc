@@ -537,15 +537,25 @@ void update_matrices() {
 
 void update_instance_buffers() {
     if state.inst_data.num_boxes > 0 {
-        sg_update_buffer(state.box_inst_buf, &sg_range{
-            .ptr = cast(void*, &state.inst_data.boxes[0]),
-            .size = cast(u64, sizeof(instdata_t)) * cast(u64, state.inst_data.num_boxes),
+        sg_write_buffer_transient(&sg_write_buffer_desc{
+            .src = sg_write_buffer_source{
+                .data = sg_range{
+                    .ptr = cast(void*, &state.inst_data.boxes[0]),
+                    .size = cast(u64, sizeof(instdata_t)) * cast(u64, state.inst_data.num_boxes),
+                },
+            },
+            .dst = sg_buffer_location{.buffer = state.box_inst_buf},
         });
     }
     if state.inst_data.num_balls > 0 {
-        sg_update_buffer(state.ball_inst_buf, &sg_range{
-            .ptr = cast(void*, &state.inst_data.balls[0]),
-            .size = cast(u64, sizeof(instdata_t)) * cast(u64, state.inst_data.num_balls),
+        sg_write_buffer_transient(&sg_write_buffer_desc{
+            .src = sg_write_buffer_source{
+                .data = sg_range{
+                    .ptr = cast(void*, &state.inst_data.balls[0]),
+                    .size = cast(u64, sizeof(instdata_t)) * cast(u64, state.inst_data.num_balls),
+                },
+            },
+            .dst = sg_buffer_location{.buffer = state.ball_inst_buf},
         });
     }
 }
@@ -821,26 +831,10 @@ void gfx_init() {
             .attrs = {
                 sshape_position_vertex_attr_state(&shp),
                 sshape_normal_vertex_attr_state(&shp),
-                sg_vertex_attr_state{
-                    .format = SG_VERTEXFORMAT_FLOAT4,
-                    .buffer_index = 1,
-                    .offset = 0,
-                },
-                sg_vertex_attr_state{
-                    .format = SG_VERTEXFORMAT_FLOAT4,
-                    .buffer_index = 1,
-                    .offset = 16,
-                },
-                sg_vertex_attr_state{
-                    .format = SG_VERTEXFORMAT_FLOAT4,
-                    .buffer_index = 1,
-                    .offset = 32,
-                },
-                sg_vertex_attr_state{
-                    .format = SG_VERTEXFORMAT_FLOAT4,
-                    .buffer_index = 1,
-                    .offset = 48,
-                },
+                sg_vertex_attr_state{.format = SG_VERTEXFORMAT_FLOAT4, .buffer_index = 1},
+                sg_vertex_attr_state{.format = SG_VERTEXFORMAT_FLOAT4, .buffer_index = 1},
+                sg_vertex_attr_state{.format = SG_VERTEXFORMAT_FLOAT4, .buffer_index = 1},
+                sg_vertex_attr_state{.format = SG_VERTEXFORMAT_FLOAT4, .buffer_index = 1},
                 sg_vertex_attr_state{},
                 sg_vertex_attr_state{},
                 sg_vertex_attr_state{},
@@ -900,8 +894,8 @@ void gfx_init() {
             .buffers = {
                 sshape_vertex_buffer_layout_state(&shp),
                 sg_vertex_buffer_layout_state{
-                    .stride = cast(i32, sizeof(instdata_t)),
                     .step_func = SG_VERTEXSTEP_PER_INSTANCE,
+                    .stride = cast(i32, sizeof(instdata_t)),
                 },
                 sg_vertex_buffer_layout_state{},
                 sg_vertex_buffer_layout_state{},
@@ -912,21 +906,9 @@ void gfx_init() {
             },
             .attrs = {
                 sshape_position_vertex_attr_state(&shp),
-                sg_vertex_attr_state{
-                    .format = SG_VERTEXFORMAT_FLOAT4,
-                    .buffer_index = 1,
-                    .offset = 0,
-                },
-                sg_vertex_attr_state{
-                    .format = SG_VERTEXFORMAT_FLOAT4,
-                    .buffer_index = 1,
-                    .offset = 16,
-                },
-                sg_vertex_attr_state{
-                    .format = SG_VERTEXFORMAT_FLOAT4,
-                    .buffer_index = 1,
-                    .offset = 32,
-                },
+                sg_vertex_attr_state{.format = SG_VERTEXFORMAT_FLOAT4, .buffer_index = 1},
+                sg_vertex_attr_state{.format = SG_VERTEXFORMAT_FLOAT4, .buffer_index = 1},
+                sg_vertex_attr_state{.format = SG_VERTEXFORMAT_FLOAT4, .buffer_index = 1},
                 sg_vertex_attr_state{},
                 sg_vertex_attr_state{},
                 sg_vertex_attr_state{},
@@ -953,12 +935,12 @@ void gfx_init() {
         .label = "shadow-instanced-pipeline",
     });
     state.box_inst_buf = sg_make_buffer(&sg_buffer_desc{
-        .usage = sg_buffer_usage{.stream_update = true},
+        .usage = sg_buffer_usage{.write_transient = true},
         .size = cast(u64, (1024 / 2 + 1) * sizeof(instdata_t)),
         .label = "box-instance-buffer",
     });
     state.ball_inst_buf = sg_make_buffer(&sg_buffer_desc{
-        .usage = sg_buffer_usage{.stream_update = true},
+        .usage = sg_buffer_usage{.write_transient = true},
         .size = cast(u64, (1024 / 2 + 1) * sizeof(instdata_t)),
         .label = "ball-instance-buffer",
     });

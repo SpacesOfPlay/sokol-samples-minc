@@ -106,13 +106,13 @@ struct vertex_t {
 struct __anon_plmpeg_sapp_struct_6 {
     i32 width;
     i32 height;
-    u64 last_upd_frame;
     sg_image img;
 }
 
 private struct state_t {
     plm_t* plm;
     plm_buffer_t* plm_buffer;
+    plm_frame_t* plm_last_frame;
     sg_pipeline pip;
     sg_bindings bind;
     sg_pass_action pass_action;
@@ -279,6 +279,7 @@ void frame() {
     state.ry += -0.1f * 60.0f * cast(f32, sapp_frame_duration());
     mat44_t model = mat44_rotation_y(vecmath_radians(state.ry));
     var vs_params = vs_params_t{.mvp = mat44_mul_mat44(model, view_proj)};
+    upload_image_data();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     if state.bind.views[0].id != cast(u32, SG_INVALID_ID) {
         sg_apply_pipeline(state.pip);
@@ -300,7 +301,7 @@ void cleanup() {
     sg_shutdown();
 }
 
-// (re-)create a video plane texture on demand, and update it with decoded video-plane data
+// (re-)create a video plane texture on demand
 void validate_texture(i32 slot, plm_plane_t* plane, u8* img_label, u8* view_label) {
     if state.images[slot].width != cast(i32, plane.width) || state.images[slot].height != cast(i32, plane.height) {
         state.images[slot].width = cast(i32, plane.width);
@@ -310,7 +311,7 @@ void validate_texture(i32 slot, plm_plane_t* plane, u8* img_label, u8* view_labe
             .width = cast(i32, plane.width),
             .height = cast(i32, plane.height),
             .pixel_format = SG_PIXELFORMAT_R8,
-            .usage = sg_image_usage{.stream_update = true},
+            .usage = sg_image_usage{.write_transient = true},
             .label = img_label,
         });
         sg_destroy_view(state.bind.views[slot]);
@@ -319,14 +320,26 @@ void validate_texture(i32 slot, plm_plane_t* plane, u8* img_label, u8* view_labe
             .label = view_label,
         });
     }
-    if state.images[slot].last_upd_frame != state.cur_frame {
-        state.images[slot].last_upd_frame = state.cur_frame;
-        sg_update_image(state.images[slot].img, &sg_image_data{
-            .mip_levels[0] = {
+}
+
+void upload_image_frame(i32 slot, plm_plane_t* plane) {
+    sg_write_image_transient(&sg_write_image_desc{
+        .src = sg_write_image_source{
+            .data = sg_range{
                 .ptr = plane.data,
                 .size = cast(u64, plane.width * plane.height * sizeof(u8)),
             },
-        });
+        },
+        .dst = sg_image_location{.image = state.images[slot].img},
+    });
+}
+
+// upload texture data into sokol-gfx texture, must be called each frame
+void upload_image_data() {
+    if state.plm_last_frame != null {
+        upload_image_frame(VIEW_tex_y, &state.plm_last_frame.y);
+        upload_image_frame(VIEW_tex_cb, &state.plm_last_frame.cb);
+        upload_image_frame(VIEW_tex_cr, &state.plm_last_frame.cr);
     }
 }
 
@@ -334,6 +347,7 @@ void validate_texture(i32 slot, plm_plane_t* plane, u8* img_label, u8* view_labe
 void video_cb(plm_t* mpeg, plm_frame_t* frame, void* user) {
     ignore mpeg;
     ignore user;
+    state.plm_last_frame = frame;
     validate_texture(VIEW_tex_y, &frame.y, "image-y", "texview-y");
     validate_texture(VIEW_tex_cb, &frame.cb, "image-cb", "texview-cb");
     validate_texture(VIEW_tex_cr, &frame.cr, "image-cr", "texview-cr");

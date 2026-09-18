@@ -98,8 +98,8 @@ void init() {
         .label = "geometry-indices",
     });
     state.bind.vertex_buffers[1] = sg_make_buffer(&sg_buffer_desc{
-        .size = cast(u64, 512 * 1024 * sizeof(vec3_t)),
-        .usage = sg_buffer_usage{.stream_update = true},
+        .size = cast(u64, sizeof(state.pos)),
+        .usage = sg_buffer_usage{.write_transient = true},
         .label = "instance-data",
     });
     sg_shader shd = sokol_make_shader(&instancing_sapp_vs_shader, &instancing_sapp_fs_shader);
@@ -157,8 +157,9 @@ void frame() {
             state.vel[i].z *= 0.8f;
         }
     }
-    sg_update_buffer(state.bind.vertex_buffers[1], &sg_range{
-        .ptr = state.pos,
+    sg_write_buffer_transient(&sg_write_buffer_desc{
+        .src = sg_write_buffer_source{.data = sg_range{&state.pos, sizeof(state.pos)}},
+        .dst = sg_buffer_location{.buffer = state.bind.vertex_buffers[1]},
         .size = cast(u64, state.cur_num_particles) * cast(u64, sizeof(vec3_t)),
     });
     mat44_t proj = mat44_perspective_fov_rh(vecmath_radians(60.0f), sapp_widthf() / sapp_heightf(), 0.01f, 50.0f);

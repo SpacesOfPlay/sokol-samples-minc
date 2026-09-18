@@ -440,6 +440,9 @@ enum __enum_b3_recOpDestroyWorld {
     b3_recOpShapeSetCapsule = 90,
     b3_recOpShapeApplyWind = 91,
     b3_recOpShapeSetName = 92,
+    b3_recOpShapeSetMeshMaterial = 93,
+    b3_recOpShapeSetHull = 94,
+    b3_recOpShapeSetMesh = 95,
     b3_recOpCreateParallelJoint = 144,
     b3_recOpCreateDistanceJoint = 145,
     b3_recOpCreateFilterJoint = 146,
@@ -618,8 +621,10 @@ type errno_t = i32;
 // transminc: overridable so a single-translation-unit build can give
 // the inline math API external linkage (an embedder importing Box3D
 // as a module needs it). Defaults to upstream's `static inline`.
+// transminc: overridable for the same reason as B3_INLINE; the
+// force-inlined math helpers are part of the exported API too.
 /// Used for C literals like (b3Vec3){1.0f, 2.0f, 3.0f} where C++ requires b3Vec3{1.0f, 2.0f, 3.0f}
-// clang-format on
+// This is used to validate arguments for functions similar to printf.
 /**
  * @defgroup base Base
  * Base functionality
@@ -911,7 +916,6 @@ struct b3ContactId {
 
 // SPDX-FileCopyrightText: 2025 Erin Catto
 // SPDX-License-Identifier: MIT
-// for sqrtf and remainderf
 /**
  * @defgroup math Math
  * @brief Vector math types and functions
@@ -1629,7 +1633,7 @@ struct b3TOIInput {
     f32 maxFraction;
 }
 
-/// Time of impact output
+/// Time of impact output.
 struct b3TOIOutput {
     b3TOIState state;
     b3Vec3 point;
@@ -1700,6 +1704,9 @@ struct b3TreeStats {
 struct b3PlaneResult {
     b3Plane plane;
     b3Vec3 point;
+    i32 triangleIndex;
+    i32 childIndex;
+    i32 materialIndex;
 }
 
 /// These are collision planes that can be fed to b3SolvePlanes. Normally
@@ -1721,6 +1728,14 @@ struct b3PlaneSolverResult {
 struct b3BodyPlaneResult {
     b3ShapeId shapeId;
     b3PlaneResult result;
+}
+
+/// Body time of impact result for movers.
+struct b3BodyTOIResult {
+    b3Pos point;
+    b3Vec3 normal;
+    f32 fraction;
+    b3ShapeId shapeId;
 }
 
 /**@}*/
@@ -1796,8 +1811,7 @@ struct b3HullFace {
 /// @note This data structure has data hanging off the end and cannot be directly copied.
 struct b3HullData {
     u64 version;
-    i32 byteCount;
-    u32 hash;
+    u64 hash;
     b3AABB aabb;
     f32 surfaceArea;
     f32 volume;
@@ -1814,7 +1828,7 @@ struct b3HullData {
     i32 faceOffset;
     i32 soaVertexOffset;
     i32 soaNormalOffset;
-    i32 padding;
+    i32 byteCount;
 }
 
 /// Efficient box hull
@@ -1825,7 +1839,7 @@ struct b3BoxHull {
     b3HullHalfEdge[24] boxEdges;
     b3Plane[6] boxPlanes;
     b3HullFace[6] boxFaces;
-    u8[10] padding;
+    u8[2] padding;
     f32[8] vx;
     f32[8] vy;
     f32[8] vz;
@@ -1841,9 +1855,11 @@ struct b3BoxHull {
  * @brief Triangle mesh collision shape
  * @{
  */
-/// This is used to create a re-usable collision mesh.
+/// This is used to create a re-usable collision mesh. No pointers
+/// are held to this data in b3MeshData. So all this data can be temporary.
 struct b3MeshDef {
     b3Vec3* vertices;
+    u64 stride;
     i32* indices;
     u8* materialIndices;
     f32 weldTolerance;
@@ -1852,6 +1868,7 @@ struct b3MeshDef {
     bool weldVertices;
     bool useMedianSplit;
     bool identifyEdges;
+    bool clockWiseWinding;
 }
 
 /// A mesh triangle.
@@ -1882,8 +1899,8 @@ struct b3MeshNode {
 /// @note This struct has data hanging off the end and cannot be directly copied.
 struct b3MeshData {
     u64 version;
+    u64 hash;
     i32 byteCount;
-    u32 hash;
     b3AABB bounds;
     f32 surfaceArea;
     i32 treeHeight;
@@ -1897,6 +1914,7 @@ struct b3MeshData {
     i32 materialOffset;
     i32 materialCount;
     i32 flagsOffset;
+    i32 padding;
 }
 
 /// This allows mesh data to be re-used with different scales.
@@ -1912,7 +1930,7 @@ struct b3Mesh {
  * @brief Height field collision shape
  * @{
  */
-/// Data used to create a height field
+/// Data used to create a height field. No pointers are held to this data.
 struct b3HeightFieldDef {
     f32* heights;
     u8* materialIndices;
@@ -1930,8 +1948,8 @@ struct b3HeightFieldDef {
 /// @note This data structure has data hanging off the end and cannot be directly copied.
 struct b3HeightFieldData {
     u64 version;
+    u64 hash;
     i32 byteCount;
-    u32 hash;
     b3AABB aabb;
     f32 minHeight;
     f32 maxHeight;
@@ -1942,8 +1960,8 @@ struct b3HeightFieldData {
     i32 heightsOffset;
     i32 materialOffset;
     i32 flagsOffset;
-    bool clockwise;
-    u8[3] padding;
+    u8 clockwise;
+    u8[7] padding;
 }
 
 /**@}*/
@@ -2197,7 +2215,6 @@ struct b3DebugDraw {
 // Define compiler
 /// Tracy profiler instrumentation
 /// https://github.com/wolfpld/tracy
-// clang-format on
 struct b3AtomicInt {
     i32 value;
 }
@@ -3304,10 +3321,10 @@ struct b3World {
 
 // Magic 'B3RC' in little-endian: bytes B(0x42) 3(0x33) R(0x52) C(0x43)
 // Major recording version is bumped when writers change.
-// Major version 4 added b3ShapeDef::enableSpeculativeContact
+// Major version 5 added b3PlaneResult fields.
 // Minor tracks op-stream additions that keep the 48 byte header shape.
-// Minor version 3 added name cache.
-// File header, fixed 48 bytes, little-endian. Contains the registry locator so the player
+// Minor version 4 added b3Shape_SetMeshMaterial, b3Shape_SetHull, b3Shape_SetMesh
+// File header, fixed 48 bytes. Contains the registry locator so the player
 // can load geometry before replaying any ops.
 struct b3RecHeader {
     u32 magic;
@@ -3346,12 +3363,16 @@ struct b3GeometryEntry {
     i32 hashNext;
 }
 
+struct b3DynamicArray_b3GeometryEntry {
+    b3GeometryEntry* data;
+    i32 count;
+    i32 capacity;
+}
+
 // Growable array of geometry entries. Ids are array indices, so the array is serialized in order.
 // dedupMap maps content hash to entry id for O(1) dedup; it is opaque here and owned by recording.c.
 struct b3GeometryRegistry {
-    b3GeometryEntry* entries;
-    i32 count;
-    i32 capacity;
+    b3DynamicArray_b3GeometryEntry entries;
     void* dedupMap;
 }
 
@@ -3719,6 +3740,23 @@ struct b3RecArgs_ShapeApplyWind {
 struct b3RecArgs_ShapeSetName {
     b3RecCType_SHAPEID shape;
     b3RecCType_STR name;
+}
+
+struct b3RecArgs_ShapeSetMeshMaterial {
+    b3RecCType_SHAPEID shape;
+    b3RecCType_MATERIAL material;
+    b3RecCType_I32 index;
+}
+
+struct b3RecArgs_ShapeSetHull {
+    b3RecCType_SHAPEID shape;
+    b3RecCType_GEOMID geometryId;
+}
+
+struct b3RecArgs_ShapeSetMesh {
+    b3RecCType_SHAPEID shape;
+    b3RecCType_GEOMID geometryId;
+    b3RecCType_VEC3 scale;
 }
 
 struct b3RecArgs_CreateParallelJoint {
@@ -4667,7 +4705,7 @@ struct b3RebuildItem {
 // SPDX-FileCopyrightText: 2026 Erin Catto
 // SPDX-License-Identifier: MIT
 // Dirk Gregorius contributed portions of this code
-// Final hull is index-encoded with uint8_t, so vertex/edge/face counts are capped at UINT8_MAX.
+// Final hull is index-encoded with uint8_t, so vertex/edge/face counts are capped at 256.
 struct b3QHListNode {
     b3QHListNode* prev;
     b3QHListNode* next;
@@ -4839,6 +4877,7 @@ struct b3SpatialHash {
     b3DynamicArray_b3VertexNode nodes;
     b3Vec3* vertices;
     i32 vertexCount;
+    u64 stride;
     b3VertexMap vertexMap;
     f32 cellSize;
     f32 tolerance;
@@ -4851,6 +4890,7 @@ struct b3WeldData {
     i32* dstIndices;
     i32 vertexCount;
     i32 indexCount;
+    u64 stride;
 }
 
 struct b3Primitive {
@@ -4900,7 +4940,6 @@ struct b3EdgeMap {
     u16* metadata;
 }
 
-// This guards against excessive memory usage and complex collision
 struct b3TriangleQueryContext {
     i32* indices;
     i32 capacity;
@@ -5070,7 +5109,7 @@ struct b3RecDrawQuery {
     u64 key;
     b3QueryFilter filter;
     b3AABB aabb;
-    b3Vec3[64] proxyPoints;
+    b3Vec3[128] proxyPoints;
     i32 proxyCount;
     f32 proxyRadius;
     b3Capsule mover;
@@ -5267,7 +5306,6 @@ struct b3Scheduler {
 
 // SPDX-FileCopyrightText: 2025 Erin Catto
 // SPDX-License-Identifier: MIT
-// for qsort
 struct b3SensorQueryContext {
     b3World* world;
     b3SensorTaskContext* taskContext;
@@ -5357,15 +5395,12 @@ struct b3SnapReader {
 // SPDX-License-Identifier: MIT
 // Compile-time options. Edit box3d/config.h, or define BOX3D_USER_CONFIG to
 // point at your own copy.
-// clang-format off
 // 
 // Shared library macros
 // Predefine BOX3D_EXPORT to reuse an existing export/import scheme, for example
 // when compiling Box3D into another shared library.
-// clang-format off
 /// A null id. Works for any id type.
 /// This macro bridges C and C++ inline functions. C++ has the one definition rule that C lacks.
-// clang-format on
 /// Use these to make your identifiers null.
 /// You may also use zero initialization to get null.
 private {
@@ -5580,13 +5615,15 @@ b3Vec3 b3Normalize(b3Vec3 a) {
 /// Normalize a vector and return the length. Returns a zero vector
 /// if the input is very small.
 b3Vec3 b3GetLengthAndNormalize(f32* length, b3Vec3 a) {
-    *length = b3Length(a);
-    if *length < FLT_EPSILON {
-        return b3Vec3_zero;
+    f32 lengthSquared = a.x * a.x + a.y * a.y + a.z * a.z;
+    if lengthSquared > 1000.0f * FLT_MIN {
+        *length = sqrt(lengthSquared);
+        f32 s = 1.0f / *length;
+        var u = b3Vec3{s * a.x, s * a.y, s * a.z};
+        return u;
     }
-    f32 invLength = 1.0f / *length;
-    var n = b3Vec3{invLength * a.x, invLength * a.y, invLength * a.z};
-    return n;
+    *length = 0.0f;
+    return b3Vec3{0.0f, 0.0f, 0.0f};
 }
 
 /// Get a unit vector that is perpendicular to the supplied vector.
@@ -5813,13 +5850,14 @@ b3Transform b3MulTransforms(b3Transform a, b3Transform b) {
     return out;
 }
 
-private {
+/// Creates a transform that converts a local point in frame B to a local point in frame A.
+/// This is useful for transforming points between the local spaces of two frames that are
+/// in world space.
 b3Transform b3InvMulTransforms(b3Transform a, b3Transform b) {
     noinit b3Transform out;
     out.p = b3InvRotateVector(a.q, b3Sub(b.p, a.p));
     out.q = b3InvMulQuat(a.q, b.q);
     return out;
-}
 }
 
 /// Get the inverse of a transform.
@@ -5894,21 +5932,21 @@ b3Vec3 b3InvTransformWorldPoint(b3WorldTransform t, b3Pos p) {
     return b3InvRotateVector(t.q, d);
 }
 
-/// Relative transform of frame B in frame A. The narrow phase boundary.
-b3Transform b3InvMulWorldTransforms(b3WorldTransform A, b3WorldTransform B) {
-    noinit b3Transform C;
-    C.q = b3InvMulQuat(A.q, B.q);
-    var d = b3Vec3{B.p.x - A.p.x, B.p.y - A.p.y, B.p.z - A.p.z};
-    C.p = b3InvRotateVector(A.q, d);
-    return C;
-}
-
 /// Compose a world transform with a local transform.
 b3WorldTransform b3MulWorldTransforms(b3WorldTransform A, b3Transform B) {
     noinit b3WorldTransform C;
     C.q = b3MulQuat(A.q, B.q);
     b3Vec3 r = b3RotateVector(A.q, B.p);
     C.p = b3Pos{A.p.x + r.x, A.p.y + r.y, A.p.z + r.z};
+    return C;
+}
+
+/// Relative transform of frame B in frame A. The narrow phase boundary.
+b3Transform b3InvMulWorldTransforms(b3WorldTransform A, b3WorldTransform B) {
+    noinit b3Transform C;
+    C.q = b3InvMulQuat(A.q, B.q);
+    var d = b3Vec3{B.p.x - A.p.x, B.p.y - A.p.y, B.p.z - A.p.z};
+    C.p = b3InvRotateVector(A.q, d);
     return C;
 }
 
@@ -5928,9 +5966,10 @@ b3WorldTransform b3MakeWorldTransform(b3Transform t) {
     return w;
 }
 
-/// Translate a local AABB by a world origin, rounding outward so the float box always contains
-/// the double box. Far from the origin a plain conversion could clip a shape out of its own box.
-/// In float mode the origin is float and the rounding is a no-op.
+/// Translate a local AABB by a world position, rounding outward so the single precision box 
+/// encloses the double precision box. Far from the origin a plain conversion could clip a
+/// shape out of its own box.
+/// In single precision mode the the rounding is a no-op.
 b3AABB b3OffsetAABB(b3AABB localBox, b3Pos origin) {
     noinit b3AABB out;
     out.lowerBound.x = b3RoundDownFloat(origin.x + localBox.lowerBound.x);
@@ -6066,7 +6105,9 @@ b3Matrix3 b3AbsMatrix3(b3Matrix3 m) {
     return out;
 }
 
-private {
+/// Make a matrix from a quaternion. This is useful if you need to
+/// rotate many vectors.
+/// The force inline improves the performance of b3ShapeDistance.
 b3Matrix3 b3MakeMatrixFromQuat(b3Quat q) {
     f32 xx = q.v.x * q.v.x;
     f32 yy = q.v.y * q.v.y;
@@ -6082,7 +6123,6 @@ b3Matrix3 b3MakeMatrixFromQuat(b3Quat q) {
         b3Vec3{2.0f * (xy - zw), 1.0f - 2.0f * (xx + zz), 2.0f * (yz + xw)},
         b3Vec3{2.0f * (xz + yw), 2.0f * (yz - xw), 1.0f - 2.0f * (xx + yy)},
     };
-}
 }
 
 /// Rotate a local inverse inertia tensor into world space: R * I * R^T,
@@ -6247,17 +6287,9 @@ b3Vec3 b3FarthestPointOnAABB(b3AABB b, b3Vec3 p) {
 }
 // SPDX-FileCopyrightText: 2025 Erin Catto
 // SPDX-License-Identifier: MIT
-// clang-format off
 // Define platform
 // Define CPU
 // Define SIMD
-
-// Geometry content hashes reserve zero to mean unhashed
-private {
-u32 b3NonZeroHash(u32 hash) {
-    return hash != 0 ? hash : 1;
-}
-}
 
 /// Get proxy user data
 u64 b3DynamicTree_GetUserData(b3DynamicTree* tree, i32 proxyId) {
@@ -7376,6 +7408,10 @@ bool b3ShouldShapesCollide(b3Filter filterA, b3Filter filterB) {
 bool b3ShouldQueryCollide(b3Filter* shapeFilter, b3QueryFilter* queryFilter) {
     return (shapeFilter.categoryBits & queryFilter.maskBits) != 0 && (shapeFilter.maskBits & queryFilter.categoryBits) != 0;
 }
+
+bool b3IsConvex(b3ShapeType type) {
+    return type == b3_sphereShape || type == b3_capsuleShape || type == b3_hullShape;
+}
 }
 
 // Get a validated body from a world using an id.
@@ -7923,6 +7959,60 @@ i32 b3Body_CollideMover(b3BodyId bodyId, b3BodyPlaneResult* bodyPlanes, i32 plan
         }
     }
     return resultCount;
+}
+
+b3BodyTOIResult b3Body_TimeOfImpactMover(b3BodyId bodyId, b3Pos origin, b3Capsule* mover, b3Vec3 moverTranslation, b3QueryFilter filter, b3WorldTransform bodyTransform1, b3WorldTransform bodyTransform2) {
+    b3BodyTOIResult result;
+    result.fraction = 1.0f;
+    b3World* world = b3GetUnlockedWorld(cast(i32, bodyId.world0));
+    if world == null {
+        return result;
+    }
+    b3Transform xf1 = b3ToRelativeTransform(bodyTransform1, origin);
+    b3Transform xf2 = b3ToRelativeTransform(bodyTransform2, origin);
+    b3Body* body = b3GetBodyFullId(world, bodyId);
+    b3BodySim* bodySim = b3GetBodySim(world, body);
+    b3Vec3 localCenter = bodySim.localCenter;
+    b3Vec3[2] capsulePoints = {mover.center1, mover.center2};
+    b3TOIInput input;
+    input.proxyB = b3ShapeProxy{.points = capsulePoints, .count = 2, .radius = mover.radius};
+    input.sweepA.c1 = b3TransformPoint(xf1, localCenter);
+    input.sweepA.c2 = b3TransformPoint(xf2, localCenter);
+    input.sweepA.q1 = bodyTransform1.q;
+    input.sweepA.q2 = bodyTransform2.q;
+    input.sweepA.localCenter = localCenter;
+    input.sweepB.c1 = b3Vec3_zero;
+    input.sweepB.c2 = moverTranslation;
+    input.sweepB.q1 = b3Quat_identity;
+    input.sweepB.q2 = b3Quat_identity;
+    input.sweepB.localCenter = b3Vec3_zero;
+    input.maxFraction = 1.0f;
+    i32 shapeId = body.headShapeId;
+    while shapeId != -1 {
+        b3Shape* shape = world.shapes.data + shapeId;
+        shapeId = shape.nextShapeId;
+        if b3ShouldQueryCollide(&shape.filter, &filter) == false {
+            continue;
+        }
+        b3ShapeType type = shape.type;
+        if type != b3_sphereShape && type != b3_capsuleShape && type != b3_hullShape {
+            continue;
+        }
+        input.proxyA = b3MakeShapeProxy(shape);
+        b3TOIOutput output = b3TimeOfImpact(&input);
+        if 0.0f < output.fraction && output.fraction < result.fraction {
+            input.maxFraction = output.fraction;
+            result.point = b3OffsetPos(origin, output.point);
+            result.normal = output.normal;
+            result.fraction = output.fraction;
+            result.shapeId = b3ShapeId{
+                .index1 = shape.id + 1,
+                .world0 = world.worldId,
+                .generation = shape.generation,
+            };
+        }
+    }
+    return result;
 }
 
 void b3UpdateBodyMassData(b3World* world, b3Body* body) {
@@ -9210,11 +9300,29 @@ bool b3ShouldBodiesCollide(b3World* world, b3Body* bodyA, b3Body* bodyB) {
     return true;
 }
 
+f32 b3Body_GetMinExtent(b3BodyId bodyId) {
+    b3World* world = b3GetWorld(cast(i32, bodyId.world0));
+    b3Body* body = b3GetBodyFullId(world, bodyId);
+    b3BodySim* bodySim = b3GetBodySim(world, body);
+    return bodySim.minExtent;
+}
+
+b3Vec3 b3Body_GetMaxExtent(b3BodyId bodyId) {
+    b3World* world = b3GetWorld(cast(i32, bodyId.world0));
+    b3Body* body = b3GetBodyFullId(world, bodyId);
+    b3BodySim* bodySim = b3GetBodySim(world, body);
+    return bodySim.maxExtent;
+}
+
+b3Vec3 b3Body_GetMaxExtentOrigin(b3BodyId bodyId) {
+    b3World* world = b3GetWorld(cast(i32, bodyId.world0));
+    b3Body* body = b3GetBodyFullId(world, bodyId);
+    b3BodySim* bodySim = b3GetBodySim(world, body);
+    return b3Add(bodySim.maxExtent, b3Abs(bodySim.localCenter));
+}
+
 // SPDX-FileCopyrightText: 2025 Erin Catto
 // SPDX-License-Identifier: MIT
-// Software prefetch hint. T0 brings the line into all cache levels.
-// On x86 MSVC exposes _mm_prefetch, ARM MSVC uses __prefetch instead.
-// clang/gcc provide __builtin_prefetch on every target.
 private {
 void b3AtomicStoreInt(b3AtomicInt* a, i32 value) {
     ignore _InterlockedExchange(&a.value, value);
@@ -9743,7 +9851,7 @@ i32 b3CollideMoverAndCapsule(b3PlaneResult* result, b3Capsule* shape, b3Capsule*
         distance = 0.0f;
     }
     var plane = b3Plane{normal, totalRadius - distance};
-    *result = b3PlaneResult{plane, approach.point1};
+    *result = b3PlaneResult{plane, approach.point1, 0, 0, 0};
     return 1;
 }
 
@@ -10198,9 +10306,6 @@ u64 vt_quadratic(u16 displacement) {
     return (cast(u64, displacement) * displacement + displacement) / 2;
 }
 
-// Function to find the left-most non-zero uint16_t in a uint64_t.
-// This function is used when we scan four buckets at a time while iterating and relies on compiler intrinsics wherever
-// possible.
 i32 vt_first_nonzero_uint16(u64 val) {
     u32 result;
     u16 endian_checker = 0x0001;
@@ -12367,7 +12472,7 @@ b3CompoundData* b3CreateCompound(b3CompoundDef* def) {
             materialCount += 1;
         }
         b3AABB aabb = b3ComputeCapsuleAABB(&capsuleDef.capsule, b3Transform_identity);
-        b3DynamicTree_CreateProxy(&tree, aabb, cast(u64, ~0), cast(u64, childIndex));
+        b3DynamicTree_CreateProxy(&tree, aabb, ~0, cast(u64, childIndex));
         childIndex += 1;
     }
     b3SharedHull* sharedHulls = b3AllocZeroed(cast(u64, hullCount * sizeof(b3SharedHull)));
@@ -12380,7 +12485,7 @@ b3CompoundData* b3CreateCompound(b3CompoundDef* def) {
             b3CompoundHullDef* hullDef = def.hulls + i;
             b3HullData* hull = hullDef.hull;
             b3AABB aabb = b3ComputeHullAABB(hull, hullDef.transform);
-            b3DynamicTree_CreateProxy(&tree, aabb, cast(u64, ~0), cast(u64, childIndex));
+            b3DynamicTree_CreateProxy(&tree, aabb, ~0, cast(u64, childIndex));
             childIndex += 1;
             b3MaterialMap_itr materialItr = b3MaterialMap_get_or_insert(&materialMap, &hullDef.material, materialCount);
             i32 materialIndex = materialItr.data.val;
@@ -12411,9 +12516,10 @@ b3CompoundData* b3CreateCompound(b3CompoundDef* def) {
             b3CompoundMeshDef* meshDef = def.meshes + i;
             b3MeshData* meshData = meshDef.meshData;
             b3AABB aabb = b3ComputeMeshAABB(meshData, meshDef.transform, meshDef.scale);
-            b3DynamicTree_CreateProxy(&tree, aabb, cast(u64, ~0), cast(u64, childIndex));
+            b3DynamicTree_CreateProxy(&tree, aabb, ~0, cast(u64, childIndex));
             childIndex += 1;
-            for i32 j = 0; j < meshDef.materialCount; ++j {
+            i32 meshMaterialCount = b3MinInt(meshDef.materialCount, 4);
+            for i32 j = 0; j < meshMaterialCount; ++j {
                 b3MaterialMap_itr materialItr = b3MaterialMap_get_or_insert(&materialMap, &meshDef.materials[j], materialCount);
                 i32 materialIndex = materialItr.data.val;
                 meshInstances[i].materialIndices[j] = cast(u32, materialIndex);
@@ -12446,7 +12552,7 @@ b3CompoundData* b3CreateCompound(b3CompoundDef* def) {
             materialCount += 1;
         }
         b3AABB aabb = b3ComputeSphereAABB(&sphereDef.sphere, b3Transform_identity);
-        b3DynamicTree_CreateProxy(&tree, aabb, cast(u64, ~0), cast(u64, childIndex));
+        b3DynamicTree_CreateProxy(&tree, aabb, ~0, cast(u64, childIndex));
         childIndex += 1;
     }
     b3DynamicTree_Rebuild(&tree, true);
@@ -12473,7 +12579,7 @@ b3CompoundData* b3CreateCompound(b3CompoundDef* def) {
     byteCount += b3AlignUp8(cast(u64, def.sphereCount * sizeof(b3CompoundSphere)));
     b3CompoundData* compound = b3Alloc(byteCount);
     memset(compound, 0, byteCount);
-    compound.version = cast(u64, 0xB11DCE70FAD5622B ^ 0x93EDAF889FD30B4A ^ 0xABD11AB62A6E886D ^ 0xDA5150191B994C01);
+    compound.version = 0xB11DCE70FAD5622B ^ 0x93EDAF889FD30B4A ^ 0xAAAB9A00F1A8AAF7 ^ 0x4A4C9587DE57485C;
     compound.byteCount = cast(i32, byteCount);
     compound.nodeOffset = nodeOffset;
     memcpy(&compound.tree, &tree, cast(u64, sizeof(b3DynamicTree)));
@@ -12556,7 +12662,7 @@ u8* b3ConvertCompoundToBytes(b3CompoundData* compound) {
 
 b3CompoundData* b3ConvertBytesToCompound(u8* bytes, i32 byteCount) {
     var compound = cast(b3CompoundData*, bytes);
-    if compound.version != cast(u64, 0xB11DCE70FAD5622B ^ 0x93EDAF889FD30B4A ^ 0xABD11AB62A6E886D ^ 0xDA5150191B994C01) {
+    if compound.version != (0xB11DCE70FAD5622B ^ 0x93EDAF889FD30B4A ^ 0xAAAB9A00F1A8AAF7 ^ 0x4A4C9587DE57485C) {
         return null;
     }
     if compound.byteCount < cast(i32, sizeof(b3CompoundData)) {
@@ -12626,7 +12732,7 @@ bool b3OverlapCompound(b3CompoundData* shape, b3Transform shapeTransform, b3Shap
     var r = b3Vec3{proxy.radius, proxy.radius, proxy.radius};
     aabb.lowerBound = b3Sub(aabb.lowerBound, r);
     aabb.upperBound = b3Add(aabb.upperBound, r);
-    ignore b3DynamicTree_Query(&shape.tree, aabb, cast(u64, ~0), false, cast(b3TreeQueryCallbackFcn, b3CompoundOverlapCallback), &context);
+    ignore b3DynamicTree_Query(&shape.tree, aabb, ~0, false, cast(b3TreeQueryCallbackFcn, b3CompoundOverlapCallback), &context);
     return context.overlap;
 }
 
@@ -12678,7 +12784,7 @@ f32 b3CompoundRayCastCallback(b3RayCastInput* input, i32 proxyId, u64 userData, 
 b3CastOutput b3RayCastCompound(b3CompoundData* shape, b3RayCastInput* input) {
     b3CastOutput result;
     var context = b3CompoundCastContext{.compound = shape, .output = &result};
-    ignore b3DynamicTree_RayCast(&shape.tree, input, cast(u64, ~0), false, cast(b3TreeRayCastCallbackFcn, b3CompoundRayCastCallback), &context);
+    ignore b3DynamicTree_RayCast(&shape.tree, input, ~0, false, cast(b3TreeRayCastCallbackFcn, b3CompoundRayCastCallback), &context);
     return result;
 }
 
@@ -12692,8 +12798,8 @@ f32 b3CompoundShapeCastCallback(b3BoxCastInput* input, i32 proxyId, u64 userData
     b3ChildShape child = b3GetCompoundChild(compound, childIndex);
     b3ShapeCastInput localInput = *shapeInput;
     localInput.maxFraction = input.maxFraction;
-    noinit b3Vec3[64] localPoints;
-    localInput.proxy.count = b3MinInt(shapeInput.proxy.count, 64);
+    noinit b3Vec3[128] localPoints;
+    localInput.proxy.count = b3MinInt(shapeInput.proxy.count, 128);
     b3Transform invTransform = b3InvertTransform(child.transform);
     b3Matrix3 R = b3MakeMatrixFromQuat(invTransform.q);
     for i32 i = 0; i < localInput.proxy.count; ++i {
@@ -12744,7 +12850,7 @@ b3CastOutput b3ShapeCastCompound(b3CompoundData* shape, b3ShapeCastInput* input)
     var context = b3CompoundCastContext{.compound = shape, .output = &result, .shapeInput = input};
     b3AABB box = b3MakeAABB(input.proxy.points, input.proxy.count, input.proxy.radius);
     var treeInput = b3BoxCastInput{box, input.translation, input.maxFraction};
-    ignore b3DynamicTree_BoxCast(&shape.tree, &treeInput, cast(u64, ~0), false, cast(b3TreeBoxCastCallbackFcn, b3CompoundShapeCastCallback), &context);
+    ignore b3DynamicTree_BoxCast(&shape.tree, &treeInput, ~0, false, cast(b3TreeBoxCastCallbackFcn, b3CompoundShapeCastCallback), &context);
     return result;
 }
 
@@ -12799,6 +12905,9 @@ bool b3CompoundMoverCallback(i32 proxyId, u64 userData, void* context) {
     for i32 i = 0; i < planeCount; ++i {
         planes[i].plane.normal = b3RotateVector(child.transform.q, planes[i].plane.normal);
         planes[i].point = b3TransformPoint(child.transform, planes[i].point);
+        planes[i].childIndex = childIndex;
+        i32 childMaterialIndex = b3MinInt(planes[i].materialIndex, 4 - 1);
+        planes[i].materialIndex = child.materialIndices[childMaterialIndex];
     }
     moverContext.planeCount += planeCount;
     return moverContext.planeCount < moverContext.planeCapacity;
@@ -12819,7 +12928,7 @@ i32 b3CollideMoverAndCompound(b3PlaneResult* planes, i32 capacity, b3CompoundDat
     var r = b3Vec3{mover.radius, mover.radius, mover.radius};
     aabb.lowerBound = b3Sub(aabb.lowerBound, r);
     aabb.upperBound = b3Add(aabb.upperBound, r);
-    ignore b3DynamicTree_Query(&shape.tree, aabb, cast(u64, ~0), false, cast(b3TreeQueryCallbackFcn, b3CompoundMoverCallback), &context);
+    ignore b3DynamicTree_Query(&shape.tree, aabb, ~0, false, cast(b3TreeQueryCallbackFcn, b3CompoundMoverCallback), &context);
     return context.planeCount;
 }
 // SPDX-FileCopyrightText: 2025 Erin Catto
@@ -15924,13 +16033,11 @@ void b3ReduceManifoldPoints(b3LocalManifold* manifold, i32 capacity, b3LocalMani
     b3Vec3 a = manifold.points[0].point;
     bestScore = 0.0f;
     bestIndex = -1;
-    f32 maxDistanceSquared = 0.0f;
     for i32 index = 0; index < count; ++index {
         b3Vec3 p = points[index].point;
         b3Vec3 d = b3Sub(p, a);
         b3Vec3 v = b3MulSub(d, b3Dot(d, normal), normal);
         f32 distanceSquared = b3LengthSquared(v);
-        maxDistanceSquared = b3MaxFloat(maxDistanceSquared, distanceSquared);
         f32 separation = b3MaxFloat(0.0f, -points[index].separation);
         f32 score = distanceSquared + 4.0f * separation * separation;
         if bias * score > bestScore {
@@ -16230,15 +16337,6 @@ bool b3BuildHullFaceAndCapsuleContact(b3LocalManifold* manifold, b3HullData* hul
     return false;
 }
 
-f32 b3DeepestPointSeparation(b3LocalManifold* manifold) {
-    f32 minSeparation = FLT_MAX;
-    i32 pointCount = manifold.pointCount;
-    for i32 i = 0; i < pointCount; ++i {
-        minSeparation = b3MinFloat(minSeparation, manifold.points[i].separation);
-    }
-    return minSeparation;
-}
-
 bool b3BuildHullAndCapsuleEdgeContact(b3LocalManifold* manifold, i32 capacity, b3HullData* hullA, b3Capsule* capsuleB, b3Transform transformBtoA, b3SeparatingAxis query) {
     if capacity < 1 {
         return false;
@@ -16341,16 +16439,15 @@ void b3CollideHullAndCapsule(b3LocalManifold* manifold, i32 capacity, b3HullData
     }
     f32 faceSeparation = faceQuery.separation - capsuleB.radius;
     b3BuildHullFaceAndCapsuleContact(manifold, hullA, capsuleB, transformBtoA, faceQuery);
-    if manifold.pointCount > 1 {
-        faceSeparation = b3DeepestPointSeparation(manifold);
+    if manifold.pointCount == 2 {
+        faceSeparation = b3MinFloat(manifold.points[0].separation, manifold.points[1].separation);
     }
     if edgeQuery.indexA == -1 {
         return;
     }
-    f32 kRelEdgeTolerance = 0.9f;
-    f32 kAbsTolerance = 0.5f * (0.005f * b3GetLengthUnitsPerMeter());
+    f32 linearSlop = 0.005f * b3GetLengthUnitsPerMeter();
     f32 edgeSeparation = edgeQuery.separation - capsuleB.radius;
-    if manifold.pointCount == 0 || edgeSeparation > kRelEdgeTolerance * faceSeparation + kAbsTolerance {
+    if manifold.pointCount == 0 || edgeSeparation > faceSeparation + linearSlop {
         b3BuildHullAndCapsuleEdgeContact(manifold, capacity, hullA, capsuleB, transformBtoA, edgeQuery);
     }
 }
@@ -17110,11 +17207,457 @@ void b3CollideHulls(b3LocalManifold* manifold, i32 capacity, b3HullData* hullA, 
         }
     }
 }
-// SPDX-FileCopyrightText: 2025 Erin Catto
-// SPDX-License-Identifier: MIT
-// CRTDBG requires these to be included first
+/*
+ * rapidhash V3 - Very fast, high quality, platform-independent hashing algorithm.
+ *
+ * Based on 'wyhash', by Wang Yi <godspeed_china@yeah.net>
+ * 
+ * Copyright (C) 2025 Nicolas De Carli
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * You can contact the author at:
+ *   - rapidhash source repository: https://github.com/Nicoshev/rapidhash
+ */
+/*
+  *  C/C++ macros.
+  */
+/*
+  *  Unrolled macro.
+  *  Improves large input speed, but increases code size and worsens small input speed.
+  *
+  *  RAPIDHASH_COMPACT: Normal behavior.
+  *  RAPIDHASH_UNROLLED: 
+  *
+  */
+/*
+  *  Protection macro, alters behaviour of rapid_mum multiplication function.
+  *
+  *  RAPIDHASH_FAST: Normal behavior, max speed.
+  *  RAPIDHASH_PROTECTED: Extra protection against entropy loss.
+  */
+/*
+  *  Likely and unlikely macros.
+  */
+/*
+  *  Endianness macros.
+  */
+/*
+  *  Default secret parameters.
+  */
+private {
+u64[8] rapid_secret = {
+    0x2d358dccaa6c78a5, 0x8bb84b93962eacc9, 0x4b33a62ed433d4a3, 0x4d5a2da51de1aa47,
+    0xa0761d6478bd642f, 0xe7037ed1a0b428db, 0x90ed1765281c388c, 0xaaaaaaaaaaaaaaaa,
+};
+
+/*
+  *  64*64 -> 128bit multiply function.
+  *
+  *  @param A  Address of 64-bit number.
+  *  @param B  Address of 64-bit number.
+  *
+  *  Calculates 128-bit C = *A * *B.
+  *
+  *  When RAPIDHASH_FAST is defined:
+  *  Overwrites A contents with C's low 64 bits.
+  *  Overwrites B contents with C's high 64 bits.
+  *
+  *  When RAPIDHASH_PROTECTED is defined:
+  *  Xors and overwrites A contents with C's low 64 bits.
+  *  Xors and overwrites B contents with C's high 64 bits.
+  */
+void rapid_mum(u64* A, u64* B) {
+    *A = _umul128(*A, *B, B);
+}
+
+/*
+  *  Multiply and xor mix function.
+  *
+  *  @param A  64-bit number.
+  *  @param B  64-bit number.
+  *
+  *  Calculates 128-bit C = A * B.
+  *  Returns 64-bit xor between high and low 64 bits of C.
+  */
+u64 rapid_mix(u64 A, u64 B) {
+    rapid_mum(&A, &B);
+    return A ^ B;
+}
+
+u64 rapid_read64(u8* p) {
+    u64 v;
+    memcpy(&v, p, sizeof(u64));
+    return v;
+}
+
+u64 rapid_read32(u8* p) {
+    u32 v;
+    memcpy(&v, p, cast(u64, sizeof(u32)));
+    return v;
+}
+
+/*
+  *  rapidhash main function.
+  *
+  *  @param key     Buffer to be hashed.
+  *  @param len     @key length, in bytes.
+  *  @param seed    64-bit seed used to alter the hash result predictably.
+  *  @param secret  Triplet of 64-bit secrets used to alter hash result predictably.
+  *
+  *  Returns a 64-bit hash.
+  */
+u64 rapidhash_internal(void* key, u64 len, u64 seed, u64* secret) {
+    var p = cast(u8*, key);
+    seed ^= rapid_mix(seed ^ secret[2], secret[1]);
+    u64 a = 0;
+    u64 b = 0;
+    u64 i = len;
+    if len <= 16 {
+        if len >= 4 {
+            seed ^= len;
+            if len >= 8 {
+                u8* plast = p + len - 8;
+                a = rapid_read64(p);
+                b = rapid_read64(plast);
+            } else {
+                u8* plast = p + len - 4;
+                a = rapid_read32(p);
+                b = rapid_read32(plast);
+            }
+        } else if len > 0 {
+            a = cast(u64, p[0]) << 45 | p[len - 1];
+            b = p[len >> 1];
+        } else {
+            b = 0;
+            a = b;
+        }
+    } else {
+        if len > 112 {
+            u64 see1 = seed;
+            u64 see2 = seed;
+            u64 see3 = seed;
+            u64 see4 = seed;
+            u64 see5 = seed;
+            u64 see6 = seed;
+            while i > 224 {
+                seed = rapid_mix(rapid_read64(p) ^ secret[0], rapid_read64(p + 8) ^ seed);
+                see1 = rapid_mix(rapid_read64(p + 16) ^ secret[1], rapid_read64(p + 24) ^ see1);
+                see2 = rapid_mix(rapid_read64(p + 32) ^ secret[2], rapid_read64(p + 40) ^ see2);
+                see3 = rapid_mix(rapid_read64(p + 48) ^ secret[3], rapid_read64(p + 56) ^ see3);
+                see4 = rapid_mix(rapid_read64(p + 64) ^ secret[4], rapid_read64(p + 72) ^ see4);
+                see5 = rapid_mix(rapid_read64(p + 80) ^ secret[5], rapid_read64(p + 88) ^ see5);
+                see6 = rapid_mix(rapid_read64(p + 96) ^ secret[6], rapid_read64(p + 104) ^ see6);
+                seed = rapid_mix(rapid_read64(p + 112) ^ secret[0], rapid_read64(p + 120) ^ seed);
+                see1 = rapid_mix(rapid_read64(p + 128) ^ secret[1], rapid_read64(p + 136) ^ see1);
+                see2 = rapid_mix(rapid_read64(p + 144) ^ secret[2], rapid_read64(p + 152) ^ see2);
+                see3 = rapid_mix(rapid_read64(p + 160) ^ secret[3], rapid_read64(p + 168) ^ see3);
+                see4 = rapid_mix(rapid_read64(p + 176) ^ secret[4], rapid_read64(p + 184) ^ see4);
+                see5 = rapid_mix(rapid_read64(p + 192) ^ secret[5], rapid_read64(p + 200) ^ see5);
+                see6 = rapid_mix(rapid_read64(p + 208) ^ secret[6], rapid_read64(p + 216) ^ see6);
+                p += 224;
+                i -= 224;
+            }
+            if i > 112 {
+                seed = rapid_mix(rapid_read64(p) ^ secret[0], rapid_read64(p + 8) ^ seed);
+                see1 = rapid_mix(rapid_read64(p + 16) ^ secret[1], rapid_read64(p + 24) ^ see1);
+                see2 = rapid_mix(rapid_read64(p + 32) ^ secret[2], rapid_read64(p + 40) ^ see2);
+                see3 = rapid_mix(rapid_read64(p + 48) ^ secret[3], rapid_read64(p + 56) ^ see3);
+                see4 = rapid_mix(rapid_read64(p + 64) ^ secret[4], rapid_read64(p + 72) ^ see4);
+                see5 = rapid_mix(rapid_read64(p + 80) ^ secret[5], rapid_read64(p + 88) ^ see5);
+                see6 = rapid_mix(rapid_read64(p + 96) ^ secret[6], rapid_read64(p + 104) ^ see6);
+                p += 112;
+                i -= 112;
+            }
+            seed ^= see1;
+            see2 ^= see3;
+            see4 ^= see5;
+            seed ^= see6;
+            see2 ^= see4;
+            seed ^= see2;
+        }
+        if i > 16 {
+            seed = rapid_mix(rapid_read64(p) ^ secret[2], rapid_read64(p + 8) ^ seed);
+            if i > 32 {
+                seed = rapid_mix(rapid_read64(p + 16) ^ secret[2], rapid_read64(p + 24) ^ seed);
+                if i > 48 {
+                    seed = rapid_mix(rapid_read64(p + 32) ^ secret[1], rapid_read64(p + 40) ^ seed);
+                    if i > 64 {
+                        seed = rapid_mix(rapid_read64(p + 48) ^ secret[1], rapid_read64(p + 56) ^ seed);
+                        if i > 80 {
+                            seed = rapid_mix(rapid_read64(p + 64) ^ secret[2], rapid_read64(p + 72) ^ seed);
+                            if i > 96 {
+                                seed = rapid_mix(rapid_read64(p + 80) ^ secret[1], rapid_read64(p + 88) ^ seed);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        a = rapid_read64(p + i - 16) ^ i;
+        b = rapid_read64(p + i - 8);
+    }
+    a ^= secret[1];
+    b ^= seed;
+    rapid_mum(&a, &b);
+    return rapid_mix(a ^ secret[7], b ^ secret[1] ^ i);
+}
+
+/*
+  *  rapidhashMicro main function.
+  *
+  *  @param key     Buffer to be hashed.
+  *  @param len     @key length, in bytes.
+  *  @param seed    64-bit seed used to alter the hash result predictably.
+  *  @param secret  Triplet of 64-bit secrets used to alter hash result predictably.
+  *
+  *  Returns a 64-bit hash.
+  */
+u64 rapidhashMicro_internal(void* key, u64 len, u64 seed, u64* secret) {
+    var p = cast(u8*, key);
+    seed ^= rapid_mix(seed ^ secret[2], secret[1]);
+    u64 a = 0;
+    u64 b = 0;
+    u64 i = len;
+    if len <= 16 {
+        if len >= 4 {
+            seed ^= len;
+            if len >= 8 {
+                u8* plast = p + len - 8;
+                a = rapid_read64(p);
+                b = rapid_read64(plast);
+            } else {
+                u8* plast = p + len - 4;
+                a = rapid_read32(p);
+                b = rapid_read32(plast);
+            }
+        } else if len > 0 {
+            a = cast(u64, p[0]) << 45 | p[len - 1];
+            b = p[len >> 1];
+        } else {
+            b = 0;
+            a = b;
+        }
+    } else {
+        if i > 80 {
+            u64 see1 = seed;
+            u64 see2 = seed;
+            u64 see3 = seed;
+            u64 see4 = seed;
+            while true {
+                seed = rapid_mix(rapid_read64(p) ^ secret[0], rapid_read64(p + 8) ^ seed);
+                see1 = rapid_mix(rapid_read64(p + 16) ^ secret[1], rapid_read64(p + 24) ^ see1);
+                see2 = rapid_mix(rapid_read64(p + 32) ^ secret[2], rapid_read64(p + 40) ^ see2);
+                see3 = rapid_mix(rapid_read64(p + 48) ^ secret[3], rapid_read64(p + 56) ^ see3);
+                see4 = rapid_mix(rapid_read64(p + 64) ^ secret[4], rapid_read64(p + 72) ^ see4);
+                p += 80;
+                i -= 80;
+                if !(i > 80) { break; }
+            }
+            seed ^= see1;
+            see2 ^= see3;
+            seed ^= see4;
+            seed ^= see2;
+        }
+        if i > 16 {
+            seed = rapid_mix(rapid_read64(p) ^ secret[2], rapid_read64(p + 8) ^ seed);
+            if i > 32 {
+                seed = rapid_mix(rapid_read64(p + 16) ^ secret[2], rapid_read64(p + 24) ^ seed);
+                if i > 48 {
+                    seed = rapid_mix(rapid_read64(p + 32) ^ secret[1], rapid_read64(p + 40) ^ seed);
+                    if i > 64 {
+                        seed = rapid_mix(rapid_read64(p + 48) ^ secret[1], rapid_read64(p + 56) ^ seed);
+                    }
+                }
+            }
+        }
+        a = rapid_read64(p + i - 16) ^ i;
+        b = rapid_read64(p + i - 8);
+    }
+    a ^= secret[1];
+    b ^= seed;
+    rapid_mum(&a, &b);
+    return rapid_mix(a ^ secret[7], b ^ secret[1] ^ i);
+}
+
+/*
+  *  rapidhashNano main function.
+  *
+  *  @param key     Buffer to be hashed.
+  *  @param len     @key length, in bytes.
+  *  @param seed    64-bit seed used to alter the hash result predictably.
+  *  @param secret  Triplet of 64-bit secrets used to alter hash result predictably.
+  *
+  *  Returns a 64-bit hash.
+  */
+u64 rapidhashNano_internal(void* key, u64 len, u64 seed, u64* secret) {
+    var p = cast(u8*, key);
+    seed ^= rapid_mix(seed ^ secret[2], secret[1]);
+    u64 a = 0;
+    u64 b = 0;
+    u64 i = len;
+    if len <= 16 {
+        if len >= 4 {
+            seed ^= len;
+            if len >= 8 {
+                u8* plast = p + len - 8;
+                a = rapid_read64(p);
+                b = rapid_read64(plast);
+            } else {
+                u8* plast = p + len - 4;
+                a = rapid_read32(p);
+                b = rapid_read32(plast);
+            }
+        } else if len > 0 {
+            a = cast(u64, p[0]) << 45 | p[len - 1];
+            b = p[len >> 1];
+        } else {
+            b = 0;
+            a = b;
+        }
+    } else {
+        if i > 48 {
+            u64 see1 = seed;
+            u64 see2 = seed;
+            while true {
+                seed = rapid_mix(rapid_read64(p) ^ secret[0], rapid_read64(p + 8) ^ seed);
+                see1 = rapid_mix(rapid_read64(p + 16) ^ secret[1], rapid_read64(p + 24) ^ see1);
+                see2 = rapid_mix(rapid_read64(p + 32) ^ secret[2], rapid_read64(p + 40) ^ see2);
+                p += 48;
+                i -= 48;
+                if !(i > 48) { break; }
+            }
+            seed ^= see1;
+            seed ^= see2;
+        }
+        if i > 16 {
+            seed = rapid_mix(rapid_read64(p) ^ secret[2], rapid_read64(p + 8) ^ seed);
+            if i > 32 {
+                seed = rapid_mix(rapid_read64(p + 16) ^ secret[2], rapid_read64(p + 24) ^ seed);
+            }
+        }
+        a = rapid_read64(p + i - 16) ^ i;
+        b = rapid_read64(p + i - 8);
+    }
+    a ^= secret[1];
+    b ^= seed;
+    rapid_mum(&a, &b);
+    return rapid_mix(a ^ secret[7], b ^ secret[1] ^ i);
+}
+
+/*
+ *  rapidhash seeded hash function.
+ *
+ *  @param key     Buffer to be hashed.
+ *  @param len     @key length, in bytes.
+ *  @param seed    64-bit seed used to alter the hash result predictably.
+ *
+ *  Calls rapidhash_internal using provided parameters and default secrets.
+ *
+ *  Returns a 64-bit hash.
+ */
+u64 rapidhash_withSeed(void* key, u64 len, u64 seed) {
+    return rapidhash_internal(key, len, seed, rapid_secret);
+}
+
+/*
+ *  rapidhash general purpose hash function.
+ *
+ *  @param key     Buffer to be hashed.
+ *  @param len     @key length, in bytes.
+ *
+ *  Calls rapidhash_withSeed using provided parameters and the default seed.
+ *
+ *  Returns a 64-bit hash.
+ */
+u64 rapidhash(void* key, u64 len) {
+    return rapidhash_withSeed(key, len, 0);
+}
+
+/*
+ *  rapidhashMicro seeded hash function.
+ *
+ *  Designed for HPC and server applications, where cache misses make a noticeable performance detriment.
+ *  Clang-18+ compiles it to ~140 instructions without stack usage, both on x86-64 and aarch64.
+ *  Faster for sizes up to 512 bytes, just 15%-20% slower for inputs above 1kb.
+ *
+ *  @param key     Buffer to be hashed.
+ *  @param len     @key length, in bytes.
+ *  @param seed    64-bit seed used to alter the hash result predictably.
+ *
+ *  Calls rapidhash_internal using provided parameters and default secrets.
+ *
+ *  Returns a 64-bit hash.
+ */
+u64 rapidhashMicro_withSeed(void* key, u64 len, u64 seed) {
+    return rapidhashMicro_internal(key, len, seed, rapid_secret);
+}
+
+/*
+ *  rapidhashMicro hash function.
+ *
+ *  @param key     Buffer to be hashed.
+ *  @param len     @key length, in bytes.
+ *
+ *  Calls rapidhash_withSeed using provided parameters and the default seed.
+ *
+ *  Returns a 64-bit hash.
+ */
+u64 rapidhashMicro(void* key, u64 len) {
+    return rapidhashMicro_withSeed(key, len, 0);
+}
+
+/*
+ *  rapidhashNano seeded hash function.
+ *
+ *  @param key     Buffer to be hashed.
+ *  @param len     @key length, in bytes.
+ *  @param seed    64-bit seed used to alter the hash result predictably.
+ *
+ *  Calls rapidhash_internal using provided parameters and default secrets.
+ *
+ *  Returns a 64-bit hash.
+ */
+u64 rapidhashNano_withSeed(void* key, u64 len, u64 seed) {
+    return rapidhashNano_internal(key, len, seed, rapid_secret);
+}
+
+/*
+ *  rapidhashNano hash function.
+ *
+ *  Designed for Mobile and embedded applications, where keeping a small code size is a top priority.
+ *  Clang-18+ compiles it to less than 100 instructions without stack usage, both on x86-64 and aarch64.
+ *  The fastest for sizes up to 48 bytes, but may be considerably slower for larger inputs.
+ *
+ *  @param key     Buffer to be hashed.
+ *  @param len     @key length, in bytes.
+ *
+ *  Calls rapidhash_withSeed using provided parameters and the default seed.
+ *
+ *  Returns a 64-bit hash.
+ */
+u64 rapidhashNano(void* key, u64 len) {
+    return rapidhashNano_withSeed(key, len, 0);
+}
 // This allows the user to change the length units at runtime
-private { f32 b3_lengthUnitsPerMeter = 1.0f; }
+f32 b3_lengthUnitsPerMeter = 1.0f;
+}
 
 void b3SetLengthUnitsPerMeter(f32 lengthUnits) {
     b3_lengthUnitsPerMeter = lengthUnits;
@@ -17163,7 +17706,7 @@ void b3Log(u8* format_var, ...) {
 }
 
 b3Version b3GetVersion() {
-    return b3Version{0, 1, 0};
+    return b3Version{0, 2, 0};
 }
 
 bool b3IsDoublePrecision() {
@@ -17232,6 +17775,14 @@ void b3StrCpy(u8* dst, i32 size, u8* src) {
     } else {
         memset(dst, 0, cast(u64, size));
     }
+}
+
+u64 b3Hash64NonZero(u8* bytes, i32 n) {
+    if n <= 0 {
+        return 1;
+    }
+    u64 h = rapidhash(bytes, cast(u64, n));
+    return cast(u64, h == 0 ? 1 : h);
 }
 
 // SPDX-FileCopyrightText: 2026 Erin Catto
@@ -17761,6 +18312,10 @@ b3DistanceOutput b3ShapeDistance(b3DistanceInput* input, b3SimplexCache* cache, 
             b3ComputeWitnessPoints(&simplex, &localPointA, &localPointB);
             distanceOutput.pointA = localPointA;
             distanceOutput.pointB = localPointB;
+            distanceOutput.normal = b3Vec3_zero;
+            distanceOutput.distance = 0.0f;
+            distanceOutput.iterations = iteration;
+            distanceOutput.simplexCount = simplexIndex;
             return distanceOutput;
         }
         f32 oldDistanceSq = distanceSq;
@@ -17821,6 +18376,10 @@ b3DistanceOutput b3ShapeDistance(b3DistanceInput* input, b3SimplexCache* cache, 
             b3ComputeWitnessPoints(&simplex, &localPointA, &localPointB);
             distanceOutput.pointA = localPointA;
             distanceOutput.pointB = localPointB;
+            distanceOutput.normal = b3Vec3_zero;
+            distanceOutput.distance = 0.0f;
+            distanceOutput.iterations = iteration;
+            distanceOutput.simplexCount = simplexIndex;
             return distanceOutput;
         }
         normal = b3Neg(searchDirection);
@@ -17848,20 +18407,21 @@ b3DistanceOutput b3ShapeDistance(b3DistanceInput* input, b3SimplexCache* cache, 
         vs[simplex.count].w = b3Sub(supportB, supportA);
         simplex.count += 1;
     }
-    normal = b3Normalize(normal);
-    if b3IsNormalized(normal) == false {
-        return distanceOutput;
-    }
     noinit b3Vec3 localPointA;
     noinit b3Vec3 localPointB;
     b3ComputeWitnessPoints(&simplex, &localPointA, &localPointB);
-    b3WriteCache(cache, &simplex);
     distanceOutput.pointA = localPointA;
     distanceOutput.pointB = localPointB;
-    distanceOutput.distance = b3Distance(localPointA, localPointB);
-    distanceOutput.normal = normal;
     distanceOutput.iterations = iteration;
     distanceOutput.simplexCount = simplexIndex;
+    normal = b3Normalize(normal);
+    if b3IsNormalized(normal) == false {
+        distanceOutput.distance = 0.0f;
+        distanceOutput.normal = b3Vec3_zero;
+        return distanceOutput;
+    }
+    distanceOutput.distance = b3Distance(localPointA, localPointB);
+    distanceOutput.normal = normal;
     if input.useRadii != 0 {
         f32 rA = input.proxyA.radius;
         f32 rB = input.proxyB.radius;
@@ -17869,6 +18429,7 @@ b3DistanceOutput b3ShapeDistance(b3DistanceInput* input, b3SimplexCache* cache, 
         distanceOutput.pointA = b3Add(distanceOutput.pointA, b3MulSV(rA, normal));
         distanceOutput.pointB = b3Sub(distanceOutput.pointB, b3MulSV(rB, normal));
     }
+    b3WriteCache(cache, &simplex);
     return distanceOutput;
 }
 
@@ -18313,6 +18874,11 @@ b3TOIOutput b3TimeOfImpact(b3TOIInput* input) {
         if distanceOutput.distance <= 0.0f {
             output.state = b3_toiStateOverlapped;
             output.fraction = 0.0f;
+            b3Vec3 pA = b3MulAdd(worldPointA, proxyA.radius, worldNormal);
+            b3Vec3 pB = b3MulAdd(worldPointB, -proxyB.radius, worldNormal);
+            output.point = b3Lerp(pA, pB, 0.5f);
+            output.point = b3Add(output.point, origin);
+            output.normal = worldNormal;
             break;
         }
         if distanceOutput.distance <= target + tolerance {
@@ -18420,7 +18986,6 @@ b3TOIOutput b3TimeOfImpact(b3TOIInput* input) {
 
 // SPDX-FileCopyrightText: 2025 Erin Catto
 // SPDX-License-Identifier: MIT
-// needed for dll export
 void b3DistanceJoint_SetLength(b3JointId jointId, f32 length) {
     b3World* world = b3GetWorld(cast(i32, jointId.world0));
     while true {
@@ -19512,11 +20077,9 @@ b3TreeStats b3DynamicTree_Query(b3DynamicTree* tree, b3AABB aabb, u64 maskBits, 
     return result;
 }
 
-private {
 f32 b3DistanceToNodeSqr(b3Vec3 point, b3TreeNode* node) {
     b3Vec3 r = b3Sub(point, b3Clamp(point, node.aabb.lowerBound, node.aabb.upperBound));
     return b3Dot(r, r);
-}
 }
 
 b3TreeStats b3DynamicTree_QueryClosest(b3DynamicTree* tree, b3Vec3 point, u64 maskBits, bool requireAllBits, b3TreeQueryClosestCallbackFcn callback, void* context, f32* minDistanceSqr) {
@@ -20105,7 +20668,7 @@ b3HeightFieldData* b3CreateHeightField(b3HeightFieldDef* data) {
     byteCount += b3AlignUp8(cast(u64, triangleCount * sizeof(u8)));
     var hf = cast(b3HeightFieldData*, b3Alloc(byteCount));
     memset(hf, 0, byteCount);
-    hf.version = 0x8B18CBD138A6BC84;
+    hf.version = 0x8E41E5FB084848F8;
     hf.byteCount = cast(i32, byteCount);
     hf.scale = data.scale;
     hf.columnCount = columnCount;
@@ -20113,7 +20676,7 @@ b3HeightFieldData* b3CreateHeightField(b3HeightFieldDef* data) {
     hf.heightsOffset = heightsOffset;
     hf.materialOffset = materialOffset;
     hf.flagsOffset = flagsOffset;
-    hf.clockwise = data.clockwiseWinding;
+    hf.clockwise = cast(u8, data.clockwiseWinding);
     var compressedHeights = cast(u16*, cast(i64, hf) + heightsOffset);
     var materialIndices = cast(u8*, cast(i64, hf) + materialOffset);
     var flags = cast(u8*, cast(i64, hf) + flagsOffset);
@@ -20327,7 +20890,7 @@ b3HeightFieldData* b3CreateHeightField(b3HeightFieldDef* data) {
     }
     b3Free(decompressedHeights, cast(u64, heightCount * sizeof(f32)));
     hf.hash = 0;
-    hf.hash = b3NonZeroHash(b3Hash(5381, cast(u8*, hf), hf.byteCount));
+    hf.hash = b3Hash64NonZero(cast(u8*, hf), hf.byteCount);
     return hf;
 }
 
@@ -20539,6 +21102,7 @@ b3CastOutput b3ShapeCastHeightField(b3HeightFieldData* heightField, b3ShapeCastI
     castBounds.upperBound = b3Add(b3Max(centerStart, centerEnd), shapeExtents);
     b3V32 rayOrigin = b3LoadV(&shapeStart.x);
     b3V32 rayTranslation = b3LoadV(&shapeTranslation.x);
+    bool clockwise = heightField.clockwise != 0;
     while true {
         i32 column1;
         i32 column2;
@@ -20577,6 +21141,15 @@ b3CastOutput b3ShapeCastHeightField(b3HeightFieldData* heightField, b3ShapeCastI
                 b3Vec3 point12 = corners[1];
                 b3Vec3 point21 = corners[2];
                 b3Vec3 point22 = corners[3];
+                if clockwise != 0 {
+                    while true {
+                        noinit u8[sizeof(point12)] B3_SWAP_TEMP;
+                        memcpy(B3_SWAP_TEMP, &point12, cast(u64, sizeof(point12)));
+                        memcpy(&point12, &point21, cast(u64, sizeof(point12)));
+                        memcpy(&point21, B3_SWAP_TEMP, cast(u64, sizeof(point12)));
+                        if !(0 != 0) { break; }
+                    }
+                }
                 noinit b3AABB bounds;
                 bounds.lowerBound = b3Min(b3Min(point11, point12), b3Min(point21, point22));
                 bounds.upperBound = b3Max(b3Max(point11, point12), b3Max(point21, point22));
@@ -20589,20 +21162,13 @@ b3CastOutput b3ShapeCastHeightField(b3HeightFieldData* heightField, b3ShapeCastI
                 if input.proxy.count == 1 && input.proxy.radius == 0.0f {
                     {
                         b3V32 vertex1 = b3LoadV(&point11.x);
-                        b3V32 vertex2;
-                        b3V32 vertex3;
-                        if heightField.clockwise != 0 {
-                            vertex2 = b3LoadV(&point12.x);
-                            vertex3 = b3LoadV(&point21.x);
-                        } else {
-                            vertex2 = b3LoadV(&point21.x);
-                            vertex3 = b3LoadV(&point12.x);
-                        }
+                        b3V32 vertex2 = b3LoadV(&point21.x);
+                        b3V32 vertex3 = b3LoadV(&point12.x);
                         f32 alpha = b3IntersectRayTriangle(rayOrigin, rayTranslation, vertex1, vertex2, vertex3);
                         if alpha < bestFraction {
                             b3Vec3 edge1 = b3Sub(point21, point11);
                             b3Vec3 edge2 = b3Sub(point12, point11);
-                            b3Vec3 normal = heightField.clockwise != 0 ? b3Cross(edge2, edge1) : b3Cross(edge1, edge2);
+                            b3Vec3 normal = b3Cross(edge1, edge2);
                             result.point = b3MulAdd(shapeStart, alpha, shapeTranslation);
                             result.normal = b3Normalize(normal);
                             result.fraction = alpha;
@@ -20614,20 +21180,13 @@ b3CastOutput b3ShapeCastHeightField(b3HeightFieldData* heightField, b3ShapeCastI
                     }
                     {
                         b3V32 vertex1 = b3LoadV(&point22.x);
-                        b3V32 vertex2;
-                        b3V32 vertex3;
-                        if heightField.clockwise != 0 {
-                            vertex2 = b3LoadV(&point21.x);
-                            vertex3 = b3LoadV(&point12.x);
-                        } else {
-                            vertex2 = b3LoadV(&point12.x);
-                            vertex3 = b3LoadV(&point21.x);
-                        }
+                        b3V32 vertex2 = b3LoadV(&point12.x);
+                        b3V32 vertex3 = b3LoadV(&point21.x);
                         f32 alpha = b3IntersectRayTriangle(rayOrigin, rayTranslation, vertex1, vertex2, vertex3);
                         if alpha < bestFraction {
                             b3Vec3 edge1 = b3Sub(point22, point21);
                             b3Vec3 edge2 = b3Sub(point12, point21);
-                            b3Vec3 normal = heightField.clockwise != 0 ? b3Cross(edge2, edge1) : b3Cross(edge1, edge2);
+                            b3Vec3 normal = b3Cross(edge1, edge2);
                             result.point = b3MulAdd(shapeStart, alpha, shapeTranslation);
                             result.normal = b3Normalize(normal);
                             result.fraction = alpha;
@@ -20639,37 +21198,43 @@ b3CastOutput b3ShapeCastHeightField(b3HeightFieldData* heightField, b3ShapeCastI
                     }
                 } else {
                     {
-                        b3Vec3 origin = point11;
-                        b3Vec3[3] triangleVertices = {
-                            b3Vec3_zero, b3Sub(point21, origin), b3Sub(point12, origin),
-                        };
-                        pairInput.proxyA = b3ShapeProxy{triangleVertices, 3, 0.0f};
-                        pairInput.maxFraction = bestFraction;
-                        pairInput.transform.p = b3Neg(origin);
-                        b3CastOutput pairOutput = b3ShapeCast(&pairInput);
-                        if pairOutput.hit != 0 {
-                            bestFraction = pairOutput.fraction;
-                            result = pairOutput;
-                            result.point = b3Add(result.point, origin);
-                            result.triangleIndex = triangleIndex1;
-                            result.materialIndex = cast(i32, materialIndex);
+                        f32 signedVolume = b3SignedVolume(point11, point21, point12, shapeStart);
+                        if signedVolume >= 0.0f {
+                            b3Vec3 origin = point11;
+                            b3Vec3[3] triangleVertices = {
+                                b3Vec3_zero, b3Sub(point21, origin), b3Sub(point12, origin),
+                            };
+                            pairInput.proxyA = b3ShapeProxy{triangleVertices, 3, 0.0f};
+                            pairInput.maxFraction = bestFraction;
+                            pairInput.transform.p = b3Neg(origin);
+                            b3CastOutput pairOutput = b3ShapeCast(&pairInput);
+                            if pairOutput.hit != 0 {
+                                bestFraction = pairOutput.fraction;
+                                result = pairOutput;
+                                result.point = b3Add(result.point, origin);
+                                result.triangleIndex = triangleIndex1;
+                                result.materialIndex = cast(i32, materialIndex);
+                            }
                         }
                     }
                     {
-                        b3Vec3 origin = point21;
-                        b3Vec3[3] triangleVertices = {
-                            b3Vec3_zero, b3Sub(point22, origin), b3Sub(point12, origin),
-                        };
-                        pairInput.proxyA = b3ShapeProxy{triangleVertices, 3, 0.0f};
-                        pairInput.maxFraction = bestFraction;
-                        pairInput.transform.p = b3Neg(origin);
-                        b3CastOutput pairOutput = b3ShapeCast(&pairInput);
-                        if pairOutput.hit != 0 {
-                            bestFraction = pairOutput.fraction;
-                            result = pairOutput;
-                            result.point = b3Add(result.point, origin);
-                            result.triangleIndex = triangleIndex2;
-                            result.materialIndex = cast(i32, materialIndex);
+                        f32 signedVolume = b3SignedVolume(point21, point22, point12, shapeStart);
+                        if signedVolume >= 0.0f {
+                            b3Vec3 origin = point21;
+                            b3Vec3[3] triangleVertices = {
+                                b3Vec3_zero, b3Sub(point22, origin), b3Sub(point12, origin),
+                            };
+                            pairInput.proxyA = b3ShapeProxy{triangleVertices, 3, 0.0f};
+                            pairInput.maxFraction = bestFraction;
+                            pairInput.transform.p = b3Neg(origin);
+                            b3CastOutput pairOutput = b3ShapeCast(&pairInput);
+                            if pairOutput.hit != 0 {
+                                bestFraction = pairOutput.fraction;
+                                result = pairOutput;
+                                result.point = b3Add(result.point, origin);
+                                result.triangleIndex = triangleIndex2;
+                                result.materialIndex = cast(i32, materialIndex);
+                            }
                         }
                     }
                 }
@@ -20712,7 +21277,7 @@ b3CastOutput b3ShapeCastHeightField(b3HeightFieldData* heightField, b3ShapeCastI
 }
 
 bool b3OverlapHeightField(b3HeightFieldData* shape, b3Transform shapeTransform, b3ShapeProxy* proxy) {
-    noinit b3Vec3[64] buffer;
+    noinit b3Vec3[128] buffer;
     b3ShapeProxy localProxy = b3MakeLocalProxy(proxy, shapeTransform, buffer);
     b3AABB aabb = b3ComputeProxyAABB(&localProxy);
     b3Vec3 scale = shape.scale;
@@ -20827,6 +21392,7 @@ i32 b3CollideMoverAndHeightField(b3PlaneResult* planes, i32 capacity, b3HeightFi
     distanceInput.useRadii = false;
     b3SimplexCache cache;
     f32 radius = mover.radius;
+    b3Vec3 center = b3Lerp(mover.center1, mover.center2, 0.5f);
     b3V32 center1 = b3LoadV(&mover.center1.x);
     b3V32 center2 = b3LoadV(&mover.center2.x);
     b3V32 r = b3SplatV(radius);
@@ -20843,6 +21409,7 @@ i32 b3CollideMoverAndHeightField(b3PlaneResult* planes, i32 capacity, b3HeightFi
     var maxRow = cast(i32, floor(localMaxZ / scale.z));
     var minCol = cast(i32, floor(localMinX / scale.x));
     var maxCol = cast(i32, floor(localMaxX / scale.x));
+    bool clockWise = shape.clockwise != 0;
     i32 planeCount = 0;
     for i32 row = minRow; row <= maxRow; ++row {
         if row < 0 || shape.rowCount - 1 <= row {
@@ -20863,41 +21430,60 @@ i32 b3CollideMoverAndHeightField(b3PlaneResult* planes, i32 capacity, b3HeightFi
             b3Vec3 point12 = corners[1];
             b3Vec3 point21 = corners[2];
             b3Vec3 point22 = corners[3];
+            if clockWise != 0 {
+                while true {
+                    noinit u8[sizeof(point12)] B3_SWAP_TEMP;
+                    memcpy(B3_SWAP_TEMP, &point12, cast(u64, sizeof(point12)));
+                    memcpy(&point12, &point21, cast(u64, sizeof(point12)));
+                    memcpy(&point21, B3_SWAP_TEMP, cast(u64, sizeof(point12)));
+                    if !(0 != 0) { break; }
+                }
+            }
             b3V32 v11 = b3LoadV(&point11.x);
             b3V32 v12 = b3LoadV(&point12.x);
             b3V32 v21 = b3LoadV(&point21.x);
             b3V32 v22 = b3LoadV(&point22.x);
-            if b3TestBoundsTriangleOverlap(boundsCenter, boundsExtent, v11, v21, v12) != 0 {
-                b3Vec3[3] triangleVertices = {point11, point21, point12};
-                distanceInput.proxyA = b3ShapeProxy{triangleVertices, 3, 0.0f};
-                cache.count = 0;
-                b3DistanceOutput distanceOutput = b3ShapeDistance(&distanceInput, &cache, null, 0);
-                if distanceOutput.distance == 0.0f {
-                } else if distanceOutput.distance <= mover.radius {
-                    var plane = b3Plane{
-                        distanceOutput.normal, mover.radius - distanceOutput.distance,
-                    };
-                    planes[planeCount] = b3PlaneResult{plane, distanceOutput.pointA};
-                    planeCount += 1;
-                    if planeCount == capacity {
-                        return planeCount;
+            bool overlap1 = b3TestBoundsTriangleOverlap(boundsCenter, boundsExtent, v11, v21, v12);
+            if overlap1 != 0 {
+                f32 signedVolume = b3SignedVolume(point11, point21, point12, center);
+                if signedVolume >= 0.0f {
+                    b3Vec3[3] triangleVertices = {point11, point21, point12};
+                    distanceInput.proxyA = b3ShapeProxy{triangleVertices, 3, 0.0f};
+                    cache.count = 0;
+                    b3DistanceOutput distanceOutput = b3ShapeDistance(&distanceInput, &cache, null, 0);
+                    if distanceOutput.distance == 0.0f {
+                    } else if distanceOutput.distance <= mover.radius {
+                        i32 triangleIndex = 2 * cellIndex;
+                        var plane = b3Plane{
+                            distanceOutput.normal, mover.radius - distanceOutput.distance,
+                        };
+                        planes[planeCount] = b3PlaneResult{plane, distanceOutput.pointA, triangleIndex, 0, material};
+                        planeCount += 1;
+                        if planeCount == capacity {
+                            return planeCount;
+                        }
                     }
                 }
             }
-            if b3TestBoundsTriangleOverlap(boundsCenter, boundsExtent, v21, v22, v12) != 0 {
-                b3Vec3[3] triangleVertices = {point22, point12, point21};
-                distanceInput.proxyA = b3ShapeProxy{triangleVertices, 3, 0.0f};
-                cache.count = 0;
-                b3DistanceOutput distanceOutput = b3ShapeDistance(&distanceInput, &cache, null, 0);
-                if distanceOutput.distance == 0.0f {
-                } else if distanceOutput.distance <= mover.radius {
-                    var plane = b3Plane{
-                        distanceOutput.normal, mover.radius - distanceOutput.distance,
-                    };
-                    planes[planeCount] = b3PlaneResult{plane, distanceOutput.pointA};
-                    planeCount += 1;
-                    if planeCount == capacity {
-                        return planeCount;
+            bool overlap2 = b3TestBoundsTriangleOverlap(boundsCenter, boundsExtent, v21, v22, v12);
+            if overlap2 != 0 {
+                f32 signedVolume = b3SignedVolume(point22, point12, point21, center);
+                if signedVolume >= 0.0f {
+                    b3Vec3[3] triangleVertices = {point22, point12, point21};
+                    distanceInput.proxyA = b3ShapeProxy{triangleVertices, 3, 0.0f};
+                    cache.count = 0;
+                    b3DistanceOutput distanceOutput = b3ShapeDistance(&distanceInput, &cache, null, 0);
+                    if distanceOutput.distance == 0.0f {
+                    } else if distanceOutput.distance <= mover.radius {
+                        i32 triangleIndex = 2 * cellIndex + 1;
+                        var plane = b3Plane{
+                            distanceOutput.normal, mover.radius - distanceOutput.distance,
+                        };
+                        planes[planeCount] = b3PlaneResult{plane, distanceOutput.pointA, triangleIndex, 0, material};
+                        planeCount += 1;
+                        if planeCount == capacity {
+                            return planeCount;
+                        }
                     }
                 }
             }
@@ -21170,9 +21756,7 @@ b3QHFace* b3HullBuilder_NewFace(b3HullBuilder* b, b3QHVertex* v1, b3QHVertex* v2
     return face;
 }
 
-// Remove face from faceList if still linked, clear its edge pointer, then push onto faceFreeHead.
-// Uses face->link.next as the free-list next pointer (link.prev stays NULL, so b3QHList_Contains
-// returns false on a free slot, as required by the retire-guard in ResolveFaces).
+// Remove face and add to free list.
 void b3HullBuilder_RetireFace(b3HullBuilder* b, b3QHFace* face) {
     if b3QHList_Contains(&face.link) != 0 {
         b3QHList_Remove(&face.link);
@@ -21752,7 +22336,15 @@ void b3HullBuilder_ResolveFaces(b3HullBuilder* b) {
         var face = cast(b3QHFace*, node);
         node = node.next;
         if face.mark == 1 && b3QHList_Contains(&face.link) {
-            b3QHList_Remove(&face.link);
+            b3QHHalfEdge* start = face.edge;
+            b3QHHalfEdge* edge = start;
+            while true {
+                b3QHHalfEdge* next = edge.next;
+                b3HullBuilder_RetireEdge(b, edge);
+                edge = next;
+                if !(edge != start) { break; }
+            }
+            b3HullBuilder_RetireFace(b, face);
         }
     }
     for i32 i = 0; i < b.coneCount; ++i {
@@ -21832,7 +22424,7 @@ bool b3HullBuilder_Construct(b3HullBuilder* b, b3Vec3* points, i32 pointCount, i
     if haveInitialHull == false {
         return false;
     }
-    i32 budget = b3ClampInt(maxVertexCount - 4, 0, 255 - 4);
+    i32 budget = b3ClampInt(maxVertexCount - 4, 0, 255 + 1 - 4);
     b3QHVertex* vertex = b3HullBuilder_NextConflictVertex(b);
     while vertex && budget > 0 {
         b3HullBuilder_AddVertexToHull(b, vertex);
@@ -21848,27 +22440,12 @@ b3HullWorkSizes b3ComputeHullWorkSizes(i32 pointCount, i32 clampedMaxCount) {
     s.N = pointCount;
     s.M = clampedMaxCount;
     s.vertexCapacity = pointCount + 4;
-    s.edgeCapacity = 24 * s.M - 48;
-    if s.edgeCapacity < 48 {
-        s.edgeCapacity = 48;
-    }
-    s.faceCapacity = 5 * s.M - 10;
-    if s.faceCapacity < 16 {
-        s.faceCapacity = 16;
-    }
-    s.horizonCapacity = 3 * s.M - 6;
-    if s.horizonCapacity < 6 {
-        s.horizonCapacity = 6;
-    }
+    s.edgeCapacity = b3MaxInt(48, 24 * s.M - 48);
+    s.faceCapacity = b3MaxInt(16, 5 * s.M - 10);
+    s.horizonCapacity = b3MaxInt(6, 3 * s.M - 6);
     s.coneCapacity = s.horizonCapacity;
-    s.mergedFacesCapacity = 2 * s.M - 4;
-    if s.mergedFacesCapacity < 4 {
-        s.mergedFacesCapacity = 4;
-    }
-    s.horizonStackCapacity = 2 * s.M - 4;
-    if s.horizonStackCapacity < 4 {
-        s.horizonStackCapacity = 4;
-    }
+    s.mergedFacesCapacity = b3MaxInt(4, 2 * s.M - 4);
+    s.horizonStackCapacity = b3MaxInt(4, 2 * s.M - 4);
     u64 offset = 0;
     s.offsetVertex = offset;
     offset = b3AlignUp8(offset + cast(u64, s.vertexCapacity) * cast(u64, sizeof(b3QHVertex)));
@@ -22158,31 +22735,31 @@ b3HullData* b3CreateHull(b3Vec3* points, i32 pointCount, i32 maxVertexCount) {
         b3Free(work, sizes.totalBytes);
         return null;
     }
-    if builder.finalVertexCount >= 128 {
+    if builder.finalVertexCount > 128 {
         b3Log("hull final vertex count of %d exceeds limit of %d", builder.finalVertexCount, 128);
         b3Free(work, sizes.totalBytes);
         return null;
     }
-    if builder.finalFaceCount >= 128 {
+    if builder.finalFaceCount > 128 {
         b3Log("hull final face count of %d exceeds limit of %d", builder.finalFaceCount, 128);
         b3Free(work, sizes.totalBytes);
         return null;
     }
     i32 maxHalfEdgeCount = 2 * 128;
-    if builder.finalHalfEdgeCount >= maxHalfEdgeCount {
+    if builder.finalHalfEdgeCount > maxHalfEdgeCount {
         b3Log("hull final half edge count of %d exceeds limit of %d", builder.finalHalfEdgeCount, maxHalfEdgeCount);
         b3Free(work, sizes.totalBytes);
         return null;
     }
-    noinit b3QHVertex*[255] tempVertices;
+    noinit b3QHVertex*[255 + 1] tempVertices;
     i32 vertexCount = 0;
     for b3QHListNode* node = builder.vertexList.link.next; node != &builder.vertexList.link; node = node.next {
         var vertex = cast(b3QHVertex*, node);
         vertex.finalIndex = vertexCount;
         tempVertices[vertexCount++] = vertex;
     }
-    noinit b3QHFace*[255] tempFaces;
-    noinit b3QHHalfEdge*[255] tempEdges;
+    noinit b3QHFace*[255 + 1] tempFaces;
+    noinit b3QHHalfEdge*[255 + 1] tempEdges;
     i32 faceCount = 0;
     i32 edgeCount = 0;
     for b3QHListNode* faceNode = builder.faceList.link.next; faceNode != &builder.faceList.link; faceNode = faceNode.next {
@@ -22220,7 +22797,7 @@ b3HullData* b3CreateHull(b3Vec3* points, i32 pointCount, i32 maxVertexCount) {
     byteCount += b3AlignUp8(cast(u64, 3 * soaNormalCount * cast(i32, sizeof(f32))));
     b3HullData* hull = b3Alloc(byteCount);
     memset(hull, 0, byteCount);
-    hull.version = 0xDA5150191B994C01;
+    hull.version = 0x4A4C9587DE57485C;
     hull.vertexOffset = vertexOffset;
     hull.pointOffset = pointOffset;
     hull.edgeOffset = edgeOffset;
@@ -22292,7 +22869,7 @@ b3HullData* b3CreateHull(b3Vec3* points, i32 pointCount, i32 maxVertexCount) {
         return null;
     }
     hull.hash = 0;
-    hull.hash = b3NonZeroHash(b3Hash(5381, cast(u8*, hull), hull.byteCount));
+    hull.hash = b3Hash64NonZero(cast(u8*, hull), hull.byteCount);
     return hull;
 }
 
@@ -22300,13 +22877,13 @@ b3HullData* b3CloneHull(b3HullData* hull) {
     if hull == null || b3IsValidHull(hull) == false {
         return null;
     }
-    var clone = cast(b3HullData*, b3Alloc(cast(u64, hull.byteCount)));
+    b3HullData* clone = b3Alloc(cast(u64, hull.byteCount));
     memcpy(clone, hull, cast(u64, hull.byteCount));
     return clone;
 }
 
 u64 b3HashHullData(b3HullData* hull) {
-    return cast(u64, hull.hash) * 0x9E3779B97F4A7C15;
+    return hull.hash;
 }
 
 bool b3CompareHullData(b3HullData* hull1, b3HullData* hull2) {
@@ -23240,24 +23817,24 @@ b3HullData* b3CloneAndTransformHull(b3HullData* original, b3Transform transform,
     if safeScale.x * safeScale.y * safeScale.z < 0.0f {
         for i32 i = 0; i < faceCount; ++i {
             b3HullFace* face = faces + i;
-            u8 startEdgeIndex = face.edge;
-            u8 currentEdgeIndex = startEdgeIndex;
-            u8 prevEdgeIndex = 255;
+            var startEdgeIndex = cast(i32, face.edge);
+            i32 currentEdgeIndex = startEdgeIndex;
+            i32 prevEdgeIndex = -1;
             while true {
                 b3HullHalfEdge* edge = edges + currentEdgeIndex;
-                if edge.next == startEdgeIndex {
+                if cast(i32, edge.next) == startEdgeIndex {
                     prevEdgeIndex = currentEdgeIndex;
                     break;
                 }
-                currentEdgeIndex = edge.next;
+                currentEdgeIndex = cast(i32, edge.next);
                 if !(currentEdgeIndex != startEdgeIndex) { break; }
             }
             currentEdgeIndex = startEdgeIndex;
             while true {
                 b3HullHalfEdge* edge = edges + currentEdgeIndex;
                 u8 nextIndex = edge.next;
-                edge.next = prevEdgeIndex;
-                if currentEdgeIndex < edge.twin {
+                edge.next = cast(u8, prevEdgeIndex);
+                if currentEdgeIndex < cast(i32, edge.twin) {
                     b3HullHalfEdge* twin = edges + edge.twin;
                     while true {
                         noinit u8[sizeof(edge.origin)] B3_SWAP_TEMP;
@@ -23268,7 +23845,7 @@ b3HullData* b3CloneAndTransformHull(b3HullData* original, b3Transform transform,
                     }
                 }
                 prevEdgeIndex = currentEdgeIndex;
-                currentEdgeIndex = nextIndex;
+                currentEdgeIndex = cast(i32, nextIndex);
                 if !(currentEdgeIndex != startEdgeIndex) { break; }
             }
         }
@@ -23345,7 +23922,7 @@ b3HullData* b3CloneAndTransformHull(b3HullData* original, b3Transform transform,
         return null;
     }
     hull.hash = 0;
-    hull.hash = b3NonZeroHash(b3Hash(5381, cast(u8*, hull), hull.byteCount));
+    hull.hash = b3Hash64NonZero(cast(u8*, hull), hull.byteCount);
     return hull;
 }
 
@@ -23454,7 +24031,7 @@ i32 b3CollideMoverAndHull(b3PlaneResult* result, b3HullData* shape, b3Capsule* m
     }
     if distanceOutput.distance <= totalRadius {
         var plane = b3Plane{distanceOutput.normal, totalRadius - distanceOutput.distance};
-        *result = b3PlaneResult{plane, distanceOutput.pointA};
+        *result = b3PlaneResult{plane, distanceOutput.pointA, 0, 0, 0};
         return 1;
     }
     return 0;
@@ -23507,7 +24084,7 @@ f32 b3ComputeHullProjectedArea(b3HullData* hull, b3Vec3 direction) {
 private {
 b3BoxHull s_boxHull = b3BoxHull{
     .base = b3HullData{
-        .version = 0xDA5150191B994C01,
+        .version = 0x4A4C9587DE57485C,
         .byteCount = cast(i32, sizeof(b3BoxHull)),
         .hash = 0,
         .vertexCount = 8,
@@ -23644,7 +24221,7 @@ b3BoxHull b3MakeTransformedBoxHull(f32 hx, f32 hy, f32 hz, b3Transform transform
     boxHull.nz[6] = 0.0f;
     boxHull.nz[7] = 0.0f;
     boxHull.base.hash = 0;
-    boxHull.base.hash = b3NonZeroHash(b3Hash(5381, cast(u8*, &boxHull), cast(i32, sizeof(b3BoxHull))));
+    boxHull.base.hash = b3Hash64NonZero(cast(u8*, &boxHull.base), boxHull.base.byteCount);
     return boxHull;
 }
 
@@ -24354,7 +24931,6 @@ void b3ValidateIsland(b3World* world, i32 islandId) {
 
 // SPDX-FileCopyrightText: 2025 Erin Catto
 // SPDX-License-Identifier: MIT
-// needed for dll export
 private {
 b3JointDef b3DefaultJointDef() {
     b3JointDef def;
@@ -25148,6 +25724,12 @@ void b3Joint_WakeBodies(b3JointId jointId) {
     b3WakeBody(world, bodyA);
     b3WakeBody(world, bodyB);
     world.locked = false;
+}
+
+bool b3Joint_IsAwake(b3JointId jointId) {
+    b3World* world = b3GetWorld(cast(i32, jointId.world0));
+    b3Joint* joint = b3GetJointFullId(world, jointId);
+    return joint.setIndex == b3_awakeSet;
 }
 
 void b3GetJointReaction(b3World* world, b3JointSim* sim, f32 invTimeStep, f32* force, f32* torque) {
@@ -26320,13 +26902,19 @@ bool b3IsValidMesh(b3MeshData* meshData) {
     if meshData == null {
         return false;
     }
-    if meshData.version != 0xABD11AB62A6E886D {
+    if meshData.version != 0xAAAB9A00F1A8AAF7 {
         return false;
     }
     if meshData.byteCount < cast(i32, sizeof(b3MeshData)) {
         return false;
     }
     return true;
+}
+
+private {
+b3Vec3 b3GetStridedVertex(b3Vec3* vertices, i32 index, u64 stride) {
+    return *cast(b3Vec3*, cast(u8*, vertices) + cast(u64, index) * stride);
+}
 }
 /*------------------------------------------------- VERSTABLE v2.2.1 ---------------------------------------------------
 
@@ -27244,9 +27832,10 @@ void b3VertexMap_cleanup(b3VertexMap* table) {
 }
 
 private {
-void b3SpatialHash_Create(b3SpatialHash* h, b3Vec3* vertices, i32 vertexCount, f32 tolerance) {
+void b3CreateSpatialHash(b3SpatialHash* h, b3Vec3* vertices, i32 vertexCount, u64 stride, f32 tolerance) {
     h.vertices = vertices;
     h.vertexCount = vertexCount;
+    h.stride = stride;
     h.tolerance = tolerance;
     h.cellSize = 2.0f * tolerance;
     while true {
@@ -27259,7 +27848,7 @@ void b3SpatialHash_Create(b3SpatialHash* h, b3Vec3* vertices, i32 vertexCount, f
     b3VertexMap_reserve(&h.vertexMap, cast(u64, vertexCount));
 }
 
-void b3SpatialHash_Destroy(b3SpatialHash* h) {
+void b3DestroySpatialHash(b3SpatialHash* h) {
     b3VertexMap_cleanup(&h.vertexMap);
     while true {
         b3Free(h.nodes.data, cast(u64, h.nodes.capacity * sizeof(*h.nodes.data)));
@@ -27273,7 +27862,8 @@ void b3SpatialHash_Destroy(b3SpatialHash* h) {
 // Welding works by bucketing nearby vertices into identical keys in a hash table.
 // Bucketing is done manually with an array.
 i32 b3SpatialHash_FindDuplicate(b3SpatialHash* h, i32 currentIndex) {
-    b3Vec3 vertex = h.vertices[currentIndex];
+    u64 stride = h.stride;
+    b3Vec3 vertex = b3GetStridedVertex(h.vertices, currentIndex, stride);
     f32 cellSize = h.cellSize;
     f32 tolerance = h.tolerance;
     var baseX = cast(i32, floor(vertex.x / cellSize));
@@ -27295,7 +27885,7 @@ i32 b3SpatialHash_FindDuplicate(b3SpatialHash* h, i32 currentIndex) {
                     while nodeIndex != -1 {
                         b3VertexNode node = h.nodes.data[nodeIndex];
                         i32 existingIndex = node.vertexIndex;
-                        b3Vec3 other = h.vertices[existingIndex];
+                        b3Vec3 other = b3GetStridedVertex(h.vertices, existingIndex, stride);
                         if fabs(vertex.x - other.x) <= tolerance && fabs(vertex.y - other.y) <= tolerance && fabs(vertex.z - other.z) <= tolerance {
                             return existingIndex;
                         }
@@ -27346,8 +27936,9 @@ i32 b3SpatialHash_FindDuplicate(b3SpatialHash* h, i32 currentIndex) {
 i32 b3WeldVertices(b3WeldData* data, f32 tolerance) {
     i32 vertexCount = data.vertexCount;
     i32 uniqueCount = 0;
+    u64 stride = data.stride;
     noinit b3SpatialHash spatialHash;
-    b3SpatialHash_Create(&spatialHash, data.srcVertices, vertexCount, tolerance);
+    b3CreateSpatialHash(&spatialHash, data.srcVertices, vertexCount, stride, tolerance);
     b3DynamicArray_int vertexMapping;
     while true {
         while true {
@@ -27366,7 +27957,7 @@ i32 b3WeldVertices(b3WeldData* data, f32 tolerance) {
         i32 duplicateIndex = b3SpatialHash_FindDuplicate(&spatialHash, i);
         if duplicateIndex == -1 {
             vertexMapping.data[i] = uniqueCount;
-            data.dstVertices[uniqueCount] = data.srcVertices[i];
+            data.dstVertices[uniqueCount] = b3GetStridedVertex(data.srcVertices, i, stride);
             uniqueCount += 1;
         } else {
             vertexMapping.data[i] = vertexMapping.data[duplicateIndex];
@@ -27377,7 +27968,7 @@ i32 b3WeldVertices(b3WeldData* data, f32 tolerance) {
         i32 srcIndex = data.srcIndices[i];
         data.dstIndices[i] = vertexMapping.data[srcIndex];
     }
-    b3SpatialHash_Destroy(&spatialHash);
+    b3DestroySpatialHash(&spatialHash);
     while true {
         b3Free(vertexMapping.data, cast(u64, vertexMapping.capacity * sizeof(*vertexMapping.data)));
         vertexMapping.data = null;
@@ -29167,8 +29758,27 @@ b3MeshData* b3CreatePlatformMesh(b3Vec3 center, f32 height, f32 topWidth, f32 bo
     return b3CreateMesh(&def, null, 0);
 }
 
+private {
+void b3CopyVerticesWithStride(b3Vec3* dst, b3Vec3* src, i32 count, u64 stride) {
+    if stride == cast(u64, sizeof(b3Vec3)) {
+        memcpy(dst, src, cast(u64, count * sizeof(b3Vec3)));
+        return;
+    }
+    for i32 i = 0; i < count; ++i {
+        dst[i] = *cast(b3Vec3*, cast(u8*, src) + cast(u64, i) * stride);
+    }
+}
+}
+
+// Stride larger than this likely indicates stride is uninitialized memory.
 // todo this should fail if the mesh has a height greater than B3_MESH_STACK_SIZE
 b3MeshData* b3CreateMesh(b3MeshDef* def, i32* degenerateTriangleIndices, i32 degenerateCapacity) {
+    if def.stride != 0 && (def.stride < cast(u64, sizeof(b3Vec3)) || 4096 < def.stride) {
+        return null;
+    }
+    if (def.stride & 3) != 0 {
+        return null;
+    }
     if def.vertexCount < 3 || def.vertices == null || def.triangleCount <= 0 || def.indices == null {
         return null;
     }
@@ -29177,6 +29787,7 @@ b3MeshData* b3CreateMesh(b3MeshDef* def, i32* degenerateTriangleIndices, i32 deg
         return null;
     }
     i32 vertexCount = def.vertexCount;
+    u64 stride = def.stride == 0 ? cast(u64, sizeof(b3Vec3)) : def.stride;
     b3AABB meshBounds = B3_BOUNDS3_EMPTY;
     noinit b3DynamicArray_int indices;
     while true {
@@ -29226,24 +29837,13 @@ b3MeshData* b3CreateMesh(b3MeshDef* def, i32* degenerateTriangleIndices, i32 deg
             .dstIndices = indices.data,
             .vertexCount = vertexCount,
             .indexCount = 3 * triangleCount,
+            .stride = stride,
         };
         vertices.count = b3WeldVertices(&data, def.weldTolerance);
         vertexCount = vertices.count;
     } else {
-        while true {
-            i32 _n = vertexCount;
-            if vertices.count + _n > vertices.capacity {
-                i32 req = vertices.count + _n;
-                i32 newCapacity = req > 2 ? req + (req >> 1) : 8;
-                var oldSize = cast(i32, vertices.capacity * sizeof(*vertices.data));
-                var newSize = cast(i32, newCapacity * sizeof(*vertices.data));
-                vertices.data = b3GrowAlloc(vertices.data, oldSize, newSize);
-                vertices.capacity = newCapacity;
-            }
-            memcpy(vertices.data + vertices.count, def.vertices, cast(u64, _n * sizeof(*vertices.data)));
-            vertices.count += _n;
-            if !(0 != 0) { break; }
-        }
+        vertices.count = vertexCount;
+        b3CopyVerticesWithStride(vertices.data, def.vertices, vertexCount, stride);
         while true {
             i32 _n = 3 * triangleCount;
             if indices.count + _n > indices.capacity {
@@ -29270,6 +29870,7 @@ b3MeshData* b3CreateMesh(b3MeshDef* def, i32* degenerateTriangleIndices, i32 deg
     f32 minArea = 0.01f * (0.005f * b3GetLengthUnitsPerMeter()) * (0.005f * b3GetLengthUnitsPerMeter());
     f32 surfaceArea = 0.0f;
     i32 materialCount = 1;
+    bool clockWise = def.clockWiseWinding;
     for i32 index = 0; index < triangleCount; ++index {
         i32 index1 = indices.data[3 * index + 0];
         i32 index2 = indices.data[3 * index + 1];
@@ -29281,16 +29882,17 @@ b3MeshData* b3CreateMesh(b3MeshDef* def, i32* degenerateTriangleIndices, i32 deg
         f32 area = 0.5f * b3Length(normal);
         if area < minArea {
             if index1 != index2 && index1 != index3 && index2 != index3 {
-                degenerateCount += 1;
                 if degenerateTriangleIndices != null && degenerateCount < degenerateCapacity {
-                    degenerateTriangleIndices[degenerateCount - 1] = index;
+                    degenerateTriangleIndices[degenerateCount] = index;
                 }
+                degenerateCount += 1;
             }
             continue;
         }
         surfaceArea += area;
         var box = b3AABB{
-            b3Min(vertex1, b3Min(vertex2, vertex3)), b3Max(vertex1, b3Max(vertex2, vertex3)),
+            .lowerBound = b3Min(vertex1, b3Min(vertex2, vertex3)),
+            .upperBound = b3Max(vertex1, b3Max(vertex2, vertex3)),
         };
         b3Vec3 center = b3AABB_Center(box);
         var primitive = b3Primitive{.aabb = box, .center = center, .triangleIndex = index};
@@ -29319,6 +29921,20 @@ b3MeshData* b3CreateMesh(b3MeshDef* def, i32* degenerateTriangleIndices, i32 deg
             primitives.capacity = 0;
             if !(0 != 0) { break; }
         }
+        while true {
+            b3Free(indices.data, cast(u64, indices.capacity * sizeof(*indices.data)));
+            indices.data = null;
+            indices.count = 0;
+            indices.capacity = 0;
+            if !(0 != 0) { break; }
+        }
+        while true {
+            b3Free(vertices.data, cast(u64, vertices.capacity * sizeof(*vertices.data)));
+            vertices.data = null;
+            vertices.count = 0;
+            vertices.capacity = 0;
+            if !(0 != 0) { break; }
+        }
         return null;
     }
     noinit b3DynamicArray_b3MeshNode tempNodes;
@@ -29343,7 +29959,7 @@ b3MeshData* b3CreateMesh(b3MeshDef* def, i32* degenerateTriangleIndices, i32 deg
     byteCount += b3AlignUp8(cast(u64, triangleCount * sizeof(u8)));
     b3MeshData* mesh = b3Alloc(byteCount);
     memset(mesh, 0, byteCount);
-    mesh.version = 0xABD11AB62A6E886D;
+    mesh.version = 0xAAAB9A00F1A8AAF7;
     mesh.byteCount = cast(i32, byteCount);
     mesh.bounds = meshBounds;
     mesh.surfaceArea = surfaceArea;
@@ -29367,9 +29983,21 @@ b3MeshData* b3CreateMesh(b3MeshDef* def, i32* degenerateTriangleIndices, i32 deg
     memcpy(meshVertices, vertices.data, cast(u64, vertexCount * sizeof(b3Vec3)));
     for i32 index = 0; index < triangleCount; ++index {
         b3Primitive primitive = primitives.data[index];
-        triangles[index].index1 = indices.data[3 * primitive.triangleIndex + 0];
-        triangles[index].index2 = indices.data[3 * primitive.triangleIndex + 1];
-        triangles[index].index3 = indices.data[3 * primitive.triangleIndex + 2];
+        i32 i1 = 3 * primitive.triangleIndex + 0;
+        i32 i2 = 3 * primitive.triangleIndex + 1;
+        i32 i3 = 3 * primitive.triangleIndex + 2;
+        if clockWise != 0 {
+            while true {
+                noinit u8[sizeof(i2)] B3_SWAP_TEMP;
+                memcpy(B3_SWAP_TEMP, &i2, cast(u64, sizeof(i2)));
+                memcpy(&i2, &i3, cast(u64, sizeof(i2)));
+                memcpy(&i3, B3_SWAP_TEMP, cast(u64, sizeof(i2)));
+                if !(0 != 0) { break; }
+            }
+        }
+        triangles[index].index1 = indices.data[i1];
+        triangles[index].index2 = indices.data[i2];
+        triangles[index].index3 = indices.data[i3];
         flags[index] = 0;
         if def.materialIndices != null {
             u8 materialIndex = def.materialIndices[primitive.triangleIndex];
@@ -29392,6 +30020,21 @@ b3MeshData* b3CreateMesh(b3MeshDef* def, i32* degenerateTriangleIndices, i32 deg
             primitives.capacity = 0;
             if !(0 != 0) { break; }
         }
+        while true {
+            b3Free(indices.data, cast(u64, indices.capacity * sizeof(*indices.data)));
+            indices.data = null;
+            indices.count = 0;
+            indices.capacity = 0;
+            if !(0 != 0) { break; }
+        }
+        while true {
+            b3Free(vertices.data, cast(u64, vertices.capacity * sizeof(*vertices.data)));
+            vertices.data = null;
+            vertices.count = 0;
+            vertices.capacity = 0;
+            if !(0 != 0) { break; }
+        }
+        b3Free(mesh, byteCount);
         return null;
     }
     if def.identifyEdges != 0 {
@@ -29426,7 +30069,7 @@ b3MeshData* b3CreateMesh(b3MeshDef* def, i32* degenerateTriangleIndices, i32 deg
         if !(0 != 0) { break; }
     }
     mesh.hash = 0;
-    mesh.hash = b3NonZeroHash(b3Hash(5381, cast(u8*, mesh), mesh.byteCount));
+    mesh.hash = b3Hash64NonZero(cast(u8*, mesh), mesh.byteCount);
     return mesh;
 }
 
@@ -29436,7 +30079,7 @@ void b3DestroyMesh(b3MeshData* mesh) {
 
 bool b3OverlapMesh(b3Mesh* shape, b3Transform shapeTransform, b3ShapeProxy* proxy) {
     b3SimplexCache cache;
-    noinit b3Vec3[64] buffer;
+    noinit b3Vec3[128] buffer;
     b3ShapeProxy localProxy = b3MakeLocalProxy(proxy, shapeTransform, buffer);
     b3AABB aabb = b3ComputeProxyAABB(&localProxy);
     b3Vec3 meshScale = shape.scale;
@@ -29519,7 +30162,7 @@ b3CastOutput b3RayCastMesh(b3Mesh* mesh, b3RayCastInput* input) {
     b3V32 rayDelta = b3LoadV(&input.translation.x);
     b3V32 scale = b3LoadV(&meshScale.x);
     b3V32 invScale = b3DivV(b3_oneV, scale);
-    bool clockwise = meshScale.x * meshScale.y * meshScale.z < 0.0f;
+    bool ccw = meshScale.x * meshScale.y * meshScale.z > 0.0f;
     b3V32 invScaledRayStart = b3MulV(invScale, rayStart);
     b3V32 invScaledRayDelta = b3MulV(invScale, rayDelta);
     b3V32 invScaledRayEnd = b3AddV(invScaledRayStart, b3MulV(lambda, invScaledRayDelta));
@@ -29544,12 +30187,12 @@ b3CastOutput b3RayCastMesh(b3Mesh* mesh, b3RayCastInput* input) {
                     b3Vec3 vertex1 = b3Mul(meshScale, vertices[triangle.index1]);
                     noinit b3Vec3 vertex2;
                     noinit b3Vec3 vertex3;
-                    if clockwise != 0 {
-                        vertex2 = b3Mul(meshScale, vertices[triangle.index3]);
-                        vertex3 = b3Mul(meshScale, vertices[triangle.index2]);
-                    } else {
+                    if ccw != 0 {
                         vertex2 = b3Mul(meshScale, vertices[triangle.index2]);
                         vertex3 = b3Mul(meshScale, vertices[triangle.index3]);
+                    } else {
+                        vertex2 = b3Mul(meshScale, vertices[triangle.index3]);
+                        vertex3 = b3Mul(meshScale, vertices[triangle.index2]);
                     }
                     b3V32 v1 = b3LoadV(&vertex1.x);
                     b3V32 v2 = b3LoadV(&vertex2.x);
@@ -29609,7 +30252,7 @@ b3CastOutput b3ShapeCastMesh(b3Mesh* mesh, b3ShapeCastInput* input) {
     b3V32 scale = b3LoadV(&meshScale.x);
     b3V32 invScale = b3DivV(b3_oneV, scale);
     b3V32 absInvScale = b3AbsV(invScale);
-    bool clockwise = meshScale.x * meshScale.y * meshScale.z < 0.0f;
+    bool ccw = meshScale.x * meshScale.y * meshScale.z > 0.0f;
     b3V32 invScaledRayStart = b3MulV(invScale, rayStart);
     b3V32 invScaledRayDelta = b3MulV(invScale, rayDelta);
     b3V32 invScaledRayEnd = b3AddV(invScaledRayStart, b3MulV(lambda, invScaledRayDelta));
@@ -29635,45 +30278,51 @@ b3CastOutput b3ShapeCastMesh(b3Mesh* mesh, b3ShapeCastInput* input) {
                     b3Vec3 vertex1 = b3Mul(meshScale, vertices[triangle.index1]);
                     noinit b3Vec3 vertex2;
                     noinit b3Vec3 vertex3;
-                    if clockwise != 0 {
-                        vertex2 = b3Mul(meshScale, vertices[triangle.index3]);
-                        vertex3 = b3Mul(meshScale, vertices[triangle.index2]);
-                    } else {
+                    if ccw != 0 {
                         vertex2 = b3Mul(meshScale, vertices[triangle.index2]);
                         vertex3 = b3Mul(meshScale, vertices[triangle.index3]);
+                    } else {
+                        vertex2 = b3Mul(meshScale, vertices[triangle.index3]);
+                        vertex3 = b3Mul(meshScale, vertices[triangle.index2]);
                     }
                     b3V32 v1 = b3LoadV(&vertex1.x);
                     b3V32 v2 = b3LoadV(&vertex2.x);
                     b3V32 v3 = b3LoadV(&vertex3.x);
                     b3V32 triangleMin = b3SubV(b3MinV(v1, b3MinV(v2, v3)), shapeExtent);
                     b3V32 triangleMax = b3AddV(b3MaxV(v1, b3MaxV(v2, v3)), shapeExtent);
-                    if b3TestBoundsOverlap(triangleMin, triangleMax, rayMin, rayMax) != 0 {
-                        b3Vec3 origin = vertex1;
-                        b3Vec3[3] triangleVertices = {
-                            b3Vec3_zero, b3Sub(vertex2, origin), b3Sub(vertex3, origin),
-                        };
-                        var shiftedOrigin = b3Transform{b3Neg(origin), b3Quat_identity};
-                        noinit b3ShapeCastPairInput pairInput;
-                        pairInput.proxyA = b3ShapeProxy{triangleVertices, 3, 0.0f};
-                        pairInput.proxyB = input.proxy;
-                        pairInput.transform = shiftedOrigin;
-                        pairInput.maxFraction = bestOutput.fraction;
-                        pairInput.translationB = input.translation;
-                        pairInput.canEncroach = input.canEncroach;
-                        b3CastOutput pairOutput = b3ShapeCast(&pairInput);
-                        if pairOutput.hit != 0 {
-                            pairOutput.point = b3Add(pairOutput.point, origin);
-                            bestOutput = pairOutput;
-                            bestOutput.triangleIndex = triangleIndex;
-                            bestOutput.materialIndex = cast(i32, materialIndices[triangleIndex]);
-                            lambda = b3SplatV(pairOutput.fraction);
-                            rayEnd = b3AddV(rayStart, b3MulV(lambda, rayDelta));
-                            rayMin = b3MinV(rayStart, rayEnd);
-                            rayMax = b3MaxV(rayStart, rayEnd);
-                            invScaledRayEnd = b3AddV(invScaledRayStart, b3MulV(lambda, invScaledRayDelta));
-                            invScaledRayMin = b3MinV(invScaledRayStart, invScaledRayEnd);
-                            invScaledRayMax = b3MaxV(invScaledRayStart, invScaledRayEnd);
-                        }
+                    bool overlap = b3TestBoundsOverlap(triangleMin, triangleMax, rayMin, rayMax);
+                    if overlap == false {
+                        continue;
+                    }
+                    f32 signedVolume = b3SignedVolume(vertex1, vertex2, vertex3, center);
+                    if signedVolume < 0.0f {
+                        continue;
+                    }
+                    b3Vec3 origin = vertex1;
+                    b3Vec3[3] triangleVertices = {
+                        b3Vec3_zero, b3Sub(vertex2, origin), b3Sub(vertex3, origin),
+                    };
+                    var shiftedOrigin = b3Transform{b3Neg(origin), b3Quat_identity};
+                    noinit b3ShapeCastPairInput pairInput;
+                    pairInput.proxyA = b3ShapeProxy{triangleVertices, 3, 0.0f};
+                    pairInput.proxyB = input.proxy;
+                    pairInput.transform = shiftedOrigin;
+                    pairInput.maxFraction = bestOutput.fraction;
+                    pairInput.translationB = input.translation;
+                    pairInput.canEncroach = input.canEncroach;
+                    b3CastOutput pairOutput = b3ShapeCast(&pairInput);
+                    if pairOutput.hit != 0 {
+                        pairOutput.point = b3Add(pairOutput.point, origin);
+                        bestOutput = pairOutput;
+                        bestOutput.triangleIndex = triangleIndex;
+                        bestOutput.materialIndex = cast(i32, materialIndices[triangleIndex]);
+                        lambda = b3SplatV(pairOutput.fraction);
+                        rayEnd = b3AddV(rayStart, b3MulV(lambda, rayDelta));
+                        rayMin = b3MinV(rayStart, rayEnd);
+                        rayMax = b3MaxV(rayStart, rayEnd);
+                        invScaledRayEnd = b3AddV(invScaledRayStart, b3MulV(lambda, invScaledRayDelta));
+                        invScaledRayMin = b3MinV(invScaledRayStart, invScaledRayEnd);
+                        invScaledRayMax = b3MaxV(invScaledRayStart, invScaledRayEnd);
                     }
                 }
             } else {
@@ -29735,12 +30384,14 @@ i32 b3CollideMoverAndMesh(b3PlaneResult* planes, i32 capacity, b3Mesh* shape, b3
     distanceInput.useRadii = false;
     b3SimplexCache cache;
     f32 radius = mover.radius;
+    b3Vec3 center = b3Lerp(mover.center1, mover.center2, 0.5f);
     b3V32 center1 = b3LoadV(&mover.center1.x);
     b3V32 center2 = b3LoadV(&mover.center2.x);
     b3V32 r = b3SplatV(radius);
     b3V32 boundsMin = b3SubV(b3MinV(center1, center2), r);
     b3V32 boundsMax = b3AddV(b3MaxV(center1, center2), r);
     b3Vec3 meshScale = shape.scale;
+    bool ccw = meshScale.x * meshScale.y * meshScale.z > 0.0f;
     b3V32 scale = b3LoadV(&meshScale.x);
     b3V32 invScale = b3DivV(b3_oneV, scale);
     b3V32 temp1 = b3MulV(invScale, boundsMin);
@@ -29754,6 +30405,7 @@ i32 b3CollideMoverAndMesh(b3PlaneResult* planes, i32 capacity, b3Mesh* shape, b3
     b3MeshNode* node = b3GetRoot(shape.data);
     b3MeshTriangle* triangles = b3GetMeshTriangles(shape.data);
     b3Vec3* vertices = b3GetMeshVertices(shape.data);
+    u8* materialIndices = b3GetMeshMaterialIndices(shape.data);
     i32 planeCount = 0;
     while planeCount < capacity {
         b3V32 nodeMin = b3LoadV(&node.lowerBound.x);
@@ -29768,6 +30420,15 @@ i32 b3CollideMoverAndMesh(b3PlaneResult* planes, i32 capacity, b3Mesh* shape, b3
                     b3Vec3 vertex1 = vertices[triangle.index1];
                     b3Vec3 vertex2 = vertices[triangle.index2];
                     b3Vec3 vertex3 = vertices[triangle.index3];
+                    if ccw == false {
+                        while true {
+                            noinit u8[sizeof(vertex2)] B3_SWAP_TEMP;
+                            memcpy(B3_SWAP_TEMP, &vertex2, cast(u64, sizeof(vertex2)));
+                            memcpy(&vertex2, &vertex3, cast(u64, sizeof(vertex2)));
+                            memcpy(&vertex3, B3_SWAP_TEMP, cast(u64, sizeof(vertex2)));
+                            if !(0 != 0) { break; }
+                        }
+                    }
                     b3V32 v1 = b3LoadV(&vertex1.x);
                     b3V32 v2 = b3LoadV(&vertex2.x);
                     b3V32 v3 = b3LoadV(&vertex3.x);
@@ -29776,6 +30437,10 @@ i32 b3CollideMoverAndMesh(b3PlaneResult* planes, i32 capacity, b3Mesh* shape, b3
                             b3Mul(meshScale, vertex1), b3Mul(meshScale, vertex2),
                             b3Mul(meshScale, vertex3),
                         };
+                        f32 signedVolume = b3SignedVolume(triangleVertices[0], triangleVertices[1], triangleVertices[2], center);
+                        if signedVolume < 0.0f {
+                            continue;
+                        }
                         distanceInput.proxyA = b3ShapeProxy{triangleVertices, 3, 0.0f};
                         cache.count = 0;
                         b3DistanceOutput distanceOutput = b3ShapeDistance(&distanceInput, &cache, null, 0);
@@ -29784,7 +30449,10 @@ i32 b3CollideMoverAndMesh(b3PlaneResult* planes, i32 capacity, b3Mesh* shape, b3
                             var plane = b3Plane{
                                 distanceOutput.normal, mover.radius - distanceOutput.distance,
                             };
-                            planes[planeCount] = b3PlaneResult{plane, distanceOutput.pointA};
+                            planes[planeCount] = b3PlaneResult{
+                                plane, distanceOutput.pointA, triangleIndex, 0,
+                                materialIndices[triangleIndex],
+                            };
                             planeCount += 1;
                             if planeCount == capacity {
                                 return planeCount;
@@ -29808,7 +30476,7 @@ i32 b3CollideMoverAndMesh(b3PlaneResult* planes, i32 capacity, b3Mesh* shape, b3
 
 void b3QueryMesh(b3Mesh* mesh, b3AABB bounds, b3MeshQueryFcn fcn, void* context) {
     b3Vec3 meshScale = mesh.scale;
-    bool clockwise = meshScale.x * meshScale.y * meshScale.z > 0.0f;
+    bool ccw = meshScale.x * meshScale.y * meshScale.z > 0.0f;
     b3V32 scale = b3LoadV(&meshScale.x);
     b3V32 invScale = b3DivV(b3_oneV, scale);
     b3V32 temp1 = b3MulV(invScale, b3LoadV(&bounds.lowerBound.x));
@@ -29843,7 +30511,7 @@ void b3QueryMesh(b3Mesh* mesh, b3AABB bounds, b3MeshQueryFcn fcn, void* context)
                         b3Vec3 a = b3Mul(meshScale, vertex1);
                         noinit b3Vec3 b;
                         noinit b3Vec3 c;
-                        if clockwise != 0 {
+                        if ccw != 0 {
                             b = b3Mul(meshScale, vertex2);
                             c = b3Mul(meshScale, vertex3);
                         } else {
@@ -30712,7 +31380,6 @@ bool b3ComputeMeshManifolds(b3World* world, i32 workerIndex, b3Contact* contact,
 
 // SPDX-FileCopyrightText: 2025 Erin Catto
 // SPDX-License-Identifier: MIT
-// needed for dll export
 void b3MotorJoint_SetLinearVelocity(b3JointId jointId, b3Vec3 velocity) {
     b3World* world = b3GetWorld(cast(i32, jointId.world0));
     while true {
@@ -32237,7 +32904,6 @@ void b3ParallelFor(b3World* world, b3ParallelForCallback callback, i32 itemCount
 
 // SPDX-FileCopyrightText: 2025 Erin Catto
 // SPDX-License-Identifier: MIT
-// needed for dll export
 void b3ParallelJoint_SetSpringHertz(b3JointId jointId, f32 hertz) {
     b3World* world = b3GetWorld(cast(i32, jointId.world0));
     while true {
@@ -32484,9 +33150,9 @@ b3HullData* b3AddHullToDatabase(b3World* world, b3HullData* src) {
         itr.data.val += 1;
         return itr.data.key;
     }
-    b3HullData* owned = b3CloneHull(src);
-    b3HullMap_insert(database, owned, 1);
-    return owned;
+    b3HullData* clone = b3CloneHull(src);
+    b3HullMap_insert(database, clone, 1);
+    return clone;
 }
 
 b3HullData* b3AddOwnedHullToDatabase(b3World* world, b3HullData* owned) {
@@ -33826,17 +34492,19 @@ void b3World_Draw(b3WorldId worldId, b3DebugDraw* draw, u64 maskBits) {
                 b3Pos p = b3TransformWorldPoint(transform, offset);
                 u8* name = b3FindName(&world.names, body.nameId);
                 if name != null {
-                    draw.DrawStringFcn(p, name, b3_colorOrange, draw.context);
+                    draw.DrawStringFcn(p, name, b3_colorWhite, draw.context);
                 }
             }
-            if draw.drawMass && body.type == b3_dynamicBody {
-                var offset = b3Vec3{0.1f, 0.1f, 0.1f};
+            if draw.drawMass != 0 {
                 var transform = b3WorldTransform{bodySim.center, bodySim.transform.q};
                 draw.DrawTransformFcn(transform, draw.context);
-                b3Pos p = b3TransformWorldPoint(transform, offset);
-                noinit u8[32] buffer;
-                snprintf(buffer, 32, "  %.2f", body.mass);
-                draw.DrawStringFcn(p, buffer, b3_colorWhite, draw.context);
+                if body.type == b3_dynamicBody {
+                    var offset = b3Vec3{0.05f, 0.05f, 0.05f};
+                    b3Pos p = b3TransformWorldPoint(transform, offset);
+                    noinit u8[32] buffer;
+                    snprintf(buffer, 32, "%.2f", body.mass);
+                    draw.DrawStringFcn(p, buffer, b3_colorWhite, draw.context);
+                }
             }
             if draw.drawSleep != 0 {
                 b3BodyState* bodyState = b3GetBodyState(world, body);
@@ -35289,7 +35957,6 @@ void b3ValidateContacts(b3World* world) {
 
 // SPDX-FileCopyrightText: 2025 Erin Catto
 // SPDX-License-Identifier: MIT
-// needed for dll export
 // Linear constraint (point-to-line)
 // joint axis is along joint frame A local z-axis
 // perpX and perpY are world vectors fixed in A
@@ -35995,8 +36662,8 @@ void b3RecW_SHAPEPROXY(b3RecBuffer* buf, b3ShapeProxy v) {
     if count < 0 {
         count = 0;
     }
-    if count > 64 {
-        count = 64;
+    if count > 128 {
+        count = 128;
     }
     b3RecW_I32(buf, count);
     for i32 i = 0; i < count; ++i {
@@ -36025,6 +36692,9 @@ void b3RecW_PLANERESULT(b3RecBuffer* buf, b3PlaneResult v) {
     b3RecW_VEC3(buf, v.plane.normal);
     b3RecW_F32(buf, v.plane.offset);
     b3RecW_VEC3(buf, v.point);
+    b3RecW_I32(buf, v.triangleIndex);
+    b3RecW_I32(buf, v.childIndex);
+    b3RecW_I32(buf, v.materialIndex);
 }
 
 void b3RecW_WORLDID(b3RecBuffer* buf, b3WorldId v) {
@@ -36742,6 +37412,23 @@ void b3RecWriteArgs_ShapeApplyWind(b3Recording* rec, b3RecArgs_ShapeApplyWind* a
 void b3RecWriteArgs_ShapeSetName(b3Recording* rec, b3RecArgs_ShapeSetName* a) {
     b3RecW_SHAPEID(&rec.buffer, a.shape);
     b3RecW_STR(&rec.buffer, a.name);
+}
+
+void b3RecWriteArgs_ShapeSetMeshMaterial(b3Recording* rec, b3RecArgs_ShapeSetMeshMaterial* a) {
+    b3RecW_SHAPEID(&rec.buffer, a.shape);
+    b3RecW_MATERIAL(&rec.buffer, a.material);
+    b3RecW_I32(&rec.buffer, a.index);
+}
+
+void b3RecWriteArgs_ShapeSetHull(b3Recording* rec, b3RecArgs_ShapeSetHull* a) {
+    b3RecW_SHAPEID(&rec.buffer, a.shape);
+    b3RecW_GEOMID(&rec.buffer, a.geometryId);
+}
+
+void b3RecWriteArgs_ShapeSetMesh(b3Recording* rec, b3RecArgs_ShapeSetMesh* a) {
+    b3RecW_SHAPEID(&rec.buffer, a.shape);
+    b3RecW_GEOMID(&rec.buffer, a.geometryId);
+    b3RecW_VEC3(&rec.buffer, a.scale);
 }
 
 void b3RecWriteArgs_CreateParallelJoint(b3Recording* rec, b3RecArgs_CreateParallelJoint* a) {
@@ -37758,6 +38445,30 @@ void b3RecWrite_ShapeSetName(b3Recording* rec, b3RecArgs_ShapeSetName* a) {
     b3UnlockMutex(rec.lock);
 }
 
+void b3RecWrite_ShapeSetMeshMaterial(b3Recording* rec, b3RecArgs_ShapeSetMeshMaterial* a) {
+    b3LockMutex(rec.lock);
+    b3RecBeginRecord(rec, cast(u8, 0x5D));
+    b3RecWriteArgs_ShapeSetMeshMaterial(rec, a);
+    b3RecEndRecord(rec);
+    b3UnlockMutex(rec.lock);
+}
+
+void b3RecWrite_ShapeSetHull(b3Recording* rec, b3RecArgs_ShapeSetHull* a) {
+    b3LockMutex(rec.lock);
+    b3RecBeginRecord(rec, cast(u8, 0x5E));
+    b3RecWriteArgs_ShapeSetHull(rec, a);
+    b3RecEndRecord(rec);
+    b3UnlockMutex(rec.lock);
+}
+
+void b3RecWrite_ShapeSetMesh(b3Recording* rec, b3RecArgs_ShapeSetMesh* a) {
+    b3LockMutex(rec.lock);
+    b3RecBeginRecord(rec, cast(u8, 0x5F));
+    b3RecWriteArgs_ShapeSetMesh(rec, a);
+    b3RecEndRecord(rec);
+    b3UnlockMutex(rec.lock);
+}
+
 void b3RecWrite_CreateParallelJoint(b3Recording* rec, b3RecArgs_CreateParallelJoint* a) {
     b3LockMutex(rec.lock);
     b3RecBeginRecord(rec, cast(u8, 0x90));
@@ -38684,34 +39395,6 @@ void b3RecWriteRet_CreateWheelJoint(b3Recording* rec, b3RecArgs_CreateWheelJoint
     b3RecW_JOINTID(&rec.buffer, id);
     b3RecEndRecord(rec);
     b3UnlockMutex(rec.lock);
-}
-
-// Geometry registry
-// Full 64-bit content hash, so distinct blobs of the same length get independent bits. A reseeded
-// 32-bit djb2 cannot: djb2 is affine in its seed, so a same-length collision survives every seed and
-// the high word would just track the low one. Word folded for speed, byte order normalized on
-// big-endian to match b3Hash, then a splitmix64 finalizer so tiny inputs still spread across all bits.
-// From Fowler/Noll/Vo FNV-1a salted by length, then the splitmix64 mix.
-u64 b3Hash64Blob(u8* bytes, i32 n) {
-    u64 h = 0xcbf29ce484222325 ^ cast(u64, cast(u32, n));
-    u64 prime = 0x100000001b3;
-    i32 i = 0;
-    while i + 8 <= n {
-        u64 word;
-        memcpy(&word, bytes + i, cast(u64, sizeof(word)));
-        h = (h ^ word) * prime;
-        i += 8;
-    }
-    while i < n {
-        h = (h ^ cast(u64, bytes[i])) * prime;
-        i += 1;
-    }
-    h ^= h >> 30;
-    h *= 0xbf58476d1ce4e5b9;
-    h ^= h >> 27;
-    h *= 0x94d049bb133111eb;
-    h ^= h >> 31;
-    return h;
 }
 /*------------------------------------------------- VERSTABLE v2.2.1 ---------------------------------------------------
 
@@ -40545,20 +41228,14 @@ void b3RecTagMap_cleanup(b3RecTagMap* table) {
 // Append a fresh entry and splice it onto the front of its hash chain. The map value is the chain head.
 private {
 u32 b3RegistryPush(b3GeometryRegistry* reg, b3GeometryHashMap* map, b3GeometryHashMap_itr itr, bool hashPresent, b3GeometryKind kind, u64 contentHash, u8* bytes, i32 byteCount) {
-    if reg.count >= reg.capacity {
-        i32 newCap = reg.capacity < 8 ? 8 : reg.capacity * 2;
-        reg.entries = cast(b3GeometryEntry*, b3GrowAlloc(reg.entries, reg.capacity * cast(i32, sizeof(b3GeometryEntry)), newCap * cast(i32, sizeof(b3GeometryEntry))));
-        reg.capacity = newCap;
-    }
-    var id = cast(u32, reg.count);
-    b3GeometryEntry* entry = reg.entries + reg.count;
+    var id = cast(u32, reg.entries.count);
+    b3GeometryEntry* entry = b3EmplaceHelper(cast(void**, &reg.entries.data), &reg.entries.count, &reg.entries.capacity, cast(i32, sizeof(*reg.entries.data)));
     entry.contentHash = contentHash;
     entry.id = id;
     entry.kind = kind;
     entry.byteCount = byteCount;
     entry.bytes = bytes;
     entry.hashNext = hashPresent != 0 ? cast(i32, itr.data.val) : -1;
-    reg.count++;
     if hashPresent != 0 {
         itr.data.val = id;
     } else {
@@ -40569,11 +41246,11 @@ u32 b3RegistryPush(b3GeometryRegistry* reg, b3GeometryHashMap* map, b3GeometryHa
 
 b3GeometryHashMap* b3RegistryMap(b3GeometryRegistry* reg) {
     if reg.dedupMap == null {
-        var fresh = cast(b3GeometryHashMap*, b3Alloc(cast(u64, sizeof(b3GeometryHashMap))));
+        b3GeometryHashMap* fresh = b3Alloc(cast(u64, sizeof(b3GeometryHashMap)));
         b3GeometryHashMap_init(fresh);
         reg.dedupMap = fresh;
     }
-    return cast(b3GeometryHashMap*, reg.dedupMap);
+    return reg.dedupMap;
 }
 }
 
@@ -40582,8 +41259,8 @@ u32 b3InternGeometry(b3GeometryRegistry* reg, b3GeometryKind kind, u64 contentHa
     b3GeometryHashMap_itr itr = b3GeometryHashMap_get(map, contentHash);
     bool hashPresent = b3GeometryHashMap_is_end(itr) == false;
     if hashPresent != 0 {
-        for i32 idx = cast(i32, itr.data.val); idx != -1; idx = reg.entries[idx].hashNext {
-            b3GeometryEntry* e = reg.entries + idx;
+        for i32 index = cast(i32, itr.data.val); index != -1; index = reg.entries.data[index].hashNext {
+            b3GeometryEntry* e = reg.entries.data + index;
             if e.byteCount == byteCount && memcmp(e.bytes, bytes, cast(u64, byteCount)) == 0 {
                 b3Free(bytes, cast(u64, byteCount));
                 return e.id;
@@ -40601,19 +41278,20 @@ u32 b3AppendGeometry(b3GeometryRegistry* reg, b3GeometryKind kind, u64 contentHa
 }
 
 void b3FreeRegistry(b3GeometryRegistry* reg) {
-    for i32 i = 0; i < reg.count; ++i {
-        b3Free(reg.entries[i].bytes, cast(u64, reg.entries[i].byteCount));
+    for i32 i = 0; i < reg.entries.count; ++i {
+        b3Free(reg.entries.data[i].bytes, cast(u64, reg.entries.data[i].byteCount));
     }
-    if reg.entries != null {
-        b3Free(reg.entries, cast(u64, reg.capacity * cast(i32, sizeof(b3GeometryEntry))));
+    while true {
+        b3Free(reg.entries.data, cast(u64, reg.entries.capacity * sizeof(*reg.entries.data)));
+        reg.entries.data = null;
+        reg.entries.count = 0;
+        reg.entries.capacity = 0;
+        if !(0 != 0) { break; }
     }
     if reg.dedupMap != null {
         b3GeometryHashMap_cleanup(cast(b3GeometryHashMap*, reg.dedupMap));
         b3Free(reg.dedupMap, cast(u64, sizeof(b3GeometryHashMap)));
     }
-    reg.entries = null;
-    reg.count = 0;
-    reg.capacity = 0;
     reg.dedupMap = null;
 }
 
@@ -40668,9 +41346,9 @@ void b3RecInternTag(b3Recording* rec, u64 key, u64 id, u8* name) {
 // followed by the query-tag table { u32 tagCount, per-tag uu64 id, STR name }. A reader built before
 // the tag table stops after the geometry entries and ignores the trailing tag bytes.
 void b3RecWriteRegistry(b3Recording* rec) {
-    b3RecW_U32(&rec.buffer, cast(u32, rec.registry.count));
-    for i32 i = 0; i < rec.registry.count; ++i {
-        b3GeometryEntry* e = rec.registry.entries + i;
+    b3RecW_U32(&rec.buffer, cast(u32, rec.registry.entries.count));
+    for i32 i = 0; i < rec.registry.entries.count; ++i {
+        b3GeometryEntry* e = rec.registry.entries.data + i;
         b3RecW_U8(&rec.buffer, cast(u8, e.kind));
         b3RecW_U32(&rec.buffer, cast(u32, e.byteCount));
         b3RecBufAppend(&rec.buffer, e.bytes, e.byteCount);
@@ -40685,7 +41363,7 @@ void b3RecWriteRegistry(b3Recording* rec) {
 
 // Lifecycle
 b3Recording* b3CreateRecording(i32 byteCapacity) {
-    var rec = cast(b3Recording*, b3Alloc(cast(u64, sizeof(b3Recording))));
+    b3Recording* rec = b3Alloc(cast(u64, sizeof(b3Recording)));
     *rec = b3Recording{};
     i32 initCap = byteCapacity > 0 ? byteCapacity : 65536;
     rec.buffer.data = cast(u8*, b3Alloc(cast(u64, initCap)));
@@ -40743,8 +41421,8 @@ void b3StartRecordingIntoBuffer(b3World* world, b3Recording* recording) {
     recording.tagCapacity = 0;
     b3RecHeader hdr;
     hdr.magic = 0x43523342;
-    hdr.versionMajor = 4;
-    hdr.versionMinor = 3;
+    hdr.versionMajor = 5;
+    hdr.versionMinor = 4;
     hdr.pointerWidth = cast(u8, sizeof(void*));
     hdr.bigEndian = 0;
     hdr.validationEnabled = cast(u8, 0 != 0 ? 1 : 0);
@@ -40843,34 +41521,34 @@ b3Recording* b3LoadRecordingFromFile(u8* path) {
 // Geometry interning helpers
 u32 b3RecInternHull(b3Recording* rec, b3HullData* hull) {
     i32 byteCount = hull.byteCount;
-    var bytes = cast(u8*, b3Alloc(cast(u64, byteCount)));
+    u8* bytes = b3Alloc(cast(u64, byteCount));
     memcpy(bytes, hull, cast(u64, byteCount));
-    u64 h = b3Hash64Blob(bytes, byteCount);
+    u64 h = b3Hash64NonZero(bytes, byteCount);
     return b3InternGeometry(&rec.registry, b3_geometryHull, h, bytes, byteCount);
 }
 
 u32 b3RecInternMesh(b3Recording* rec, b3MeshData* mesh) {
     i32 byteCount = mesh.byteCount;
-    var bytes = cast(u8*, b3Alloc(cast(u64, byteCount)));
+    u8* bytes = b3Alloc(cast(u64, byteCount));
     memcpy(bytes, mesh, cast(u64, byteCount));
-    u64 h = b3Hash64Blob(bytes, byteCount);
+    u64 h = b3Hash64NonZero(bytes, byteCount);
     return b3InternGeometry(&rec.registry, b3_geometryMesh, h, bytes, byteCount);
 }
 
 u32 b3RecInternHeightField(b3Recording* rec, b3HeightFieldData* hf) {
     i32 byteCount = hf.byteCount;
-    var bytes = cast(u8*, b3Alloc(cast(u64, byteCount)));
+    u8* bytes = b3Alloc(cast(u64, byteCount));
     memcpy(bytes, hf, cast(u64, byteCount));
-    u64 h = b3Hash64Blob(bytes, byteCount);
+    u64 h = b3Hash64NonZero(bytes, byteCount);
     return b3InternGeometry(&rec.registry, b3_geometryHeightField, h, bytes, byteCount);
 }
 
 u32 b3RecInternCompound(b3Recording* rec, b3CompoundData* compound) {
     i32 byteCount = compound.byteCount;
-    var bytes = cast(u8*, b3Alloc(cast(u64, byteCount)));
+    u8* bytes = b3Alloc(cast(u64, byteCount));
     memcpy(bytes, compound, cast(u64, byteCount));
     cast(b3CompoundData*, bytes).tree.nodes = null;
-    u64 h = b3Hash64Blob(bytes, byteCount);
+    u64 h = b3Hash64NonZero(bytes, byteCount);
     return b3InternGeometry(&rec.registry, b3_geometryCompound, h, bytes, byteCount);
 }
 
@@ -41100,8 +41778,8 @@ b3ShapeProxy b3RecR_SHAPEPROXY(b3RecReader* rdr) {
     if count < 0 {
         count = 0;
     }
-    if count > 64 {
-        count = 64;
+    if count > 128 {
+        count = 128;
     }
     if count > 0 && b3RecReserveScratch(rdr, cast(void**, &rdr.proxyScratch), &rdr.proxyScratchCap, count, cast(i32, sizeof(b3Vec3))) {
         for i32 i = 0; i < count; ++i {
@@ -41139,6 +41817,9 @@ b3PlaneResult b3RecR_PLANERESULT(b3RecReader* rdr) {
     v.plane.normal = b3RecR_VEC3(rdr);
     v.plane.offset = b3RecR_F32(rdr);
     v.point = b3RecR_VEC3(rdr);
+    v.triangleIndex = b3RecR_I32(rdr);
+    v.childIndex = b3RecR_I32(rdr);
+    v.materialIndex = b3RecR_I32(rdr);
     return v;
 }
 
@@ -41752,7 +42433,7 @@ void b3RecDispatch_CreateMeshShape(b3RecArgs_CreateMeshShape* a, b3RecReader* rd
         return;
     }
     b3RegistrySlot* slot = rdr.slots + id;
-    var mesh = cast(b3MeshData*, b3RecGetLiveMesh(slot));
+    b3MeshData* mesh = b3RecGetLiveMesh(slot);
     b3BodyId bodyId = b3RecMakeBodyId(rdr, a.body);
     b3ShapeId gotId = b3CreateMeshShape(bodyId, &a.def, mesh, a.scale);
     b3RecCheckShapeId(rdr, gotId, recId);
@@ -41824,6 +42505,10 @@ void b3RecDispatch_ShapeSetSurfaceMaterial(b3RecArgs_ShapeSetSurfaceMaterial* a,
     b3Shape_SetSurfaceMaterial(b3RecMakeShapeId(rdr, a.shape), a.material);
 }
 
+void b3RecDispatch_ShapeSetMeshMaterial(b3RecArgs_ShapeSetMeshMaterial* a, b3RecReader* rdr) {
+    b3Shape_SetMeshMaterial(b3RecMakeShapeId(rdr, a.shape), a.material, a.index);
+}
+
 void b3RecDispatch_ShapeSetFilter(b3RecArgs_ShapeSetFilter* a, b3RecReader* rdr) {
     b3Shape_SetFilter(b3RecMakeShapeId(rdr, a.shape), a.filter, a.invokeContacts);
 }
@@ -41850,6 +42535,31 @@ void b3RecDispatch_ShapeSetSphere(b3RecArgs_ShapeSetSphere* a, b3RecReader* rdr)
 
 void b3RecDispatch_ShapeSetCapsule(b3RecArgs_ShapeSetCapsule* a, b3RecReader* rdr) {
     b3Shape_SetCapsule(b3RecMakeShapeId(rdr, a.shape), &a.capsule);
+}
+
+void b3RecDispatch_ShapeSetHull(b3RecArgs_ShapeSetHull* a, b3RecReader* rdr) {
+    u32 id = a.geometryId;
+    if id >= cast(u32, rdr.slotCount) {
+        printf("b3ReplayFile: hull geometryId %u out of range\n", id);
+        rdr.ok = false;
+        return;
+    }
+    b3RegistrySlot* slot = rdr.slots + id;
+    b3ShapeId shapeId = b3RecMakeShapeId(rdr, a.shape);
+    b3Shape_SetHull(shapeId, cast(b3HullData*, slot.bytes));
+}
+
+void b3RecDispatch_ShapeSetMesh(b3RecArgs_ShapeSetMesh* a, b3RecReader* rdr) {
+    u32 id = a.geometryId;
+    if id >= cast(u32, rdr.slotCount) {
+        printf("b3ReplayFile: mesh geometryId %u out of range\n", id);
+        rdr.ok = false;
+        return;
+    }
+    b3RegistrySlot* slot = rdr.slots + id;
+    b3ShapeId shapeId = b3RecMakeShapeId(rdr, a.shape);
+    b3MeshData* mesh = b3RecGetLiveMesh(slot);
+    b3Shape_SetMesh(shapeId, mesh, a.scale);
 }
 
 void b3RecDispatch_ShapeApplyWind(b3RecArgs_ShapeApplyWind* a, b3RecReader* rdr) {
@@ -42331,7 +43041,7 @@ bool b3RecReplayPlaneTrampoline(b3ShapeId id, b3PlaneResult* planes, i32 planeCo
     i32 n = recordedCount < planeCount ? recordedCount : planeCount;
     for i32 i = 0; i < n; ++i {
         b3RecRecordedHit* h = &rc.hits[rc.cursor + i];
-        if b3RecVec3Differs(h.plane.plane.normal, planes[i].plane.normal) || b3RecF32Differs(h.plane.plane.offset, planes[i].plane.offset) || b3RecVec3Differs(h.plane.point, planes[i].point) {
+        if b3RecVec3Differs(h.plane.plane.normal, planes[i].plane.normal) || b3RecF32Differs(h.plane.plane.offset, planes[i].plane.offset) || b3RecVec3Differs(h.plane.point, planes[i].point) || h.plane.triangleIndex != planes[i].triangleIndex || h.plane.childIndex != planes[i].childIndex || h.plane.materialIndex != planes[i].materialIndex {
             rc.rdr.diverged = true;
         }
     }
@@ -42342,8 +43052,8 @@ bool b3RecReplayPlaneTrampoline(b3ShapeId id, b3PlaneResult* planes, i32 planeCo
 // Copy a decoded proxy's points into a draw record so the overlay does not depend on reader scratch.
 void b3RecStashProxy(b3RecDrawQuery* q, b3ShapeProxy* proxy) {
     i32 count = proxy.count;
-    if count > 64 {
-        count = 64;
+    if count > 128 {
+        count = 128;
     }
     q.proxyCount = count;
     q.proxyRadius = proxy.radius;
@@ -42359,7 +43069,7 @@ void b3RecComputeQueryBounds(b3RecDrawQuery* q) {
     if q.kind == B3_RECQ_OVERLAP_AABB {
         return;
     }
-    noinit b3Vec3[64] local;
+    noinit b3Vec3[128] local;
     i32 count = 0;
     f32 radius = 0.0f;
     switch q.kind {
@@ -42384,7 +43094,7 @@ void b3RecComputeQueryBounds(b3RecDrawQuery* q) {
         count = 1;
     }
     b3Pos end = b3OffsetPos(q.origin, q.translation);
-    noinit b3Vec3[2 * 64] world;
+    noinit b3Vec3[2 * 128] world;
     i32 n = 0;
     for i32 i = 0; i < count; ++i {
         world[n++] = b3ToVec3(b3OffsetPos(q.origin, local[i]));
@@ -43341,6 +44051,41 @@ i32 b3RecDispatchOne(b3RecReader* rdr) {
                 a.name = b3RecR_STR(rdr);
                 if rdr.ok != 0 {
                     b3RecDispatch_ShapeSetName(&a, rdr);
+                }
+                break case;
+            }
+        }
+        case 0x5D: {
+            {
+                b3RecArgs_ShapeSetMeshMaterial a;
+                a.shape = b3RecR_SHAPEID(rdr);
+                a.material = b3RecR_MATERIAL(rdr);
+                a.index = b3RecR_I32(rdr);
+                if rdr.ok != 0 {
+                    b3RecDispatch_ShapeSetMeshMaterial(&a, rdr);
+                }
+                break case;
+            }
+        }
+        case 0x5E: {
+            {
+                b3RecArgs_ShapeSetHull a;
+                a.shape = b3RecR_SHAPEID(rdr);
+                a.geometryId = b3RecR_GEOMID(rdr);
+                if rdr.ok != 0 {
+                    b3RecDispatch_ShapeSetHull(&a, rdr);
+                }
+                break case;
+            }
+        }
+        case 0x5F: {
+            {
+                b3RecArgs_ShapeSetMesh a;
+                a.shape = b3RecR_SHAPEID(rdr);
+                a.geometryId = b3RecR_GEOMID(rdr);
+                a.scale = b3RecR_VEC3(rdr);
+                if rdr.ok != 0 {
+                    b3RecDispatch_ShapeSetMesh(&a, rdr);
                 }
                 break case;
             }
@@ -44458,7 +45203,7 @@ i32 b3RecDispatchOne(b3RecReader* rdr) {
 
 // Public entry point
 bool b3ValidateReplay(void* data, i32 size, i32 workerCount) {
-    b3RecPlayer* player = b3RecPlayer_Create(data, size, workerCount);
+    b3RecPlayer* player = b3CreatePlayer(data, size, workerCount);
     if player == null {
         return false;
     }
@@ -44468,7 +45213,7 @@ bool b3ValidateReplay(void* data, i32 size, i32 workerCount) {
         }
     }
     bool ok = player.rdr.ok && player.rdr.diverged == false;
-    b3RecPlayer_Destroy(player);
+    b3DestroyPlayer(player);
     return ok;
 }
 
@@ -45687,7 +46432,7 @@ void b3RecSeedKeyframeRegistry(b3RecPlayer* player) {
         if slot.byteCount > 0 {
             memcpy(copy, slot.bytes, cast(u64, slot.byteCount));
         }
-        u64 h = b3Hash64Blob(slot.bytes, slot.byteCount);
+        u64 h = b3Hash64NonZero(slot.bytes, slot.byteCount);
         u32 id = b3AppendGeometry(reg, slot.kind, h, copy, slot.byteCount);
         ignore id;
     }
@@ -45698,7 +46443,7 @@ void b3RecSeedKeyframeRegistry(b3RecPlayer* player) {
 void b3RecCaptureKeyframe(b3RecPlayer* player) {
     b3World* world = b3GetWorldFromId(player.rdr.replayWorldId);
     b3RecBuffer buf;
-    i32 regCountBefore = player.keyframeRec.registry.count;
+    i32 regCountBefore = player.keyframeRec.registry.entries.count;
     ignore regCountBefore;
     b3SerializeWorld(world, &buf, player.keyframeRec);
     u64 bodyBytes = cast(u64, player.bodyIdCount) * cast(u64, sizeof(b3BodyId));
@@ -45781,7 +46526,7 @@ b3WorldId b3RecPlayerCreateWorld(b3RecPlayer* player) {
 }
 }
 
-b3RecPlayer* b3RecPlayer_Create(void* data, i32 size, i32 workerCount) {
+b3RecPlayer* b3CreatePlayer(void* data, i32 size, i32 workerCount) {
     if data == null || size < cast(i32, sizeof(b3RecHeader)) {
         printf("b3RecPlayer_Create: recording too small\n");
         return null;
@@ -45792,8 +46537,8 @@ b3RecPlayer* b3RecPlayer_Create(void* data, i32 size, i32 workerCount) {
         printf("b3RecPlayer_Create: bad magic 0x%08X\n", hdr.magic);
         return null;
     }
-    if hdr.versionMajor != 4 {
-        printf("b3RecPlayer_Create: version mismatch %u.%u vs %u.%u\n", hdr.versionMajor, hdr.versionMinor, 4, 3);
+    if hdr.versionMajor != 5 {
+        printf("b3RecPlayer_Create: version mismatch %u.%u vs %u.%u\n", hdr.versionMajor, hdr.versionMinor, 5, 4);
         return null;
     }
     if hdr.pointerWidth != cast(u8, sizeof(void*)) {
@@ -45885,7 +46630,7 @@ b3RecPlayer* b3RecPlayer_Create(void* data, i32 size, i32 workerCount) {
     return player;
 }
 
-void b3RecPlayer_Destroy(b3RecPlayer* player) {
+void b3DestroyPlayer(b3RecPlayer* player) {
     if player == null {
         return;
     }
@@ -46438,7 +47183,6 @@ void b3RecPlayer_SetDebugShapeCallbacks(b3RecPlayer* player, b3CreateDebugShapeC
 
 // SPDX-FileCopyrightText: 2025 Erin Catto
 // SPDX-License-Identifier: MIT
-// needed for dll export
 // Point-to-point linear constraint
 // C = pB - pA
 // Cdot = vB - vA
@@ -47059,9 +47803,9 @@ bool b3OverlapSensor(b3Shape* sensorShape, b3Transform sensorTransform, b3Shape*
     b3ShapeType type = sensorShape.type;
     b3ShapeProxy proxy = b3MakeShapeProxy(visitorShape);
     b3Transform relativeTransform = b3InvMulTransforms(sensorTransform, visitorTransform);
-    noinit b3Vec3[64] localPoints;
+    noinit b3Vec3[128] localPoints;
     noinit b3ShapeProxy localProxy;
-    localProxy.count = b3MinInt(proxy.count, 64);
+    localProxy.count = b3MinInt(proxy.count, 128);
     for i32 i = 0; i < localProxy.count; ++i {
         localPoints[i] = b3TransformPoint(relativeTransform, proxy.points[i]);
     }
@@ -47115,7 +47859,7 @@ bool b3SensorQueryCallback(i32 proxyId, u64 userData, void* context) {
     }
     b3World* world = queryContext.world;
     b3Shape* otherShape = world.shapes.data + shapeId;
-    if (otherShape.type == b3_meshShape || otherShape.type == b3_heightShape) && (sensorShape.type == b3_meshShape || sensorShape.type == b3_heightShape) {
+    if b3IsConvex(otherShape.type) == false {
         return true;
     }
     if (otherShape.flags & b3_enableSensorEvents) == 0 {
@@ -47437,7 +48181,6 @@ void b3DestroySensor(b3World* world, b3Shape* sensorShape) {
 
 // SPDX-FileCopyrightText: 2025 Erin Catto
 // SPDX-License-Identifier: MIT
-// needed for dll export
 private {
 b3Shape* b3GetShape(b3World* world, b3ShapeId shapeId) {
     i32 id = shapeId.index1 - 1;
@@ -47703,6 +48446,9 @@ b3ShapeId b3CreateCapsuleShape(b3BodyId bodyId, b3ShapeDef* def, b3Capsule* caps
 }
 
 b3ShapeId b3CreateHullShape(b3BodyId bodyId, b3ShapeDef* def, b3HullData* hull) {
+    if hull.version != 0x4A4C9587DE57485C {
+        return b3_nullShapeId;
+    }
     b3ShapeId shapeId = b3CreateShape(bodyId, def, hull, b3_hullShape, b3Transform_identity, b3Vec3_one, false);
     if shapeId.index1 != 0 {
         b3World* world = b3GetUnlockedWorld(cast(i32, bodyId.world0));
@@ -47716,6 +48462,9 @@ b3ShapeId b3CreateHullShape(b3BodyId bodyId, b3ShapeDef* def, b3HullData* hull) 
 }
 
 b3ShapeId b3CreateTransformedHullShape(b3BodyId bodyId, b3ShapeDef* def, b3HullData* hull, b3Transform transform, b3Vec3 scale) {
+    if hull.version != 0x4A4C9587DE57485C {
+        return b3_nullShapeId;
+    }
     b3ShapeId shapeId = b3CreateShape(bodyId, def, hull, b3_hullShape, transform, scale, true);
     if shapeId.index1 != 0 {
         b3World* world = b3GetUnlockedWorld(cast(i32, bodyId.world0));
@@ -47730,6 +48479,9 @@ b3ShapeId b3CreateTransformedHullShape(b3BodyId bodyId, b3ShapeDef* def, b3HullD
 }
 
 b3ShapeId b3CreateMeshShape(b3BodyId bodyId, b3ShapeDef* def, b3MeshData* mesh, b3Vec3 scale) {
+    if mesh.version != 0xAAAB9A00F1A8AAF7 {
+        return b3_nullShapeId;
+    }
     b3ShapeId shapeId = b3CreateShape(bodyId, def, mesh, b3_meshShape, b3Transform_identity, scale, true);
     if shapeId.index1 != 0 {
         b3World* world = b3GetUnlockedWorld(cast(i32, bodyId.world0));
@@ -47743,6 +48495,9 @@ b3ShapeId b3CreateMeshShape(b3BodyId bodyId, b3ShapeDef* def, b3MeshData* mesh, 
 }
 
 b3ShapeId b3CreateHeightFieldShape(b3BodyId bodyId, b3ShapeDef* def, b3HeightFieldData* heightField) {
+    if heightField.version != 0x8E41E5FB084848F8 {
+        return b3_nullShapeId;
+    }
     b3ShapeId shapeId = b3CreateShape(bodyId, def, heightField, b3_heightShape, b3Transform_identity, b3Vec3_one, false);
     if shapeId.index1 != 0 {
         b3World* world = b3GetUnlockedWorld(cast(i32, bodyId.world0));
@@ -47756,6 +48511,9 @@ b3ShapeId b3CreateHeightFieldShape(b3BodyId bodyId, b3ShapeDef* def, b3HeightFie
 }
 
 b3ShapeId b3CreateBakedCompoundShape(b3BodyId bodyId, b3ShapeDef* def, b3CompoundData* compound) {
+    if compound.version != (0xB11DCE70FAD5622B ^ 0x93EDAF889FD30B4A ^ 0xAAAB9A00F1A8AAF7 ^ 0x4A4C9587DE57485C) {
+        return b3_nullShapeId;
+    }
     b3ShapeId shapeId = b3CreateShape(bodyId, def, compound, b3_compoundShape, b3Transform_identity, b3Vec3_one, false);
     if shapeId.index1 != 0 {
         b3World* world = b3GetUnlockedWorld(cast(i32, bodyId.world0));
@@ -48041,7 +48799,7 @@ b3ShapeExtent b3ComputeShapeExtent(b3Shape* shape, b3Vec3 localCenter) {
                 b3Vec3 c1 = b3Sub(shape.capsule.center1, localCenter);
                 b3Vec3 c2 = b3Sub(shape.capsule.center2, localCenter);
                 var r = b3Vec3{radius, radius, radius};
-                extent.maxExtent = b3Add(b3Max(c1, c2), r);
+                extent.maxExtent = b3Add(b3Max(b3Abs(c1), b3Abs(c2)), r);
             }
         }
         case b3_compoundShape: {
@@ -48058,9 +48816,9 @@ b3ShapeExtent b3ComputeShapeExtent(b3Shape* shape, b3Vec3 localCenter) {
             {
                 f32 radius = shape.sphere.radius;
                 extent.minExtent = radius;
+                b3Vec3 h = b3Abs(b3Sub(shape.sphere.center, localCenter));
                 var r = b3Vec3{radius, radius, radius};
-                b3Vec3 p = b3Add(b3Sub(shape.sphere.center, localCenter), r);
-                extent.maxExtent = b3Abs(b3Sub(p, localCenter));
+                extent.maxExtent = b3Add(h, r);
             }
         }
         case b3_hullShape: {
@@ -48073,7 +48831,7 @@ b3ShapeExtent b3ComputeShapeExtent(b3Shape* shape, b3Vec3 localCenter) {
                 f32 r2 = b3Length(b3Sub(aabb.upperBound, localCenter));
                 extent.minExtent = b3MinFloat(r1, r2);
                 b3Vec3 p = b3FarthestPointOnAABB(aabb, localCenter);
-                extent.maxExtent = b3Abs(p);
+                extent.maxExtent = b3Abs(b3Sub(p, localCenter));
             }
         }
         default: {
@@ -48117,8 +48875,8 @@ b3CastOutput b3RayCastShape(b3Shape* shape, b3Transform transform, b3RayCastInpu
 
 b3CastOutput b3ShapeCastShape(b3Shape* shape, b3Transform transform, b3ShapeCastInput* input) {
     b3ShapeCastInput localInput = *input;
-    noinit b3Vec3[64] localPoints;
-    localInput.proxy.count = b3MinInt(input.proxy.count, 64);
+    noinit b3Vec3[128] localPoints;
+    localInput.proxy.count = b3MinInt(input.proxy.count, 128);
     for i32 i = 0; i < localInput.proxy.count; ++i {
         localPoints[i] = b3InvTransformPoint(transform, input.proxy.points[i]);
     }
@@ -48214,6 +48972,7 @@ i32 b3CollideMover(b3PlaneResult* planes, i32 planeCapacity, b3Shape* shape, b3T
     for i32 i = 0; i < planeCount; ++i {
         planes[i].plane.normal = b3RotateVector(transform.q, planes[i].plane.normal);
         planes[i].point = b3TransformPoint(transform, planes[i].point);
+        planes[i].materialIndex = b3ClampInt(planes[i].materialIndex, 0, shape.materialCount - 1);
     }
     return planeCount;
 }
@@ -48283,7 +49042,7 @@ b3ShapeProxy b3MakeShapeProxy(b3Shape* shape) {
 b3ShapeProxy b3MakeLocalProxy(b3ShapeProxy* proxy, b3Transform transform, b3Vec3* buffer) {
     b3Transform invTransform = b3InvertTransform(transform);
     b3Matrix3 R = b3MakeMatrixFromQuat(invTransform.q);
-    i32 count = b3MinInt(proxy.count, 64);
+    i32 count = b3MinInt(proxy.count, 128);
     for i32 i = 0; i < count; ++i {
         buffer[i] = b3Add(b3MulMV(R, proxy.points[i]), invTransform.p);
     }
@@ -48465,6 +49224,13 @@ i32 b3Shape_GetMeshMaterialCount(b3ShapeId shapeId) {
 void b3Shape_SetMeshMaterial(b3ShapeId shapeId, b3SurfaceMaterial surfaceMaterial, i32 index) {
     b3World* world = b3GetWorld(cast(i32, shapeId.world0));
     b3Shape* shape = b3GetShape(world, shapeId);
+    while true {
+        if world.recording != null {
+            var recArgs = b3RecArgs_ShapeSetMeshMaterial{shapeId, surfaceMaterial, index};
+            b3RecWrite_ShapeSetMeshMaterial(world.recording, &recArgs);
+        }
+        if !(0 != 0) { break; }
+    }
     b3GetShapeMaterials(shape)[index] = surfaceMaterial;
 }
 
@@ -48724,6 +49490,11 @@ void b3Shape_SetHull(b3ShapeId shapeId, b3HullData* hull) {
         world.locked = false;
         return;
     }
+    if world.recording != null {
+        u32 geometryId = b3RecInternHull(world.recording, data);
+        var setArgs = b3RecArgs_ShapeSetHull{shapeId, geometryId};
+        b3RecWrite_ShapeSetHull(world.recording, &setArgs);
+    }
     b3DestroyShapeAllocationForShapeChange(world, shape);
     shape.hull = data;
     shape.type = b3_hullShape;
@@ -48740,6 +49511,11 @@ void b3Shape_SetMesh(b3ShapeId shapeId, b3MeshData* meshData, b3Vec3 scale) {
         return;
     }
     world.locked = true;
+    if world.recording != null {
+        u32 geometryId = b3RecInternMesh(world.recording, meshData);
+        var setArgs = b3RecArgs_ShapeSetMesh{shapeId, geometryId, scale};
+        b3RecWrite_ShapeSetMesh(world.recording, &setArgs);
+    }
     b3Shape* shape = b3GetShape(world, shapeId);
     b3DestroyShapeAllocationForShapeChange(world, shape);
     shape.mesh.data = meshData;
@@ -51310,13 +52086,12 @@ i32 b3CollideMoverAndSphere(b3PlaneResult* result, b3Sphere* shape, b3Capsule* m
         distance = 0.0f;
     }
     var plane = b3Plane{normal, totalRadius - distance};
-    *result = b3PlaneResult{plane, shape.center};
+    *result = b3PlaneResult{plane, shape.center, 0, 0, 0};
     return 1;
 }
 
 // SPDX-FileCopyrightText: 2025 Erin Catto
 // SPDX-License-Identifier: MIT
-// needed for dll export
 void b3SphericalJoint_EnableConeLimit(b3JointId jointId, bool enableLimit) {
     b3World* world = b3GetWorld(cast(i32, jointId.world0));
     while true {
@@ -52155,7 +52930,7 @@ bool b3ClipSegmentToTriangleFace(b3ClipVertex* segment, b3Vec3* points, b3Plane 
         if distance2 <= 0.0f {
             segment[vertexCount++] = p2;
         }
-        if distance1 * distance2 < 0.0f {
+        if distance1 > 0.0f != distance2 > 0.0f {
             f32 t = distance1 / (distance1 - distance2);
             segment[vertexCount].position = b3Lerp(p1.position, p2.position, t);
             segment[vertexCount].pair = distance1 > 0.0f ? p1.pair : p2.pair;
@@ -52198,14 +52973,16 @@ b3SeparatingAxis b3QueryTriangleAndCapsuleEdges(b3Vec3* vertices, b3Plane plane,
     i32 maxIndex2 = -1;
     f32 squaredTolerance = 0.005f * 0.005f;
     i32 edgeIndex = 2;
+    f32 a = b3Dot(capsuleEdge, plane.normal);
     b3Vec3 v1 = vertices[2];
     for i32 index = 0; index < 3; ++index {
         b3Vec3 v2 = vertices[index];
         b3Vec3 triangleEdge = b3Sub(v2, v1);
         b3Vec3 sideNormal = b3Normalize(b3Cross(triangleEdge, plane.normal));
-        f32 a = b3Dot(capsuleEdge, plane.normal);
         f32 b = b3Dot(capsuleEdge, sideNormal);
         if a * a + b * b < squaredTolerance * b3LengthSquared(capsuleEdge) {
+            v1 = v2;
+            edgeIndex = index;
             continue;
         }
         noinit b3Vec3 axis;
@@ -52289,7 +53066,7 @@ void b3BuildTriangleAndCapsuleEdgeContact(b3LocalManifold* manifold, b3Vec3* tri
     if result.fraction1 < 0.0f || 1.0f < result.fraction1 || result.fraction2 < 0.0f || 1.0f < result.fraction2 {
         return;
     }
-    b3Vec3 point = b3Lerp(b3MulSub(result.point1, capsule.radius, normal), result.point2, 0.5f);
+    b3Vec3 point = b3Lerp(result.point1, b3MulSub(result.point2, capsule.radius, normal), 0.5f);
     f32 separation = b3Dot(normal, b3Sub(p1, v1));
     manifold.normal = normal;
     manifold.pointCount = 1;
@@ -52322,8 +53099,9 @@ void b3CollideTriangleAndCapsule(b3LocalManifold* manifold, i32 capacity, b3Vec3
     distanceInput.transform = b3Transform_identity;
     distanceInput.useRadii = false;
     b3DistanceOutput distanceOutput = b3ShapeDistance(&distanceInput, cache, null, 0);
+    f32 speculativeDistance = 4.0f * (0.005f * b3GetLengthUnitsPerMeter());
     f32 radius = capsuleB.radius;
-    if distanceOutput.distance > radius + 4.0f * (0.005f * b3GetLengthUnitsPerMeter()) {
+    if distanceOutput.distance > radius + speculativeDistance {
         return;
     }
     if distanceOutput.distance > 100.0f * FLT_EPSILON {
@@ -52359,7 +53137,7 @@ void b3CollideTriangleAndCapsule(b3LocalManifold* manifold, i32 capacity, b3Vec3
                 return;
             }
         }
-        b3Vec3 point = b3MulSV(0.5f, b3Add(b3Sub(distanceOutput.pointA, b3MulSV(radius, delta)), distanceOutput.pointB));
+        b3Vec3 point = b3Lerp(distanceOutput.pointA, b3MulSub(distanceOutput.pointB, radius, delta), 0.5f);
         manifold.normal = delta;
         manifold.pointCount = 1;
         manifold.feature = b3GetTriangleFeature(cache);
@@ -52382,10 +53160,12 @@ void b3CollideTriangleAndCapsule(b3LocalManifold* manifold, i32 capacity, b3Vec3
     if manifold.pointCount == 2 {
         faceSeparation = b3MinFloat(manifold.points[0].separation, manifold.points[1].separation);
     }
-    f32 kRelEdgeTolerance = 0.5f;
-    f32 kAbsTolerance = 1.0f * (0.005f * b3GetLengthUnitsPerMeter());
+    if edgeQuery.indexA == -1 {
+        return;
+    }
+    f32 linearSlop = 0.005f * b3GetLengthUnitsPerMeter();
     f32 edgeSeparation = edgeQuery.separation - radius;
-    if manifold.pointCount == 0 || edgeSeparation > kRelEdgeTolerance * faceSeparation + kAbsTolerance {
+    if manifold.pointCount == 0 || edgeSeparation > faceSeparation + linearSlop {
         b3BuildTriangleAndCapsuleEdgeContact(manifold, triangleA, plane, capsuleB, edgeQuery);
     }
 }
@@ -53076,7 +53856,6 @@ b3DebugDraw b3DefaultDebugDraw() {
 
 // SPDX-FileCopyrightText: 2025 Erin Catto
 // SPDX-License-Identifier: MIT
-// needed for dll export
 void b3WeldJoint_SetLinearHertz(b3JointId jointId, f32 hertz) {
     b3World* world = b3GetWorld(cast(i32, jointId.world0));
     while true {
@@ -53317,7 +54096,6 @@ void b3DrawWeldJoint(b3DebugDraw* draw, b3JointSim* base, b3WorldTransform trans
 
 // SPDX-FileCopyrightText: 2025 Erin Catto
 // SPDX-License-Identifier: MIT
-// needed for dll export
 void b3WheelJoint_EnableSuspension(b3JointId jointId, bool enableSpring) {
     b3World* world = b3GetWorld(cast(i32, jointId.world0));
     while true {

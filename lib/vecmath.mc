@@ -1023,7 +1023,6 @@ struct mat44_t {
 }
 
 // math defines
-// If we are running tests on windows
 f32 internal_vecmath_frac(f32 v) {
     f32 t;
     return fabs(modff(v, &t));

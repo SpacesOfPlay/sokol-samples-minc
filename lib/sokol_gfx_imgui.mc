@@ -20,53 +20,55 @@ enum _sgimgui_cmd_t {
     _SGIMGUI_CMD_UPDATE_BUFFER = 14,
     _SGIMGUI_CMD_UPDATE_IMAGE = 15,
     _SGIMGUI_CMD_APPEND_BUFFER = 16,
-    _SGIMGUI_CMD_WRITE_BUFFER_UNSEALED = 17,
-    _SGIMGUI_CMD_WRITE_IMAGE_UNSEALED = 18,
-    _SGIMGUI_CMD_SEAL_BUFFER = 19,
-    _SGIMGUI_CMD_SEAL_IMAGE = 20,
-    _SGIMGUI_CMD_BEGIN_PASS = 21,
-    _SGIMGUI_CMD_APPLY_VIEWPORT = 22,
-    _SGIMGUI_CMD_APPLY_SCISSOR_RECT = 23,
-    _SGIMGUI_CMD_APPLY_PIPELINE = 24,
-    _SGIMGUI_CMD_APPLY_BINDINGS = 25,
-    _SGIMGUI_CMD_APPLY_UNIFORMS = 26,
-    _SGIMGUI_CMD_DRAW = 27,
-    _SGIMGUI_CMD_DRAW_EX = 28,
-    _SGIMGUI_CMD_DISPATCH = 29,
-    _SGIMGUI_CMD_END_PASS = 30,
-    _SGIMGUI_CMD_COMMIT = 31,
-    _SGIMGUI_CMD_ALLOC_BUFFER = 32,
-    _SGIMGUI_CMD_ALLOC_IMAGE = 33,
-    _SGIMGUI_CMD_ALLOC_SAMPLER = 34,
-    _SGIMGUI_CMD_ALLOC_SHADER = 35,
-    _SGIMGUI_CMD_ALLOC_PIPELINE = 36,
-    _SGIMGUI_CMD_ALLOC_VIEW = 37,
-    _SGIMGUI_CMD_DEALLOC_BUFFER = 38,
-    _SGIMGUI_CMD_DEALLOC_IMAGE = 39,
-    _SGIMGUI_CMD_DEALLOC_SAMPLER = 40,
-    _SGIMGUI_CMD_DEALLOC_SHADER = 41,
-    _SGIMGUI_CMD_DEALLOC_PIPELINE = 42,
-    _SGIMGUI_CMD_DEALLOC_VIEW = 43,
-    _SGIMGUI_CMD_INIT_BUFFER = 44,
-    _SGIMGUI_CMD_INIT_IMAGE = 45,
-    _SGIMGUI_CMD_INIT_SAMPLER = 46,
-    _SGIMGUI_CMD_INIT_SHADER = 47,
-    _SGIMGUI_CMD_INIT_PIPELINE = 48,
-    _SGIMGUI_CMD_INIT_VIEW = 49,
-    _SGIMGUI_CMD_UNINIT_BUFFER = 50,
-    _SGIMGUI_CMD_UNINIT_IMAGE = 51,
-    _SGIMGUI_CMD_UNINIT_SAMPLER = 52,
-    _SGIMGUI_CMD_UNINIT_SHADER = 53,
-    _SGIMGUI_CMD_UNINIT_PIPELINE = 54,
-    _SGIMGUI_CMD_UNINIT_VIEW = 55,
-    _SGIMGUI_CMD_FAIL_BUFFER = 56,
-    _SGIMGUI_CMD_FAIL_IMAGE = 57,
-    _SGIMGUI_CMD_FAIL_SAMPLER = 58,
-    _SGIMGUI_CMD_FAIL_SHADER = 59,
-    _SGIMGUI_CMD_FAIL_PIPELINE = 60,
-    _SGIMGUI_CMD_FAIL_VIEW = 61,
-    _SGIMGUI_CMD_PUSH_DEBUG_GROUP = 62,
-    _SGIMGUI_CMD_POP_DEBUG_GROUP = 63,
+    _SGIMGUI_CMD_WRITE_BUFFER_TRANSIENT = 17,
+    _SGIMGUI_CMD_WRITE_IMAGE_TRANSIENT = 18,
+    _SGIMGUI_CMD_WRITE_BUFFER_UNSEALED = 19,
+    _SGIMGUI_CMD_WRITE_IMAGE_UNSEALED = 20,
+    _SGIMGUI_CMD_SEAL_BUFFER = 21,
+    _SGIMGUI_CMD_SEAL_IMAGE = 22,
+    _SGIMGUI_CMD_BEGIN_PASS = 23,
+    _SGIMGUI_CMD_APPLY_VIEWPORT = 24,
+    _SGIMGUI_CMD_APPLY_SCISSOR_RECT = 25,
+    _SGIMGUI_CMD_APPLY_PIPELINE = 26,
+    _SGIMGUI_CMD_APPLY_BINDINGS = 27,
+    _SGIMGUI_CMD_APPLY_UNIFORMS = 28,
+    _SGIMGUI_CMD_DRAW = 29,
+    _SGIMGUI_CMD_DRAW_EX = 30,
+    _SGIMGUI_CMD_DISPATCH = 31,
+    _SGIMGUI_CMD_END_PASS = 32,
+    _SGIMGUI_CMD_COMMIT = 33,
+    _SGIMGUI_CMD_ALLOC_BUFFER = 34,
+    _SGIMGUI_CMD_ALLOC_IMAGE = 35,
+    _SGIMGUI_CMD_ALLOC_SAMPLER = 36,
+    _SGIMGUI_CMD_ALLOC_SHADER = 37,
+    _SGIMGUI_CMD_ALLOC_PIPELINE = 38,
+    _SGIMGUI_CMD_ALLOC_VIEW = 39,
+    _SGIMGUI_CMD_DEALLOC_BUFFER = 40,
+    _SGIMGUI_CMD_DEALLOC_IMAGE = 41,
+    _SGIMGUI_CMD_DEALLOC_SAMPLER = 42,
+    _SGIMGUI_CMD_DEALLOC_SHADER = 43,
+    _SGIMGUI_CMD_DEALLOC_PIPELINE = 44,
+    _SGIMGUI_CMD_DEALLOC_VIEW = 45,
+    _SGIMGUI_CMD_INIT_BUFFER = 46,
+    _SGIMGUI_CMD_INIT_IMAGE = 47,
+    _SGIMGUI_CMD_INIT_SAMPLER = 48,
+    _SGIMGUI_CMD_INIT_SHADER = 49,
+    _SGIMGUI_CMD_INIT_PIPELINE = 50,
+    _SGIMGUI_CMD_INIT_VIEW = 51,
+    _SGIMGUI_CMD_UNINIT_BUFFER = 52,
+    _SGIMGUI_CMD_UNINIT_IMAGE = 53,
+    _SGIMGUI_CMD_UNINIT_SAMPLER = 54,
+    _SGIMGUI_CMD_UNINIT_SHADER = 55,
+    _SGIMGUI_CMD_UNINIT_PIPELINE = 56,
+    _SGIMGUI_CMD_UNINIT_VIEW = 57,
+    _SGIMGUI_CMD_FAIL_BUFFER = 58,
+    _SGIMGUI_CMD_FAIL_IMAGE = 59,
+    _SGIMGUI_CMD_FAIL_SAMPLER = 60,
+    _SGIMGUI_CMD_FAIL_SHADER = 61,
+    _SGIMGUI_CMD_FAIL_PIPELINE = 62,
+    _SGIMGUI_CMD_FAIL_VIEW = 63,
+    _SGIMGUI_CMD_PUSH_DEBUG_GROUP = 64,
+    _SGIMGUI_CMD_POP_DEBUG_GROUP = 65,
 }
 
 /*
@@ -248,6 +250,22 @@ struct _sgimgui_args_append_buffer_t {
     sg_buffer buffer;
     u64 data_size;
     i32 result;
+}
+
+struct _sgimgui_args_write_buffer_transient_t {
+    u64 src_data_size;
+    u64 src_data_offset;
+    sg_buffer_location dst;
+    u64 write_size;
+}
+
+struct _sgimgui_args_write_image_transient_t {
+    u64 src_data_size;
+    u64 src_data_offset;
+    i32 src_bytes_per_row;
+    i32 src_bytes_per_slice;
+    sg_image_location dst;
+    sg_image_extent write_size;
 }
 
 struct _sgimgui_args_write_buffer_unsealed_t {
@@ -469,6 +487,8 @@ unsafe_union _sgimgui_args_t {
     _sgimgui_args_update_buffer_t update_buffer;
     _sgimgui_args_update_image_t update_image;
     _sgimgui_args_append_buffer_t append_buffer;
+    _sgimgui_args_write_buffer_transient_t write_buffer_transient;
+    _sgimgui_args_write_image_transient_t write_image_transient;
     _sgimgui_args_write_buffer_unsealed_t write_buffer_unsealed;
     _sgimgui_args_write_image_unsealed_t write_image_unsealed;
     _sgimgui_args_seal_buffer_t seal_buffer;
@@ -928,9 +948,40 @@ void* _sgimgui_realloc(sgimgui_allocator_t* allocator, void* old_ptr, u64 old_si
     return new_ptr;
 }
 
-i32 _sgimgui_slot_index(u32 id) {
+i32 _sgimgui_slot_index(u32 id, i32 num_slots) {
     var slot_index = cast(i32, id & 0xFFFF);
+    ignore num_slots;
     return slot_index;
+}
+
+_sgimgui_buffer_t* _sgimgui_buf_ptr(_sgimgui_t* ctx, sg_buffer buf) {
+    i32 slot_index = _sgimgui_slot_index(buf.id, ctx.buffer_window.num_slots);
+    return &ctx.buffer_window.slots[slot_index];
+}
+
+_sgimgui_image_t* _sgimgui_img_ptr(_sgimgui_t* ctx, sg_image img) {
+    i32 slot_index = _sgimgui_slot_index(img.id, ctx.image_window.num_slots);
+    return &ctx.image_window.slots[slot_index];
+}
+
+_sgimgui_sampler_t* _sgimgui_smp_ptr(_sgimgui_t* ctx, sg_sampler smp) {
+    i32 slot_index = _sgimgui_slot_index(smp.id, ctx.sampler_window.num_slots);
+    return &ctx.sampler_window.slots[slot_index];
+}
+
+_sgimgui_view_t* _sgimgui_view_ptr(_sgimgui_t* ctx, sg_view view) {
+    i32 slot_index = _sgimgui_slot_index(view.id, ctx.view_window.num_slots);
+    return &ctx.view_window.slots[slot_index];
+}
+
+_sgimgui_shader_t* _sgimgui_shd_ptr(_sgimgui_t* ctx, sg_shader shd) {
+    i32 slot_index = _sgimgui_slot_index(shd.id, ctx.shader_window.num_slots);
+    return &ctx.shader_window.slots[slot_index];
+}
+
+_sgimgui_pipeline_t* _sgimgui_pip_ptr(_sgimgui_t* ctx, sg_pipeline pip) {
+    i32 slot_index = _sgimgui_slot_index(pip.id, ctx.pipeline_window.num_slots);
+    return &ctx.pipeline_window.slots[slot_index];
 }
 
 u32 _sgimgui_align_u32(u32 val, u32 align) {
@@ -1859,7 +1910,7 @@ _sgimgui_str_t _sgimgui_res_id_string(u32 res_id, u8* label) {
 
 _sgimgui_str_t _sgimgui_buffer_id_string(_sgimgui_t* ctx, sg_buffer buf_id) {
     if buf_id.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_buffer_t* buf_ui = &ctx.buffer_window.slots[_sgimgui_slot_index(buf_id.id)];
+        _sgimgui_buffer_t* buf_ui = _sgimgui_buf_ptr(ctx, buf_id);
         return _sgimgui_res_id_string(buf_id.id, buf_ui.label.buf);
     } else {
         return _sgimgui_make_str("<invalid>");
@@ -1868,7 +1919,7 @@ _sgimgui_str_t _sgimgui_buffer_id_string(_sgimgui_t* ctx, sg_buffer buf_id) {
 
 _sgimgui_str_t _sgimgui_image_id_string(_sgimgui_t* ctx, sg_image img_id) {
     if img_id.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_image_t* img_ui = &ctx.image_window.slots[_sgimgui_slot_index(img_id.id)];
+        _sgimgui_image_t* img_ui = _sgimgui_img_ptr(ctx, img_id);
         return _sgimgui_res_id_string(img_id.id, img_ui.label.buf);
     } else {
         return _sgimgui_make_str("<invalid>");
@@ -1877,7 +1928,7 @@ _sgimgui_str_t _sgimgui_image_id_string(_sgimgui_t* ctx, sg_image img_id) {
 
 _sgimgui_str_t _sgimgui_sampler_id_string(_sgimgui_t* ctx, sg_sampler smp_id) {
     if smp_id.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_sampler_t* smp_ui = &ctx.sampler_window.slots[_sgimgui_slot_index(smp_id.id)];
+        _sgimgui_sampler_t* smp_ui = _sgimgui_smp_ptr(ctx, smp_id);
         return _sgimgui_res_id_string(smp_id.id, smp_ui.label.buf);
     } else {
         return _sgimgui_make_str("<invalid>");
@@ -1886,7 +1937,7 @@ _sgimgui_str_t _sgimgui_sampler_id_string(_sgimgui_t* ctx, sg_sampler smp_id) {
 
 _sgimgui_str_t _sgimgui_shader_id_string(_sgimgui_t* ctx, sg_shader shd_id) {
     if shd_id.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_shader_t* shd_ui = &ctx.shader_window.slots[_sgimgui_slot_index(shd_id.id)];
+        _sgimgui_shader_t* shd_ui = _sgimgui_shd_ptr(ctx, shd_id);
         return _sgimgui_res_id_string(shd_id.id, shd_ui.label.buf);
     } else {
         return _sgimgui_make_str("<invalid>");
@@ -1895,7 +1946,7 @@ _sgimgui_str_t _sgimgui_shader_id_string(_sgimgui_t* ctx, sg_shader shd_id) {
 
 _sgimgui_str_t _sgimgui_pipeline_id_string(_sgimgui_t* ctx, sg_pipeline pip_id) {
     if pip_id.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_pipeline_t* pip_ui = &ctx.pipeline_window.slots[_sgimgui_slot_index(pip_id.id)];
+        _sgimgui_pipeline_t* pip_ui = _sgimgui_pip_ptr(ctx, pip_id);
         return _sgimgui_res_id_string(pip_id.id, pip_ui.label.buf);
     } else {
         return _sgimgui_make_str("<invalid>");
@@ -1904,7 +1955,7 @@ _sgimgui_str_t _sgimgui_pipeline_id_string(_sgimgui_t* ctx, sg_pipeline pip_id) 
 
 _sgimgui_str_t _sgimgui_view_id_string(_sgimgui_t* ctx, sg_view view_id) {
     if view_id.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_view_t* view_ui = &ctx.view_window.slots[_sgimgui_slot_index(view_id.id)];
+        _sgimgui_view_t* view_ui = _sgimgui_view_ptr(ctx, view_id);
         return _sgimgui_res_id_string(view_id.id, view_ui.label.buf);
     } else {
         return _sgimgui_make_str("<invalid>");
@@ -1912,46 +1963,46 @@ _sgimgui_str_t _sgimgui_view_id_string(_sgimgui_t* ctx, sg_view view_id) {
 }
 
 /*--- RESOURCE HELPERS -------------------------------------------------------*/
-void _sgimgui_buffer_created(_sgimgui_t* ctx, sg_buffer res_id, i32 slot_index, sg_buffer_desc* desc) {
-    _sgimgui_buffer_t* buf = &ctx.buffer_window.slots[slot_index];
-    buf.res_id = res_id;
+void _sgimgui_buffer_created(_sgimgui_t* ctx, sg_buffer buf_id, sg_buffer_desc* desc) {
+    _sgimgui_buffer_t* buf = _sgimgui_buf_ptr(ctx, buf_id);
+    buf.res_id = buf_id;
     buf.desc = *desc;
     buf.label = _sgimgui_make_str(desc.label);
 }
 
-void _sgimgui_buffer_destroyed(_sgimgui_t* ctx, i32 slot_index) {
-    _sgimgui_buffer_t* buf = &ctx.buffer_window.slots[slot_index];
+void _sgimgui_buffer_destroyed(_sgimgui_t* ctx, sg_buffer buf_id) {
+    _sgimgui_buffer_t* buf = _sgimgui_buf_ptr(ctx, buf_id);
     buf.res_id.id = cast(u32, SG_INVALID_ID);
 }
 
-void _sgimgui_image_created(_sgimgui_t* ctx, sg_image res_id, i32 slot_index, sg_image_desc* desc) {
-    _sgimgui_image_t* img = &ctx.image_window.slots[slot_index];
-    img.res_id = res_id;
+void _sgimgui_image_created(_sgimgui_t* ctx, sg_image img_id, sg_image_desc* desc) {
+    _sgimgui_image_t* img = _sgimgui_img_ptr(ctx, img_id);
+    img.res_id = img_id;
     img.desc = *desc;
     img.ui_scale = 1.0f;
     img.label = _sgimgui_make_str(desc.label);
 }
 
-void _sgimgui_image_destroyed(_sgimgui_t* ctx, i32 slot_index) {
-    _sgimgui_image_t* img = &ctx.image_window.slots[slot_index];
+void _sgimgui_image_destroyed(_sgimgui_t* ctx, sg_image img_id) {
+    _sgimgui_image_t* img = _sgimgui_img_ptr(ctx, img_id);
     img.res_id.id = cast(u32, SG_INVALID_ID);
 }
 
-void _sgimgui_sampler_created(_sgimgui_t* ctx, sg_sampler res_id, i32 slot_index, sg_sampler_desc* desc) {
-    _sgimgui_sampler_t* smp = &ctx.sampler_window.slots[slot_index];
-    smp.res_id = res_id;
+void _sgimgui_sampler_created(_sgimgui_t* ctx, sg_sampler smp_id, sg_sampler_desc* desc) {
+    _sgimgui_sampler_t* smp = _sgimgui_smp_ptr(ctx, smp_id);
+    smp.res_id = smp_id;
     smp.desc = *desc;
     smp.label = _sgimgui_make_str(desc.label);
 }
 
-void _sgimgui_sampler_destroyed(_sgimgui_t* ctx, i32 slot_index) {
-    _sgimgui_sampler_t* smp = &ctx.sampler_window.slots[slot_index];
+void _sgimgui_sampler_destroyed(_sgimgui_t* ctx, sg_sampler smp_id) {
+    _sgimgui_sampler_t* smp = _sgimgui_smp_ptr(ctx, smp_id);
     smp.res_id.id = cast(u32, SG_INVALID_ID);
 }
 
-void _sgimgui_shader_created(_sgimgui_t* ctx, sg_shader res_id, i32 slot_index, sg_shader_desc* desc) {
-    _sgimgui_shader_t* shd = &ctx.shader_window.slots[slot_index];
-    shd.res_id = res_id;
+void _sgimgui_shader_created(_sgimgui_t* ctx, sg_shader shd_id, sg_shader_desc* desc) {
+    _sgimgui_shader_t* shd = _sgimgui_shd_ptr(ctx, shd_id);
+    shd.res_id = shd_id;
     shd.desc = *desc;
     shd.label = _sgimgui_make_str(desc.label);
     if shd.desc.vertex_func.entry != null {
@@ -2024,8 +2075,8 @@ void _sgimgui_shader_created(_sgimgui_t* ctx, sg_shader res_id, i32 slot_index, 
     }
 }
 
-void _sgimgui_shader_destroyed(_sgimgui_t* ctx, i32 slot_index) {
-    _sgimgui_shader_t* shd = &ctx.shader_window.slots[slot_index];
+void _sgimgui_shader_destroyed(_sgimgui_t* ctx, sg_shader shd_id) {
+    _sgimgui_shader_t* shd = _sgimgui_shd_ptr(ctx, shd_id);
     shd.res_id.id = cast(u32, SG_INVALID_ID);
     if shd.desc.vertex_func.source != null {
         _sgimgui_free(&ctx.desc.allocator, cast(void*, shd.desc.vertex_func.source));
@@ -2053,28 +2104,28 @@ void _sgimgui_shader_destroyed(_sgimgui_t* ctx, i32 slot_index) {
     }
 }
 
-void _sgimgui_pipeline_created(_sgimgui_t* ctx, sg_pipeline res_id, i32 slot_index, sg_pipeline_desc* desc) {
-    _sgimgui_pipeline_t* pip = &ctx.pipeline_window.slots[slot_index];
-    pip.res_id = res_id;
+void _sgimgui_pipeline_created(_sgimgui_t* ctx, sg_pipeline pip_id, sg_pipeline_desc* desc) {
+    _sgimgui_pipeline_t* pip = _sgimgui_pip_ptr(ctx, pip_id);
+    pip.res_id = pip_id;
     pip.label = _sgimgui_make_str(desc.label);
     pip.desc = *desc;
 }
 
-void _sgimgui_pipeline_destroyed(_sgimgui_t* ctx, i32 slot_index) {
-    _sgimgui_pipeline_t* pip = &ctx.pipeline_window.slots[slot_index];
+void _sgimgui_pipeline_destroyed(_sgimgui_t* ctx, sg_pipeline pip_id) {
+    _sgimgui_pipeline_t* pip = _sgimgui_pip_ptr(ctx, pip_id);
     pip.res_id.id = cast(u32, SG_INVALID_ID);
 }
 
-void _sgimgui_view_created(_sgimgui_t* ctx, sg_view res_id, i32 slot_index, sg_view_desc* desc) {
-    _sgimgui_view_t* view = &ctx.view_window.slots[slot_index];
-    view.res_id = res_id;
+void _sgimgui_view_created(_sgimgui_t* ctx, sg_view view_id, sg_view_desc* desc) {
+    _sgimgui_view_t* view = _sgimgui_view_ptr(ctx, view_id);
+    view.res_id = view_id;
     view.ui_scale = 1.0f;
     view.label = _sgimgui_make_str(desc.label);
     view.desc = *desc;
 }
 
-void _sgimgui_view_destroyed(_sgimgui_t* ctx, i32 slot_index) {
-    _sgimgui_view_t* view = &ctx.view_window.slots[slot_index];
+void _sgimgui_view_destroyed(_sgimgui_t* ctx, sg_view view_id) {
+    _sgimgui_view_t* view = _sgimgui_view_ptr(ctx, view_id);
     view.res_id.id = cast(u32, SG_INVALID_ID);
 }
 
@@ -2246,6 +2297,12 @@ _sgimgui_str_t _sgimgui_capture_item_string(_sgimgui_t* ctx, i32 index, _sgimgui
                 _sgimgui_str_t res_id = _sgimgui_buffer_id_string(ctx, item.args.append_buffer.buffer);
                 _sgimgui_snprintf(&str_var, "%d: sg_append_buffer(buf=%s, data.size=%d) => %d", index, res_id.buf, item.args.append_buffer.data_size, item.args.append_buffer.result);
             }
+        }
+        case _SGIMGUI_CMD_WRITE_BUFFER_TRANSIENT: {
+            _sgimgui_snprintf(&str_var, "%d: sg_write_buffer_transient(desc=...)", index);
+        }
+        case _SGIMGUI_CMD_WRITE_IMAGE_TRANSIENT: {
+            _sgimgui_snprintf(&str_var, "%d: sg_write_image_transient(desc=...)", index);
         }
         case _SGIMGUI_CMD_WRITE_BUFFER_UNSEALED: {
             _sgimgui_snprintf(&str_var, "%d: sg_write_buffer_unsealed(desc=...)", index);
@@ -2521,7 +2578,7 @@ void _sgimgui_make_buffer(sg_buffer_desc* desc, sg_buffer buf_id, void* user_dat
         ctx.hooks.make_buffer(desc, buf_id, ctx.hooks.user_data);
     }
     if buf_id.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_buffer_created(ctx, buf_id, _sgimgui_slot_index(buf_id.id), desc);
+        _sgimgui_buffer_created(ctx, buf_id, desc);
     }
 }
 
@@ -2537,7 +2594,7 @@ void _sgimgui_make_image(sg_image_desc* desc, sg_image img_id, void* user_data) 
         ctx.hooks.make_image(desc, img_id, ctx.hooks.user_data);
     }
     if img_id.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_image_created(ctx, img_id, _sgimgui_slot_index(img_id.id), desc);
+        _sgimgui_image_created(ctx, img_id, desc);
     }
 }
 
@@ -2553,7 +2610,7 @@ void _sgimgui_make_sampler(sg_sampler_desc* desc, sg_sampler smp_id, void* user_
         ctx.hooks.make_sampler(desc, smp_id, ctx.hooks.user_data);
     }
     if smp_id.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_sampler_created(ctx, smp_id, _sgimgui_slot_index(smp_id.id), desc);
+        _sgimgui_sampler_created(ctx, smp_id, desc);
     }
 }
 
@@ -2569,7 +2626,7 @@ void _sgimgui_make_shader(sg_shader_desc* desc, sg_shader shd_id, void* user_dat
         ctx.hooks.make_shader(desc, shd_id, ctx.hooks.user_data);
     }
     if shd_id.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_shader_created(ctx, shd_id, _sgimgui_slot_index(shd_id.id), desc);
+        _sgimgui_shader_created(ctx, shd_id, desc);
     }
 }
 
@@ -2585,7 +2642,7 @@ void _sgimgui_make_pipeline(sg_pipeline_desc* desc, sg_pipeline pip_id, void* us
         ctx.hooks.make_pipeline(desc, pip_id, ctx.hooks.user_data);
     }
     if pip_id.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_pipeline_created(ctx, pip_id, _sgimgui_slot_index(pip_id.id), desc);
+        _sgimgui_pipeline_created(ctx, pip_id, desc);
     }
 }
 
@@ -2601,7 +2658,7 @@ void _sgimgui_make_view(sg_view_desc* desc, sg_view view_id, void* user_data) {
         ctx.hooks.make_view(desc, view_id, ctx.hooks.user_data);
     }
     if view_id.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_view_created(ctx, view_id, _sgimgui_slot_index(view_id.id), desc);
+        _sgimgui_view_created(ctx, view_id, desc);
     }
 }
 
@@ -2617,7 +2674,7 @@ void _sgimgui_destroy_buffer(sg_buffer buf, void* user_data) {
         ctx.hooks.destroy_buffer(buf, ctx.hooks.user_data);
     }
     if buf.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_buffer_destroyed(ctx, _sgimgui_slot_index(buf.id));
+        _sgimgui_buffer_destroyed(ctx, buf);
     }
 }
 
@@ -2633,7 +2690,7 @@ void _sgimgui_destroy_image(sg_image img, void* user_data) {
         ctx.hooks.destroy_image(img, ctx.hooks.user_data);
     }
     if img.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_image_destroyed(ctx, _sgimgui_slot_index(img.id));
+        _sgimgui_image_destroyed(ctx, img);
     }
 }
 
@@ -2649,7 +2706,7 @@ void _sgimgui_destroy_sampler(sg_sampler smp, void* user_data) {
         ctx.hooks.destroy_sampler(smp, ctx.hooks.user_data);
     }
     if smp.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_sampler_destroyed(ctx, _sgimgui_slot_index(smp.id));
+        _sgimgui_sampler_destroyed(ctx, smp);
     }
 }
 
@@ -2665,7 +2722,7 @@ void _sgimgui_destroy_shader(sg_shader shd, void* user_data) {
         ctx.hooks.destroy_shader(shd, ctx.hooks.user_data);
     }
     if shd.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_shader_destroyed(ctx, _sgimgui_slot_index(shd.id));
+        _sgimgui_shader_destroyed(ctx, shd);
     }
 }
 
@@ -2681,7 +2738,7 @@ void _sgimgui_destroy_pipeline(sg_pipeline pip, void* user_data) {
         ctx.hooks.destroy_pipeline(pip, ctx.hooks.user_data);
     }
     if pip.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_pipeline_destroyed(ctx, _sgimgui_slot_index(pip.id));
+        _sgimgui_pipeline_destroyed(ctx, pip);
     }
 }
 
@@ -2697,7 +2754,7 @@ void _sgimgui_destroy_view(sg_view view, void* user_data) {
         ctx.hooks.destroy_view(view, ctx.hooks.user_data);
     }
     if view.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_view_destroyed(ctx, _sgimgui_slot_index(view.id));
+        _sgimgui_view_destroyed(ctx, view);
     }
 }
 
@@ -2740,6 +2797,40 @@ void _sgimgui_append_buffer(sg_buffer buf, sg_range* data, i32 result, void* use
     }
     if ctx.hooks.append_buffer != null {
         ctx.hooks.append_buffer(buf, data, result, ctx.hooks.user_data);
+    }
+}
+
+void _sgimgui_write_buffer_transient(sg_write_buffer_desc* desc, void* user_data) {
+    var ctx = cast(_sgimgui_t*, user_data);
+    _sgimgui_capture_item_t* item = _sgimgui_capture_next_write_item(ctx);
+    if item != null {
+        item.cmd = _SGIMGUI_CMD_WRITE_BUFFER_TRANSIENT;
+        item.color = 0xFF00FFFF;
+        item.args.write_buffer_transient.src_data_size = desc.src.data.size;
+        item.args.write_buffer_transient.src_data_offset = desc.src.offset;
+        item.args.write_buffer_transient.dst = desc.dst;
+        item.args.write_buffer_transient.write_size = desc.size;
+    }
+    if ctx.hooks.write_buffer_transient != null {
+        ctx.hooks.write_buffer_transient(desc, ctx.hooks.user_data);
+    }
+}
+
+void _sgimgui_write_image_transient(sg_write_image_desc* desc, void* user_data) {
+    var ctx = cast(_sgimgui_t*, user_data);
+    _sgimgui_capture_item_t* item = _sgimgui_capture_next_write_item(ctx);
+    if item != null {
+        item.cmd = _SGIMGUI_CMD_WRITE_IMAGE_TRANSIENT;
+        item.color = 0xFF00FFFF;
+        item.args.write_image_transient.src_data_size = desc.src.data.size;
+        item.args.write_image_transient.src_data_offset = desc.src.offset;
+        item.args.write_image_transient.src_bytes_per_row = desc.src.bytes_per_row;
+        item.args.write_image_transient.src_bytes_per_slice = desc.src.bytes_per_slice;
+        item.args.write_image_transient.dst = desc.dst;
+        item.args.write_image_transient.write_size = desc.size;
+    }
+    if ctx.hooks.write_image_transient != null {
+        ctx.hooks.write_image_transient(desc, ctx.hooks.user_data);
     }
 }
 
@@ -3135,7 +3226,7 @@ void _sgimgui_init_buffer(sg_buffer buf_id, sg_buffer_desc* desc, void* user_dat
         ctx.hooks.init_buffer(buf_id, desc, ctx.hooks.user_data);
     }
     if buf_id.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_buffer_created(ctx, buf_id, _sgimgui_slot_index(buf_id.id), desc);
+        _sgimgui_buffer_created(ctx, buf_id, desc);
     }
 }
 
@@ -3151,7 +3242,7 @@ void _sgimgui_init_image(sg_image img_id, sg_image_desc* desc, void* user_data) 
         ctx.hooks.init_image(img_id, desc, ctx.hooks.user_data);
     }
     if img_id.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_image_created(ctx, img_id, _sgimgui_slot_index(img_id.id), desc);
+        _sgimgui_image_created(ctx, img_id, desc);
     }
 }
 
@@ -3167,7 +3258,7 @@ void _sgimgui_init_sampler(sg_sampler smp_id, sg_sampler_desc* desc, void* user_
         ctx.hooks.init_sampler(smp_id, desc, ctx.hooks.user_data);
     }
     if smp_id.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_sampler_created(ctx, smp_id, _sgimgui_slot_index(smp_id.id), desc);
+        _sgimgui_sampler_created(ctx, smp_id, desc);
     }
 }
 
@@ -3183,7 +3274,7 @@ void _sgimgui_init_shader(sg_shader shd_id, sg_shader_desc* desc, void* user_dat
         ctx.hooks.init_shader(shd_id, desc, ctx.hooks.user_data);
     }
     if shd_id.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_shader_created(ctx, shd_id, _sgimgui_slot_index(shd_id.id), desc);
+        _sgimgui_shader_created(ctx, shd_id, desc);
     }
 }
 
@@ -3199,7 +3290,7 @@ void _sgimgui_init_pipeline(sg_pipeline pip_id, sg_pipeline_desc* desc, void* us
         ctx.hooks.init_pipeline(pip_id, desc, ctx.hooks.user_data);
     }
     if pip_id.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_pipeline_created(ctx, pip_id, _sgimgui_slot_index(pip_id.id), desc);
+        _sgimgui_pipeline_created(ctx, pip_id, desc);
     }
 }
 
@@ -3215,7 +3306,7 @@ void _sgimgui_init_view(sg_view view_id, sg_view_desc* desc, void* user_data) {
         ctx.hooks.init_view(view_id, desc, ctx.hooks.user_data);
     }
     if view_id.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_view_created(ctx, view_id, _sgimgui_slot_index(view_id.id), desc);
+        _sgimgui_view_created(ctx, view_id, desc);
     }
 }
 
@@ -3231,7 +3322,7 @@ void _sgimgui_uninit_buffer(sg_buffer buf, void* user_data) {
         ctx.hooks.uninit_buffer(buf, ctx.hooks.user_data);
     }
     if buf.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_buffer_destroyed(ctx, _sgimgui_slot_index(buf.id));
+        _sgimgui_buffer_destroyed(ctx, buf);
     }
 }
 
@@ -3247,7 +3338,7 @@ void _sgimgui_uninit_image(sg_image img, void* user_data) {
         ctx.hooks.uninit_image(img, ctx.hooks.user_data);
     }
     if img.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_image_destroyed(ctx, _sgimgui_slot_index(img.id));
+        _sgimgui_image_destroyed(ctx, img);
     }
 }
 
@@ -3263,7 +3354,7 @@ void _sgimgui_uninit_sampler(sg_sampler smp, void* user_data) {
         ctx.hooks.uninit_sampler(smp, ctx.hooks.user_data);
     }
     if smp.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_sampler_destroyed(ctx, _sgimgui_slot_index(smp.id));
+        _sgimgui_sampler_destroyed(ctx, smp);
     }
 }
 
@@ -3279,7 +3370,7 @@ void _sgimgui_uninit_shader(sg_shader shd, void* user_data) {
         ctx.hooks.uninit_shader(shd, ctx.hooks.user_data);
     }
     if shd.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_shader_destroyed(ctx, _sgimgui_slot_index(shd.id));
+        _sgimgui_shader_destroyed(ctx, shd);
     }
 }
 
@@ -3295,7 +3386,7 @@ void _sgimgui_uninit_pipeline(sg_pipeline pip, void* user_data) {
         ctx.hooks.uninit_pipeline(pip, ctx.hooks.user_data);
     }
     if pip.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_pipeline_destroyed(ctx, _sgimgui_slot_index(pip.id));
+        _sgimgui_pipeline_destroyed(ctx, pip);
     }
 }
 
@@ -3311,7 +3402,7 @@ void _sgimgui_uninit_view(sg_view view, void* user_data) {
         ctx.hooks.uninit_view(view, ctx.hooks.user_data);
     }
     if view.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_view_destroyed(ctx, _sgimgui_slot_index(view.id));
+        _sgimgui_view_destroyed(ctx, view);
     }
 }
 
@@ -3502,7 +3593,7 @@ bool _sgimgui_draw_resid_link(u32 res_type, u32 res_id, u8* label) {
 bool _sgimgui_draw_buffer_link(_sgimgui_t* ctx, sg_buffer buf) {
     bool retval = false;
     if buf.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_buffer_t* buf_ui = &ctx.buffer_window.slots[_sgimgui_slot_index(buf.id)];
+        _sgimgui_buffer_t* buf_ui = _sgimgui_buf_ptr(ctx, buf);
         retval = _sgimgui_draw_resid_link(1, buf.id, buf_ui.label.buf);
     }
     return retval;
@@ -3511,7 +3602,7 @@ bool _sgimgui_draw_buffer_link(_sgimgui_t* ctx, sg_buffer buf) {
 bool _sgimgui_draw_image_link(_sgimgui_t* ctx, sg_image img) {
     bool retval = false;
     if img.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_image_t* img_ui = &ctx.image_window.slots[_sgimgui_slot_index(img.id)];
+        _sgimgui_image_t* img_ui = _sgimgui_img_ptr(ctx, img);
         retval = _sgimgui_draw_resid_link(2, img.id, img_ui.label.buf);
     }
     return retval;
@@ -3520,7 +3611,7 @@ bool _sgimgui_draw_image_link(_sgimgui_t* ctx, sg_image img) {
 bool _sgimgui_draw_sampler_link(_sgimgui_t* ctx, sg_sampler smp) {
     bool retval = false;
     if smp.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_sampler_t* smp_ui = &ctx.sampler_window.slots[_sgimgui_slot_index(smp.id)];
+        _sgimgui_sampler_t* smp_ui = _sgimgui_smp_ptr(ctx, smp);
         retval = _sgimgui_draw_resid_link(3, smp.id, smp_ui.label.buf);
     }
     return retval;
@@ -3529,7 +3620,7 @@ bool _sgimgui_draw_sampler_link(_sgimgui_t* ctx, sg_sampler smp) {
 bool _sgimgui_draw_shader_link(_sgimgui_t* ctx, sg_shader shd) {
     bool retval = false;
     if shd.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_shader_t* shd_ui = &ctx.shader_window.slots[_sgimgui_slot_index(shd.id)];
+        _sgimgui_shader_t* shd_ui = _sgimgui_shd_ptr(ctx, shd);
         retval = _sgimgui_draw_resid_link(4, shd.id, shd_ui.label.buf);
     }
     return retval;
@@ -3538,7 +3629,7 @@ bool _sgimgui_draw_shader_link(_sgimgui_t* ctx, sg_shader shd) {
 bool _sgimgui_draw_view_link(_sgimgui_t* ctx, sg_view view) {
     bool retval = false;
     if view.id != cast(u32, SG_INVALID_ID) {
-        _sgimgui_view_t* view_ui = &ctx.view_window.slots[_sgimgui_slot_index(view.id)];
+        _sgimgui_view_t* view_ui = _sgimgui_view_ptr(ctx, view);
         retval = _sgimgui_draw_resid_link(5, view.id, view_ui.label.buf);
         if _sgimgui_igisitemhovered(0) != 0 {
             sg_image img = sg_query_view_image(view);
@@ -3676,7 +3767,6 @@ void _sgimgui_draw_capture_list(_sgimgui_t* ctx) {
         _sgimgui_capture_item_t* item = _sgimgui_capture_read_item_at(ctx, i);
         _sgimgui_str_t item_string = _sgimgui_capture_item_string(ctx, i, item);
         _sgimgui_igpushstylecolor(ImGuiCol_Text, item.color);
-        _sgimgui_igpushidint(i);
         if item.cmd == _SGIMGUI_CMD_PUSH_DEBUG_GROUP {
             if (group_stack & 1) != 0 {
                 group_stack <<= 1;
@@ -3700,7 +3790,6 @@ void _sgimgui_draw_capture_list(_sgimgui_t* ctx) {
                 _sgimgui_igsettooltip("%s", item_string.buf);
             }
         }
-        _sgimgui_igpopid();
         _sgimgui_igpopstylecolor();
     }
     _sgimgui_igendchild();
@@ -3711,7 +3800,7 @@ void _sgimgui_draw_buffer_panel(_sgimgui_t* ctx, sg_buffer buf) {
         _sgimgui_igbeginchild("buffer", ImVec2{0.0f, 0.0f}, ImGuiChildFlags_None, ImGuiWindowFlags_None);
         sg_buffer_info info = sg_query_buffer_info(buf);
         if info.slot.state == SG_RESOURCESTATE_VALID {
-            _sgimgui_buffer_t* buf_ui = &ctx.buffer_window.slots[_sgimgui_slot_index(buf.id)];
+            _sgimgui_buffer_t* buf_ui = _sgimgui_buf_ptr(ctx, buf);
             _sgimgui_igtext("Label: %s", buf_ui.label.buf[0] != 0 ? buf_ui.label.buf : "---");
             _sgimgui_draw_resource_slot(&info.slot);
             _sgimgui_igseparator();
@@ -3720,9 +3809,9 @@ void _sgimgui_draw_buffer_panel(_sgimgui_t* ctx, sg_buffer buf) {
             _sgimgui_igtext("  index_buffer: %s", _sgimgui_bool_string(buf_ui.desc.usage.index_buffer));
             _sgimgui_igtext("  storage_buffer: %s", _sgimgui_bool_string(buf_ui.desc.usage.storage_buffer));
             _sgimgui_igtext("  immutable: %s", _sgimgui_bool_string(buf_ui.desc.usage.immutable));
-            _sgimgui_igtext("  dynamic_update: %s", _sgimgui_bool_string(buf_ui.desc.usage.dynamic_update));
-            _sgimgui_igtext("  stream_update: %s", _sgimgui_bool_string(buf_ui.desc.usage.stream_update));
             _sgimgui_igtext("  write_unsealed: %s", _sgimgui_bool_string(buf_ui.desc.usage.write_unsealed));
+            _sgimgui_igtext("  write_transient: %s", _sgimgui_bool_string(buf_ui.desc.usage.write_transient));
+            _sgimgui_igtext("  dynamic_update: %s", _sgimgui_bool_string(buf_ui.desc.usage.dynamic_update));
             _sgimgui_igtext("Size:  %d", cast(i32, buf_ui.desc.size));
             if buf_ui.desc.usage.immutable == 0 {
                 _sgimgui_igseparator();
@@ -3745,7 +3834,7 @@ void _sgimgui_draw_image_panel(_sgimgui_t* ctx, sg_image img) {
         _sgimgui_igbeginchild("image", ImVec2{0.0f, 0.0f}, ImGuiChildFlags_None, ImGuiWindowFlags_None);
         sg_image_info info = sg_query_image_info(img);
         if info.slot.state == SG_RESOURCESTATE_VALID {
-            _sgimgui_image_t* img_ui = &ctx.image_window.slots[_sgimgui_slot_index(img.id)];
+            _sgimgui_image_t* img_ui = _sgimgui_img_ptr(ctx, img);
             sg_image_desc* desc = &img_ui.desc;
             _sgimgui_igtext("Label: %s", img_ui.label.buf[0] != 0 ? img_ui.label.buf : "---");
             _sgimgui_draw_resource_slot(&info.slot);
@@ -3759,9 +3848,9 @@ void _sgimgui_draw_image_panel(_sgimgui_t* ctx, sg_image img) {
             _sgimgui_igtext("  resolve_attachment: %s", _sgimgui_bool_string(desc.usage.resolve_attachment));
             _sgimgui_igtext("  depth_stencil_attachment: %s", _sgimgui_bool_string(desc.usage.depth_stencil_attachment));
             _sgimgui_igtext("  immutable: %s", _sgimgui_bool_string(desc.usage.immutable));
-            _sgimgui_igtext("  dynamic_update: %s", _sgimgui_bool_string(desc.usage.dynamic_update));
-            _sgimgui_igtext("  stream_update: %s", _sgimgui_bool_string(desc.usage.stream_update));
             _sgimgui_igtext("  write_unsealed: %s", _sgimgui_bool_string(desc.usage.write_unsealed));
+            _sgimgui_igtext("  write_transient: %s", _sgimgui_bool_string(desc.usage.write_transient));
+            _sgimgui_igtext("  dynamic_update: %s", _sgimgui_bool_string(desc.usage.dynamic_update));
             _sgimgui_igtext("Width:          %d", desc.width);
             _sgimgui_igtext("Height:         %d", desc.height);
             _sgimgui_igtext("Num Slices:     %d", desc.num_slices);
@@ -3786,7 +3875,7 @@ void _sgimgui_draw_sampler_panel(_sgimgui_t* ctx, sg_sampler smp) {
         _sgimgui_igbeginchild("sampler", ImVec2{0.0f, 0.0f}, ImGuiChildFlags_None, ImGuiWindowFlags_None);
         sg_sampler_info info = sg_query_sampler_info(smp);
         if info.slot.state == SG_RESOURCESTATE_VALID {
-            _sgimgui_sampler_t* smp_ui = &ctx.sampler_window.slots[_sgimgui_slot_index(smp.id)];
+            _sgimgui_sampler_t* smp_ui = _sgimgui_smp_ptr(ctx, smp);
             sg_sampler_desc* desc = &smp_ui.desc;
             _sgimgui_igtext("Label: %s", smp_ui.label.buf[0] != 0 ? smp_ui.label.buf : "---");
             _sgimgui_draw_resource_slot(&info.slot);
@@ -3840,7 +3929,7 @@ void _sgimgui_draw_shader_panel(_sgimgui_t* ctx, sg_shader shd) {
         _sgimgui_igbeginchild("shader", ImVec2{0.0f, 0.0f}, ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar);
         sg_shader_info info = sg_query_shader_info(shd);
         if info.slot.state == SG_RESOURCESTATE_VALID {
-            _sgimgui_shader_t* shd_ui = &ctx.shader_window.slots[_sgimgui_slot_index(shd.id)];
+            _sgimgui_shader_t* shd_ui = _sgimgui_shd_ptr(ctx, shd);
             _sgimgui_igtext("Label: %s", shd_ui.label.buf[0] != 0 ? shd_ui.label.buf : "---");
             _sgimgui_draw_resource_slot(&info.slot);
             _sgimgui_igseparator();
@@ -4094,7 +4183,7 @@ void _sgimgui_draw_pipeline_panel(_sgimgui_t* ctx, sg_pipeline pip) {
         _sgimgui_igbeginchild("pipeline", ImVec2{0.0f, 0.0f}, ImGuiChildFlags_None, ImGuiWindowFlags_None);
         sg_pipeline_info info = sg_query_pipeline_info(pip);
         if info.slot.state == SG_RESOURCESTATE_VALID {
-            _sgimgui_pipeline_t* pip_ui = &ctx.pipeline_window.slots[_sgimgui_slot_index(pip.id)];
+            _sgimgui_pipeline_t* pip_ui = _sgimgui_pip_ptr(ctx, pip);
             _sgimgui_igtext("Label: %s", pip_ui.label.buf[0] != 0 ? pip_ui.label.buf : "---");
             _sgimgui_draw_resource_slot(&info.slot);
             _sgimgui_igseparator();
@@ -4162,7 +4251,7 @@ void _sgimgui_draw_image_view(_sgimgui_t* ctx, u8* title, sg_view view, sg_image
     _sgimgui_igtext("  Mip Level: %d", desc.mip_level);
     _sgimgui_igtext("  Slice: %d", desc.slice);
     _sgimgui_igseparator();
-    _sgimgui_view_t* view_ui = &ctx.view_window.slots[_sgimgui_slot_index(view.id)];
+    _sgimgui_view_t* view_ui = _sgimgui_view_ptr(ctx, view);
     _sgimgui_draw_image(ctx, desc.image, &view_ui.ui_scale, 4096.0f);
 }
 
@@ -4178,7 +4267,7 @@ void _sgimgui_draw_texture_view(_sgimgui_t* ctx, u8* title, sg_view view, sg_tex
     _sgimgui_igtext("  Slices Base: %d", desc.slices.base);
     _sgimgui_igtext("  Slices Count: %d", desc.slices.count);
     _sgimgui_igseparator();
-    _sgimgui_view_t* view_ui = &ctx.view_window.slots[_sgimgui_slot_index(view.id)];
+    _sgimgui_view_t* view_ui = _sgimgui_view_ptr(ctx, view);
     _sgimgui_draw_image(ctx, desc.image, &view_ui.ui_scale, 4096.0f);
 }
 
@@ -4187,7 +4276,7 @@ void _sgimgui_draw_view_panel(_sgimgui_t* ctx, sg_view view) {
         _sgimgui_igbeginchild("view", ImVec2{0.0f, 0.0f}, ImGuiChildFlags_None, ImGuiWindowFlags_None);
         sg_view_info info = sg_query_view_info(view);
         if info.slot.state == SG_RESOURCESTATE_VALID {
-            _sgimgui_view_t* view_ui = &ctx.view_window.slots[_sgimgui_slot_index(view.id)];
+            _sgimgui_view_t* view_ui = _sgimgui_view_ptr(ctx, view);
             _sgimgui_igtext("Label: %s", view_ui.label.buf[0] != 0 ? view_ui.label.buf : "---");
             _sgimgui_draw_resource_slot(&info.slot);
             _sgimgui_igseparator();
@@ -4282,12 +4371,12 @@ void _sgimgui_draw_uniforms_panel(_sgimgui_t* ctx, _sgimgui_args_apply_uniforms_
         _sgimgui_igtext("Pipeline object not valid!");
         return;
     }
-    _sgimgui_pipeline_t* pip_ui = &ctx.pipeline_window.slots[_sgimgui_slot_index(args.pipeline.id)];
+    _sgimgui_pipeline_t* pip_ui = _sgimgui_pip_ptr(ctx, args.pipeline);
     if sg_query_shader_state(pip_ui.desc.shader) != SG_RESOURCESTATE_VALID {
         _sgimgui_igtext("Shader object not valid!");
         return;
     }
-    _sgimgui_shader_t* shd_ui = &ctx.shader_window.slots[_sgimgui_slot_index(pip_ui.desc.shader.id)];
+    _sgimgui_shader_t* shd_ui = _sgimgui_shd_ptr(ctx, pip_ui.desc.shader);
     sg_shader_uniform_block* ub_desc = &shd_ui.desc.uniform_blocks[args.ub_slot];
     bool draw_dump = false;
     if ub_desc.glsl_uniforms[0].type == SG_UNIFORMTYPE_INVALID {
@@ -4619,6 +4708,12 @@ void _sgimgui_draw_capture_panel(_sgimgui_t* ctx) {
         case _SGIMGUI_CMD_APPEND_BUFFER: {
             _sgimgui_draw_buffer_panel(ctx, item.args.append_buffer.buffer);
         }
+        case _SGIMGUI_CMD_WRITE_BUFFER_TRANSIENT: {
+            _sgimgui_draw_buffer_panel(ctx, item.args.write_buffer_transient.dst.buffer);
+        }
+        case _SGIMGUI_CMD_WRITE_IMAGE_TRANSIENT: {
+            _sgimgui_draw_image_panel(ctx, item.args.write_image_transient.dst.image);
+        }
         case _SGIMGUI_CMD_WRITE_BUFFER_UNSEALED: {
             _sgimgui_draw_buffer_panel(ctx, item.args.write_buffer_unsealed.dst.buffer);
         }
@@ -4827,6 +4922,12 @@ void _sgimgui_draw_frame_stats_panel(_sgimgui_t* ctx) {
         _sgimgui_frame_add_stats_row("prev_frame . num_update_buffer", stats.prev_frame.num_update_buffer);
         _sgimgui_frame_add_stats_row("prev_frame . num_append_buffer", stats.prev_frame.num_append_buffer);
         _sgimgui_frame_add_stats_row("prev_frame . num_update_image", stats.prev_frame.num_update_image);
+        _sgimgui_frame_add_stats_row("prev_frame . num_write_buffer_transient", stats.prev_frame.num_write_buffer_transient);
+        _sgimgui_frame_add_stats_row("prev_frame . num_write_image_transient", stats.prev_frame.num_write_image_transient);
+        _sgimgui_frame_add_stats_row("prev_frame . num_write_buffer_unsealed", stats.prev_frame.num_write_buffer_unsealed);
+        _sgimgui_frame_add_stats_row("prev_frame . num_write_image_unsealed", stats.prev_frame.num_write_image_unsealed);
+        _sgimgui_frame_add_stats_row("prev_frame . num_seal_buffer", stats.prev_frame.num_seal_buffer);
+        _sgimgui_frame_add_stats_row("prev_frame . num_seal_image", stats.prev_frame.num_seal_image);
         _sgimgui_frame_add_stats_row("prev_frame . size_apply_uniforms", stats.prev_frame.size_apply_uniforms);
         _sgimgui_frame_add_stats_row("prev_frame . size_update_buffer", stats.prev_frame.size_update_buffer);
         _sgimgui_frame_add_stats_row("prev_frame . size_append_buffer", stats.prev_frame.size_append_buffer);
@@ -4839,6 +4940,10 @@ void _sgimgui_draw_frame_stats_panel(_sgimgui_t* ctx) {
         _sgimgui_frame_add_stats_row("prev_frame . images . deallocated", stats.prev_frame.images.deallocated);
         _sgimgui_frame_add_stats_row("prev_frame . images . inited", stats.prev_frame.images.inited);
         _sgimgui_frame_add_stats_row("prev_frame . images . uninited", stats.prev_frame.images.uninited);
+        _sgimgui_frame_add_stats_row("prev_frame . samplers . allocated", stats.prev_frame.samplers.allocated);
+        _sgimgui_frame_add_stats_row("prev_frame . samplers . deallocated", stats.prev_frame.samplers.deallocated);
+        _sgimgui_frame_add_stats_row("prev_frame . samplers . inited", stats.prev_frame.samplers.inited);
+        _sgimgui_frame_add_stats_row("prev_frame . samplers . uninited", stats.prev_frame.samplers.uninited);
         _sgimgui_frame_add_stats_row("prev_frame . views . allocated", stats.prev_frame.views.allocated);
         _sgimgui_frame_add_stats_row("prev_frame . views . deallocated", stats.prev_frame.views.deallocated);
         _sgimgui_frame_add_stats_row("prev_frame . views . inited", stats.prev_frame.views.inited);
@@ -4992,6 +5097,12 @@ void _sgimgui_draw_frame_stats_panel(_sgimgui_t* ctx) {
         _sgimgui_frame_add_stats_row("total . views . deallocated", stats.total.views.deallocated);
         _sgimgui_frame_add_stats_row("total . views . inited", stats.total.views.inited);
         _sgimgui_frame_add_stats_row("total . views . uninited", stats.total.views.uninited);
+        _sgimgui_frame_add_stats_row("total . shaders . alive", stats.total.shaders.alive);
+        _sgimgui_frame_add_stats_row("total . shaders . free", stats.total.shaders.free);
+        _sgimgui_frame_add_stats_row("total . shaders . allocated", stats.total.shaders.allocated);
+        _sgimgui_frame_add_stats_row("total . shaders . deallocated", stats.total.shaders.deallocated);
+        _sgimgui_frame_add_stats_row("total . shaders . inited", stats.total.shaders.inited);
+        _sgimgui_frame_add_stats_row("total . shaders . uninited", stats.total.shaders.uninited);
         _sgimgui_frame_add_stats_row("total . pipelines . alive", stats.total.pipelines.alive);
         _sgimgui_frame_add_stats_row("total . pipelines . free", stats.total.pipelines.free);
         _sgimgui_frame_add_stats_row("total . pipelines . allocated", stats.total.pipelines.allocated);
@@ -5033,6 +5144,8 @@ void sgimgui_setup(sgimgui_desc_t* desc) {
     hooks.update_buffer = _sgimgui_update_buffer;
     hooks.update_image = _sgimgui_update_image;
     hooks.append_buffer = _sgimgui_append_buffer;
+    hooks.write_buffer_transient = _sgimgui_write_buffer_transient;
+    hooks.write_image_transient = _sgimgui_write_image_transient;
     hooks.write_buffer_unsealed = _sgimgui_write_buffer_unsealed;
     hooks.write_image_unsealed = _sgimgui_write_image_unsealed;
     hooks.seal_buffer = _sgimgui_seal_buffer;
@@ -5082,12 +5195,12 @@ void sgimgui_setup(sgimgui_desc_t* desc) {
     hooks.pop_debug_group = _sgimgui_pop_debug_group;
     _sgimgui.hooks = sg_install_trace_hooks(&hooks);
     sg_desc sgdesc = sg_query_desc();
-    _sgimgui.buffer_window.num_slots = sgdesc.buffer_pool_size;
-    _sgimgui.image_window.num_slots = sgdesc.image_pool_size;
-    _sgimgui.sampler_window.num_slots = sgdesc.sampler_pool_size;
-    _sgimgui.shader_window.num_slots = sgdesc.shader_pool_size;
-    _sgimgui.pipeline_window.num_slots = sgdesc.pipeline_pool_size;
-    _sgimgui.view_window.num_slots = sgdesc.view_pool_size;
+    _sgimgui.buffer_window.num_slots = sgdesc.buffer_pool_size + 1;
+    _sgimgui.image_window.num_slots = sgdesc.image_pool_size + 1;
+    _sgimgui.sampler_window.num_slots = sgdesc.sampler_pool_size + 1;
+    _sgimgui.shader_window.num_slots = sgdesc.shader_pool_size + 1;
+    _sgimgui.pipeline_window.num_slots = sgdesc.pipeline_pool_size + 1;
+    _sgimgui.view_window.num_slots = sgdesc.view_pool_size + 1;
     u64 buffer_pool_size = cast(u64, _sgimgui.buffer_window.num_slots) * cast(u64, sizeof(_sgimgui_buffer_t));
     _sgimgui.buffer_window.slots = cast(_sgimgui_buffer_t*, _sgimgui_malloc_clear(&_sgimgui.desc.allocator, buffer_pool_size));
     u64 image_pool_size = cast(u64, _sgimgui.image_window.num_slots) * cast(u64, sizeof(_sgimgui_image_t));
@@ -5108,8 +5221,9 @@ void sgimgui_shutdown() {
     _sgimgui_capture_discard(&_sgimgui);
     if _sgimgui.buffer_window.slots != null {
         for i32 i = 0; i < _sgimgui.buffer_window.num_slots; i++ {
-            if _sgimgui.buffer_window.slots[i].res_id.id != cast(u32, SG_INVALID_ID) {
-                _sgimgui_buffer_destroyed(&_sgimgui, i);
+            sg_buffer buf = _sgimgui.buffer_window.slots[i].res_id;
+            if buf.id != cast(u32, SG_INVALID_ID) {
+                _sgimgui_buffer_destroyed(&_sgimgui, buf);
             }
         }
         _sgimgui_free(&_sgimgui.desc.allocator, cast(void*, _sgimgui.buffer_window.slots));
@@ -5117,8 +5231,9 @@ void sgimgui_shutdown() {
     }
     if _sgimgui.image_window.slots != null {
         for i32 i = 0; i < _sgimgui.image_window.num_slots; i++ {
-            if _sgimgui.image_window.slots[i].res_id.id != cast(u32, SG_INVALID_ID) {
-                _sgimgui_image_destroyed(&_sgimgui, i);
+            sg_image img = _sgimgui.image_window.slots[i].res_id;
+            if img.id != cast(u32, SG_INVALID_ID) {
+                _sgimgui_image_destroyed(&_sgimgui, img);
             }
         }
         _sgimgui_free(&_sgimgui.desc.allocator, cast(void*, _sgimgui.image_window.slots));
@@ -5126,8 +5241,9 @@ void sgimgui_shutdown() {
     }
     if _sgimgui.sampler_window.slots != null {
         for i32 i = 0; i < _sgimgui.sampler_window.num_slots; i++ {
-            if _sgimgui.sampler_window.slots[i].res_id.id != cast(u32, SG_INVALID_ID) {
-                _sgimgui_sampler_destroyed(&_sgimgui, i);
+            sg_sampler smp = _sgimgui.sampler_window.slots[i].res_id;
+            if smp.id != cast(u32, SG_INVALID_ID) {
+                _sgimgui_sampler_destroyed(&_sgimgui, smp);
             }
         }
         _sgimgui_free(&_sgimgui.desc.allocator, cast(void*, _sgimgui.sampler_window.slots));
@@ -5135,8 +5251,9 @@ void sgimgui_shutdown() {
     }
     if _sgimgui.shader_window.slots != null {
         for i32 i = 0; i < _sgimgui.shader_window.num_slots; i++ {
-            if _sgimgui.shader_window.slots[i].res_id.id != cast(u32, SG_INVALID_ID) {
-                _sgimgui_shader_destroyed(&_sgimgui, i);
+            sg_shader shd = _sgimgui.shader_window.slots[i].res_id;
+            if shd.id != cast(u32, SG_INVALID_ID) {
+                _sgimgui_shader_destroyed(&_sgimgui, shd);
             }
         }
         _sgimgui_free(&_sgimgui.desc.allocator, cast(void*, _sgimgui.shader_window.slots));
@@ -5144,8 +5261,9 @@ void sgimgui_shutdown() {
     }
     if _sgimgui.pipeline_window.slots != null {
         for i32 i = 0; i < _sgimgui.pipeline_window.num_slots; i++ {
-            if _sgimgui.pipeline_window.slots[i].res_id.id != cast(u32, SG_INVALID_ID) {
-                _sgimgui_pipeline_destroyed(&_sgimgui, i);
+            sg_pipeline pip = _sgimgui.pipeline_window.slots[i].res_id;
+            if pip.id != cast(u32, SG_INVALID_ID) {
+                _sgimgui_pipeline_destroyed(&_sgimgui, pip);
             }
         }
         _sgimgui_free(&_sgimgui.desc.allocator, cast(void*, _sgimgui.pipeline_window.slots));
@@ -5153,8 +5271,9 @@ void sgimgui_shutdown() {
     }
     if _sgimgui.view_window.slots != null {
         for i32 i = 0; i < _sgimgui.view_window.num_slots; i++ {
-            if _sgimgui.view_window.slots[i].res_id.id != cast(u32, SG_INVALID_ID) {
-                _sgimgui_view_destroyed(&_sgimgui, i);
+            sg_view view = _sgimgui.view_window.slots[i].res_id;
+            if view.id != cast(u32, SG_INVALID_ID) {
+                _sgimgui_view_destroyed(&_sgimgui, view);
             }
         }
         _sgimgui_free(&_sgimgui.desc.allocator, cast(void*, _sgimgui.view_window.slots));
