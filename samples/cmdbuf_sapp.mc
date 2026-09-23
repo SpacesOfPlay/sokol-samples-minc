@@ -12,8 +12,7 @@ sapp_desc sokol_main() {
     return d;
 }
 
-// cmdbuf-sapp.glsl - ported to minc @shader (generated skeleton;
-// body is regex-translated GLSL: REVIEW before shipping).
+// cmdbuf-sapp.glsl - ported to minc @shader
 
 struct CmdbufSappVs_OffscreenOut {
     float4 pos;
