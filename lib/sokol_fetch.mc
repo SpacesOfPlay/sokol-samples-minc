@@ -4356,7 +4356,6 @@ struct sfetch_range_t {
     u64 size;
 }
 
-// disabling this for every includer isn't great, but the warnings are also quite pointless
 /*
     sfetch_allocator_t
 

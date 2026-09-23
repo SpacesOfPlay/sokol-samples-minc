@@ -76,10 +76,10 @@ void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
     __dbgui_setup();
     state.img = sg_make_image(&sg_image_desc{
+        .usage = sg_image_usage{.write_transient = true},
         .width = 64,
         .height = 64,
         .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .usage = sg_image_usage{.stream_update = true},
         .label = "dynamic-texture",
     });
     sg_view tex_view = sg_make_view(&sg_view_desc{
@@ -151,7 +151,10 @@ void frame() {
     state.ry += 2.0f * t;
     vs_params_t vs_params = compute_vsparams(state.rx, state.ry);
     game_of_life_update();
-    sg_update_image(state.img, &sg_image_data{.mip_levels[0] = sg_range{&state.pixels, sizeof(state.pixels)}});
+    sg_write_image_transient(&sg_write_image_desc{
+        .src = sg_write_image_source{.data = sg_range{&state.pixels, sizeof(state.pixels)}},
+        .dst = sg_image_location{.image = state.img},
+    });
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     sg_apply_pipeline(state.pip);
     sg_apply_bindings(&state.bind);

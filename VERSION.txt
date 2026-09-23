@@ -1,4 +1,4 @@
 upstream: https://github.com/floooh/sokol-samples
-sha: 491a403 (2026-08-10)
-transminc: 96394ed
-samples: 86
+sha: 8afa839 (2026-09-06)
+transminc: f85cd9e3
+samples: 88

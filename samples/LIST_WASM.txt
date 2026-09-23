@@ -6,6 +6,7 @@ box3d_simple_sapp
 bufferoffsets_sapp
 cimgui_sapp
 clear_sapp
+cmdbuf_sapp
 compositemode_sapp
 cube_sapp
 cubemap_jpeg_sapp
@@ -57,6 +58,7 @@ shadows_sapp
 shapes_sapp
 shapes_transform_sapp
 shared_bindings_sapp
+sparse_ub_slots_sapp
 spine_contexts_sapp
 spine_inspector_sapp
 spine_layers_sapp

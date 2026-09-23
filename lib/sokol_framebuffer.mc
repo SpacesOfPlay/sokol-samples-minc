@@ -824,6 +824,7 @@ void _sfb_setup_pools(_sfb_pools_t* p, sfb_desc* desc) {
 
 void _sfb_discard_pools(_sfb_pools_t* p) {
     assert(cast(i64, p));
+    assert(cast(i64, p.framebuffers));
     _sfb_free(p.framebuffers);
     p.framebuffers = null;
     _sfb_pool_discard(&p.framebuffer_pool);
@@ -1287,8 +1288,8 @@ bool sfb_resize(sfb_framebuffer fb_id, sfb_resize_desc* desc) {
             retval = true;
             _sfb_destroy_offscreen_images_and_views(fb);
             fb.prescale = prescale;
-            fb.cliprect.width = desc.cliprect.width;
-            fb.cliprect.height = desc.cliprect.height;
+            fb.cliprect.width = cw;
+            fb.cliprect.height = ch;
             bool res = _sfb_create_offscreen_images_and_views(fb);
             if res == 0 {
                 fb.slot.state = SFB_RESOURCESTATE_FAILED;

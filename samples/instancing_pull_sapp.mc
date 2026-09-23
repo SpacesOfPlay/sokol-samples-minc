@@ -139,7 +139,7 @@ void init() {
         .label = "geometry-indices",
     });
     state.inst_buf = sg_make_buffer(&sg_buffer_desc{
-        .usage = sg_buffer_usage{.storage_buffer = true, .stream_update = true},
+        .usage = sg_buffer_usage{.storage_buffer = true, .write_transient = true},
         .size = cast(u64, 512 * 1024 * sizeof(sb_instance_t)),
         .label = "instance-data",
     });
@@ -164,9 +164,14 @@ void frame() {
     var frame_time = cast(f32, sapp_frame_duration());
     emit_particles();
     update_particles(frame_time);
-    sg_update_buffer(state.inst_buf, &sg_range{
-        .ptr = state.inst,
-        .size = cast(u64, state.cur_num_particles) * cast(u64, sizeof(sb_instance_t)),
+    sg_write_buffer_transient(&sg_write_buffer_desc{
+        .src = sg_write_buffer_source{
+            .data = sg_range{
+                .ptr = state.inst,
+                .size = cast(u64, state.cur_num_particles) * cast(u64, sizeof(sb_instance_t)),
+            },
+        },
+        .dst = sg_buffer_location{.buffer = state.inst_buf},
     });
     vs_params_t vs_params = compute_vsparams(frame_time);
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});

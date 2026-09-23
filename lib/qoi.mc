@@ -228,8 +228,6 @@ struct qoi_desc {
     u8 colorspace;
 }
 
-/* -----------------------------------------------------------------------------
-Implementation */
 /* 2GB is the max file size that this implementation can safely handle. We guard
 against anything larger than that, assuming the worst case with 5 bytes per
 pixel, rounded down to a nice clean value. 400 million pixels ought to be

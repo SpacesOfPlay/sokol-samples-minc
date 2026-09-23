@@ -1443,7 +1443,7 @@ void _sgl_init_context(sgl_context ctx_id, sgl_context_desc_t* in_desc) {
     _sgl_clear(&vbuf_desc, cast(u64, sizeof(vbuf_desc)));
     vbuf_desc.size = cast(u64, ctx.vertices.cap) * cast(u64, sizeof(_sgl_vertex_t));
     vbuf_desc.usage.vertex_buffer = true;
-    vbuf_desc.usage.stream_update = true;
+    vbuf_desc.usage.write_transient = true;
     vbuf_desc.label = "sgl-vertex-buffer";
     ctx.vbuf = sg_make_buffer(&vbuf_desc);
     assert(cast(u32, SG_INVALID_ID) != ctx.vbuf.id);
@@ -1928,10 +1928,12 @@ void _sgl_draw(_sgl_context_t* ctx, i32 layer_id) {
         i32 cur_uniform_index = -1;
         if ctx.update_frame_id != ctx.frame_id {
             ctx.update_frame_id = ctx.frame_id;
-            var range = sg_range{
-                ctx.vertices.ptr, cast(u64, ctx.vertices.next) * cast(u64, sizeof(_sgl_vertex_t)),
-            };
-            sg_update_buffer(ctx.vbuf, &range);
+            noinit sg_write_buffer_desc write_desc;
+            _sgl_clear(&write_desc, cast(u64, sizeof(write_desc)));
+            write_desc.src.data.ptr = ctx.vertices.ptr;
+            write_desc.src.data.size = cast(u64, ctx.vertices.next) * cast(u64, sizeof(_sgl_vertex_t));
+            write_desc.dst.buffer = ctx.vbuf;
+            sg_write_buffer_transient(&write_desc);
         }
         for i32 i = 0; i < ctx.commands.next; i++ {
             _sgl_command_t* cmd = &ctx.commands.ptr[i];
