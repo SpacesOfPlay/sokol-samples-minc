@@ -119,7 +119,6 @@ enum __enum_ATTR_offscreen_pos {
     VIEW_tex2 = 2,
     SMP_smp = 0,
     VIEW_tex = 0,
-    SMP_smp = 0,
     __shim_end = 255,
 }
 
