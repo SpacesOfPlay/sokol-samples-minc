@@ -35,7 +35,7 @@ state_t state = state_t{
 
 void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
-    __dbgui_setup();
+    _dbgui_setup();
     sdtx_setup(&sdtx_desc_t{
         .fonts = {
             sdtx_font_kc854(),
@@ -71,16 +71,17 @@ void frame() {
         sdtx_putr("\nRange Test 2\n", 32);
         sdtx_move_y(2.0f);
     }
+    _dbgui_update();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     sdtx_draw();
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
 
 void cleanup() {
     sdtx_shutdown();
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sg_shutdown();
 }
 }
@@ -90,7 +91,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 640,
         .height = 480,
         .depth_format = SAPP_PIXELFORMAT_NONE,

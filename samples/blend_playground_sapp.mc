@@ -377,6 +377,7 @@ void frame() {
         sg_draw(0, 4, 1);
     }
     sg_end_pass();
+    simgui_flush();
     sg_begin_pass(&sg_pass{
         .action = sg_pass_action{
             .colors[0] = {
@@ -392,7 +393,7 @@ void frame() {
         .samplers[0] = state.compose.smp,
     });
     sg_draw(0, 3, 1);
-    simgui_render();
+    simgui_draw();
     sg_end_pass();
     sg_commit();
 }

@@ -171,7 +171,7 @@ image_and_views_t make_image_and_views(sg_image_desc* img_desc, u8* att_label, u
 
 void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
-    __dbgui_setup();
+    _dbgui_setup();
     state.features_ok = sg_query_pixelformat(SG_PIXELFORMAT_R32F).render && sg_query_pixelformat(SG_PIXELFORMAT_RGBA16F).render && sg_query_pixelformat(SG_PIXELFORMAT_RGBA8).render;
     if state.features_ok == 0 {
         return;
@@ -316,7 +316,7 @@ void draw_fallback() {
         .colors[0] = {.load_action = SG_LOADACTION_CLEAR, .clear_value = {1.0f, 0.0f, 0.0f, 1.0f}},
     };
     sg_begin_pass(&sg_pass{.action = pass_action, .swapchain = sglue_swapchain()});
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
@@ -329,6 +329,7 @@ offscreen_params_t compute_offscreen_params() {
 }
 
 void frame() {
+    _dbgui_update();
     if state.features_ok == 0 {
         draw_fallback();
         return;
@@ -381,13 +382,13 @@ void frame() {
         sg_draw(0, 4, 1);
     }
     sg_apply_viewport(0, 0, disp_width, disp_height, true);
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
 
 void cleanup() {
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sg_shutdown();
 }
 }
@@ -397,7 +398,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 800,
         .height = 600,
         .window_title = "mrt-pixelformats-sapp.mc",

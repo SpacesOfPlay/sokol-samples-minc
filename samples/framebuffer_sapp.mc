@@ -23,7 +23,7 @@ u32:[256][320] pixels;
 
 void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
-    __dbgui_setup();
+    _dbgui_setup();
     sfb_setup(&sfb_desc{.logger = sfb_logger{.func = slog_func}});
     state.fb = sfb_make_framebuffer(&sfb_framebuffer_desc{.width = 320, .height = 256});
 }
@@ -48,19 +48,20 @@ void frame() {
         }
     }
     sfb_update(state.fb, &sfb_update_desc{.pixels = sg_range{&pixels, sizeof(pixels)}});
+    _dbgui_update();
     sg_begin_pass(&sg_pass{
         .action = sg_pass_action{.colors[0] = {.load_action = SG_LOADACTION_DONTCARE}},
         .swapchain = sglue_swapchain(),
     });
     sfb_render(state.fb);
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
 
 void cleanup() {
     sfb_shutdown();
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sg_shutdown();
 }
 }
@@ -70,7 +71,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 800,
         .height = 600,
         .window_title = "framebuffer-sapp.mc",

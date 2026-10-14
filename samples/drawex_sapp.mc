@@ -656,7 +656,7 @@ state_t state = state_t{
 private {
 void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
-    __dbgui_setup();
+    _dbgui_setup();
     sdtx_setup(&sdtx_desc_t{.fonts[0] = sdtx_font_c64(), .logger = sdtx_logger_t{.func = slog_func}});
     if sg_query_features().draw_base_vertex != 0 {
         state.supported_modes |= cast(u8, BASE_VERTEX);
@@ -732,6 +732,7 @@ void init() {
 
 void frame() {
     draw_panel();
+    _dbgui_update();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     sg_apply_pipeline(state.pip);
     sg_apply_bindings(&sg_bindings{
@@ -775,7 +776,7 @@ void frame() {
         }
     }
     sdtx_draw();
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
@@ -797,12 +798,12 @@ void input(sapp_event* ev) {
         }
     }
     state.current_mode &= state.supported_modes;
-    __dbgui_event(ev);
+    _dbgui_event(ev);
 }
 
 void cleanup() {
     sdtx_shutdown();
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sg_shutdown();
 }
 

@@ -1329,7 +1329,6 @@ sg_buffer_desc sshape_vertex_buffer_desc(sshape_state_t* state) {
     sg_buffer_desc desc;
     if state.valid != 0 {
         desc.usage.vertex_buffer = true;
-        desc.usage.immutable = true;
         desc.data.ptr = state.vertices.buffer.ptr;
         desc.data.size = state.vertices.data_size;
     }
@@ -1341,7 +1340,6 @@ sg_buffer_desc sshape_index_buffer_desc(sshape_state_t* state) {
     sg_buffer_desc desc;
     if state.valid != 0 {
         desc.usage.index_buffer = true;
-        desc.usage.immutable = true;
         desc.data.ptr = state.indices.buffer.ptr;
         desc.data.size = state.indices.data_size;
     }

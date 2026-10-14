@@ -501,11 +501,12 @@ void frame() {
     draw_instanced_shapes_shadow_pass(&state.shapes.box, state.box_inst_buf, state.inst_data.num_boxes);
     draw_instanced_shapes_shadow_pass(&state.shapes.ball, state.ball_inst_buf, state.inst_data.num_balls);
     sg_end_pass();
+    simgui_flush();
     sg_begin_pass(&sg_pass{.action = state.display.pass_action, .swapchain = sglue_swapchain()});
     draw_shape_display_pass(&state.shapes.plane, mat44_identity(), vec4(0.5f, 0.5f, 0.5f, 1.0f));
     draw_instanced_shapes_display_pass(&state.shapes.box, state.box_inst_buf, state.inst_data.num_boxes);
     draw_instanced_shapes_display_pass(&state.shapes.ball, state.ball_inst_buf, state.inst_data.num_balls);
-    simgui_render();
+    simgui_draw();
     sg_end_pass();
     sg_commit();
 }

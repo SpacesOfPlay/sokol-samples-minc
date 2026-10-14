@@ -110,8 +110,9 @@ void frame() {
         }
     }
     ImGui_End();
+    simgui_flush();
     sg_begin_pass(&sg_pass{.swapchain = sglue_swapchain()});
-    simgui_render();
+    simgui_draw();
     sg_end_pass();
     sg_commit();
 }

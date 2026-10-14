@@ -80,7 +80,7 @@ void init() {
         .num_lanes = 1,
         .logger = sfetch_logger_t{.func = slog_func},
     });
-    __dbgui_setup();
+    _dbgui_setup();
     state.offscreen[0] = setup_offscreen(SG_PIXELFORMAT_RGBA8, 512, sg_color{1.0f, 1.0f, 1.0f, 1.0f});
     state.offscreen[1] = setup_offscreen(SG_PIXELFORMAT_RG8, 64, sg_color{1.0f, 1.0f, 1.0f, 1.0f});
     state.smp = sg_make_sampler(&sg_sampler_desc{
@@ -144,15 +144,16 @@ void frame() {
     sg_begin_pass(&state.offscreen[1].pass);
     sspine_context_draw_layer(state.offscreen[1].ctx, 0, &state.layer_transform);
     sg_end_pass();
+    _dbgui_update();
     sg_begin_pass(&sg_pass{.swapchain = sglue_swapchain()});
     sgl_draw();
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
 
 void cleanup() {
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sfetch_shutdown();
     sspine_shutdown();
     sgl_shutdown();
@@ -312,7 +313,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 1024,
         .height = 768,
         .sample_count = 4,

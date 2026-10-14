@@ -260,6 +260,7 @@ void frame() {
     state.stats.num_uniform_updates = 0;
     state.stats.num_binding_updates = 0;
     state.stats.num_draw_calls = 0;
+    simgui_flush();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     sg_apply_pipeline(state.pip);
     sg_apply_uniforms(UB_vs_per_frame, &sg_range{&vs_per_frame, sizeof(vs_per_frame)});
@@ -284,7 +285,7 @@ void frame() {
         sg_draw(0, 36, 1);
         state.stats.num_draw_calls++;
     }
-    simgui_render();
+    simgui_draw();
     sg_end_pass();
     sg_commit();
 }

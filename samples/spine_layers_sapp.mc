@@ -55,7 +55,7 @@ void init() {
         .num_lanes = 1,
         .logger = sfetch_logger_t{.func = slog_func},
     });
-    __dbgui_setup();
+    _dbgui_setup();
     state.pass_action = sg_pass_action{
         .colors[0] = {.load_action = SG_LOADACTION_CLEAR, .clear_value = {0.0f, 0.0f, 0.0f, 1.0f}},
     };
@@ -119,18 +119,19 @@ void frame() {
     sspine_set_position(state.instances[2], sspine_vec2{225.0f, 128.0f});
     sspine_update_instance(state.instances[2], delta_time);
     sspine_draw_instance_in_layer(state.instances[2], 2);
+    _dbgui_update();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     for i32 layer_index = 0; layer_index < 3; layer_index++ {
         sspine_draw_layer(layer_index, &layer_transform);
         sgl_draw_layer(layer_index);
     }
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
 
 void cleanup() {
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sfetch_shutdown();
     sgl_shutdown();
     sspine_shutdown();
@@ -242,7 +243,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 1024,
         .height = 768,
         .window_title = "spine-layers-sapp.mc",

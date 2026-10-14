@@ -22,7 +22,7 @@ state_t state;
 
 void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
-    __dbgui_setup();
+    _dbgui_setup();
     sdtx_setup(&sdtx_desc_t{.fonts[0] = sdtx_font_cpc(), .logger = sdtx_logger_t{.func = slog_func}});
     sgl_setup(&sgl_desc_t{.logger = sgl_logger_t{.func = slog_func}});
     state.pass_action = sg_pass_action{
@@ -78,13 +78,14 @@ void frame() {
         sgl_v2f(-1.0f, y1);
         sgl_end();
     }
+    _dbgui_update();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     for i32 i = 0; i < 3; i++ {
         sgl_draw_layer(i);
         sdtx_draw_layer(i);
     }
     sgl_draw_layer(3);
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
@@ -101,7 +102,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 800,
         .height = 600,
         .window_title = "debugtext-layers-sapp.mc",

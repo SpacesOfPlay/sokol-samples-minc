@@ -61,7 +61,7 @@ private { state_t state; }
 private {
 void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
-    __dbgui_setup();
+    _dbgui_setup();
     sdtx_setup(&sdtx_desc_t{
         .fonts[0] = sdtx_font_oric(),
         .logger = sdtx_logger_t{.func = slog_func},
@@ -75,17 +75,18 @@ void init() {
 
 void frame() {
     print_webgl2_note();
+    _dbgui_update();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     sg_apply_pipeline(state.pip);
     sg_draw(0, 3, 1);
     sdtx_draw();
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
 
 void cleanup() {
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sdtx_shutdown();
     sg_shutdown();
 }
@@ -99,7 +100,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 640,
         .height = 480,
         .srgb = true,

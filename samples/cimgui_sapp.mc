@@ -68,8 +68,9 @@ void frame() {
         ImGui_SetNextWindowPos(ImVec2{460.0f, 20.0f}, ImGuiCond_FirstUseEver);
         ImGui_ShowDemoWindow(null);
     }
+    simgui_flush();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
-    simgui_render();
+    simgui_draw();
     sg_end_pass();
     sg_commit();
 }

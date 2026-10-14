@@ -71,9 +71,10 @@ void frame() {
     corner_quad(-0.9f, -0.9f);
     sgl_end();
     sgl_viewport(0, 0, width, height, true);
+    simgui_flush();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     sgl_draw();
-    simgui_render();
+    simgui_draw();
     sg_end_pass();
     sg_commit();
 }

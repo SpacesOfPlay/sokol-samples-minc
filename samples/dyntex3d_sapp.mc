@@ -120,6 +120,7 @@ void init() {
 }
 
 void frame() {
+    ui();
     if state.immutable == 0 {
         update_pixels(sapp_frame_count());
         sg_write_image_transient(&sg_write_image_desc{
@@ -127,6 +128,7 @@ void frame() {
             .dst = sg_image_location{.image = state.img},
         });
     }
+    simgui_flush();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     sg_apply_pipeline(state.pip);
     sg_apply_bindings(&state.bind);
@@ -135,7 +137,7 @@ void frame() {
         sg_apply_uniforms(UB_vs_params, &sg_range{&vs_params, sizeof(vs_params)});
         sg_draw(0, 6, 1);
     }
-    draw_ui();
+    simgui_draw();
     sg_end_pass();
     sg_commit();
 }
@@ -152,7 +154,7 @@ void cleanup() {
     sg_shutdown();
 }
 
-void draw_ui() {
+void ui() {
     sappimgui_track_frame();
     simgui_new_frame(&simgui_frame_desc_t{
         .width = sapp_width(),
@@ -179,7 +181,6 @@ void draw_ui() {
     ImGui_End();
     sgimgui_draw();
     sappimgui_draw();
-    simgui_render();
 }
 
 sg_range pixels_as_range() {

@@ -95,12 +95,20 @@ struct _sfons_t {
     sfons_desc_t desc;
     sg_shader shd;
     sgl_pipeline pip;
+    sg_buffer staging_buf;
+    i32 staging_buf_size;
     sg_image img;
     sg_view tex_view;
     sg_sampler smp;
     i32 cur_width;
     i32 cur_height;
     bool img_dirty;
+    struct {
+        i32 x0;
+        i32 y0;
+        i32 x1;
+        i32 y1;
+    } img_dirty_rect;
 }
 
 /*
@@ -225,9 +233,10 @@ struct _sfons_t {
           as long as all calls use the same FONScontext
 
     sfons_flush(FONScontext* ctx):
-        - this will call sg_update_image() on the font atlas texture
-          if fontstash.h has added any rasterized glyphs since the last
-          frame
+        - if the font texture atlas is dirty (new glyphs had been added since
+          the last frame), this will perform a data upload into the font texture
+          via a write-transient staging buffer (sg_write_buffer_transient +
+          sg_copy_buffer_to_image)
 
     sfons_destroy(FONScontext* ctx):
         - destroy the font atlas texture, sgl_pipeline and sg_shader objects
@@ -356,7 +365,7 @@ i32 _sfons_render_create(void* user_ptr, i32 width, i32 height) {
     _sfons_clear(&img_desc, cast(u64, sizeof(img_desc)));
     img_desc.width = sfons.cur_width;
     img_desc.height = sfons.cur_height;
-    img_desc.usage.dynamic_update = true;
+    img_desc.usage.copy_dst = true;
     img_desc.pixel_format = SG_PIXELFORMAT_R8;
     img_desc.label = "fontstash-image";
     sfons.img = sg_make_image(&img_desc);
@@ -365,6 +374,11 @@ i32 _sfons_render_create(void* user_ptr, i32 width, i32 height) {
     view_desc.texture.image = sfons.img;
     view_desc.label = "fontstash-texview";
     sfons.tex_view = sg_make_view(&view_desc);
+    sfons.img_dirty = false;
+    sfons.img_dirty_rect.x0 = sfons.cur_width + 1;
+    sfons.img_dirty_rect.y0 = sfons.cur_height + 1;
+    sfons.img_dirty_rect.x1 = 0;
+    sfons.img_dirty_rect.y1 = 0;
     return 1;
 }
 
@@ -377,6 +391,18 @@ void _sfons_render_update(void* user_ptr, i32* rect, u8* data) {
     ignore data;
     var sfons = cast(_sfons_t*, user_ptr);
     sfons.img_dirty = true;
+    if rect[0] < sfons.img_dirty_rect.x0 {
+        sfons.img_dirty_rect.x0 = rect[0];
+    }
+    if rect[1] < sfons.img_dirty_rect.y0 {
+        sfons.img_dirty_rect.y0 = rect[1];
+    }
+    if rect[2] > sfons.img_dirty_rect.x1 {
+        sfons.img_dirty_rect.x1 = rect[2];
+    }
+    if rect[3] > sfons.img_dirty_rect.y1 {
+        sfons.img_dirty_rect.y1 = rect[3];
+    }
 }
 
 void _sfons_render_draw(void* user_ptr, f32* verts, f32* tcoords, u32* colors, i32 nverts) {
@@ -396,6 +422,11 @@ void _sfons_render_draw(void* user_ptr, f32* verts, f32* tcoords, u32* colors, i
 
 void _sfons_render_delete(void* user_ptr) {
     var sfons = cast(_sfons_t*, user_ptr);
+    sfons.staging_buf_size = 0;
+    if sfons.staging_buf.id != cast(u32, SG_INVALID_ID) {
+        sg_destroy_buffer(sfons.staging_buf);
+        sfons.staging_buf.id = cast(u32, SG_INVALID_ID);
+    }
     if sfons.img.id != cast(u32, SG_INVALID_ID) {
         sg_destroy_image(sfons.img);
         sfons.img.id = cast(u32, SG_INVALID_ID);
@@ -453,12 +484,51 @@ void sfons_destroy(FONScontext* ctx) {
 void sfons_flush(FONScontext* ctx) {
     var sfons = cast(_sfons_t*, ctx.params.userPtr);
     if sfons.img_dirty != 0 {
+        i32 upload_y = sfons.img_dirty_rect.y0;
+        i32 upload_h = sfons.img_dirty_rect.y1 - upload_y;
+        i32 bytes_per_pixel = 1;
+        i32 staging_pitch = sfons.cur_width * bytes_per_pixel;
+        i32 staging_size = upload_h * staging_pitch;
         sfons.img_dirty = false;
-        noinit sg_image_data data;
-        _sfons_clear(&data, cast(u64, sizeof(data)));
-        data.mip_levels[0].ptr = ctx.texData;
-        data.mip_levels[0].size = cast(u64, sfons.cur_width * sfons.cur_height);
-        sg_update_image(sfons.img, &data);
+        sfons.img_dirty_rect.x0 = sfons.cur_width + 1;
+        sfons.img_dirty_rect.y0 = sfons.cur_height + 1;
+        sfons.img_dirty_rect.x1 = 0;
+        sfons.img_dirty_rect.y1 = 0;
+        i32 staging_buf_size = staging_size + staging_pitch;
+        if sfons.staging_buf_size < staging_buf_size {
+            if sfons.staging_buf.id != cast(u32, SG_INVALID_ID) {
+                sg_destroy_buffer(sfons.staging_buf);
+            }
+            noinit sg_buffer_desc buf_desc;
+            _sfons_clear(&buf_desc, cast(u64, sizeof(buf_desc)));
+            buf_desc.usage.staging_buffer = true;
+            buf_desc.usage.write_transient = true;
+            buf_desc.usage.copy_src = true;
+            buf_desc.size = cast(u64, staging_buf_size);
+            buf_desc.label = "sokol-fontstash-staging-buffer";
+            sfons.staging_buf = sg_make_buffer(&buf_desc);
+            sfons.staging_buf_size = staging_buf_size;
+        }
+        noinit sg_write_buffer_desc write_desc;
+        _sfons_clear(&write_desc, cast(u64, sizeof(write_desc)));
+        write_desc.src.data.ptr = ctx.texData;
+        write_desc.src.data.size = cast(u64, sfons.cur_width * sfons.cur_height);
+        write_desc.src.offset = cast(u64, upload_y * staging_pitch);
+        write_desc.dst.buffer = sfons.staging_buf;
+        write_desc.size = cast(u64, staging_size);
+        sg_write_buffer_transient(&write_desc);
+        noinit sg_copy_buffer_to_image_desc copy_desc;
+        _sfons_clear(&copy_desc, cast(u64, sizeof(copy_desc)));
+        copy_desc.src.buffer = sfons.staging_buf;
+        copy_desc.src.bytes_per_row = staging_pitch;
+        copy_desc.src.bytes_per_slice = staging_size;
+        copy_desc.src.offset = 0;
+        copy_desc.dst.image = sfons.img;
+        copy_desc.dst.x = 0;
+        copy_desc.dst.y = upload_y;
+        copy_desc.size.width = sfons.cur_width;
+        copy_desc.size.height = upload_h;
+        sg_copy_buffer_to_image(&copy_desc);
     }
 }
 

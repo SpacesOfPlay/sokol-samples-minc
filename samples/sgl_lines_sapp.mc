@@ -21,7 +21,7 @@ state_t state;
 
 void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
-    __dbgui_setup();
+    _dbgui_setup();
     sgl_setup(&sgl_desc_t{.logger = sgl_logger_t{.func = slog_func}});
     state.depth_test_pip = sgl_make_pipeline(&sg_pipeline_desc{
         .depth = sg_depth_state{.write_enabled = true, .compare = SG_COMPAREFUNC_LESS_EQUAL},
@@ -151,15 +151,16 @@ void frame() {
     hairball();
     sgl_pop_matrix();
     sgl_pop_pipeline();
+    _dbgui_update();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     sgl_draw();
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
 
 void cleanup() {
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sgl_shutdown();
     sg_shutdown();
 }
@@ -170,7 +171,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 512,
         .height = 512,
         .sample_count = 4,

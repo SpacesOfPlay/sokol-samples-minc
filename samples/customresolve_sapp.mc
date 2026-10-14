@@ -317,11 +317,12 @@ void frame() {
     sg_apply_uniforms(UB_fs_params, &sg_range{&state.resolve.fs_params, sizeof(state.resolve.fs_params)});
     sg_draw(0, 3, 1);
     sg_end_pass();
+    simgui_flush();
     sg_begin_pass(&sg_pass{.action = state.display.action, .swapchain = sglue_swapchain()});
     sg_apply_pipeline(state.display.pip);
     sg_apply_bindings(&state.display.bind);
     sg_draw(0, 3, 1);
-    simgui_render();
+    simgui_draw();
     sg_end_pass();
     sg_commit();
 }
@@ -368,6 +369,7 @@ void draw_ui() {
 }
 
 void draw_fallback() {
+    simgui_flush();
     sg_begin_pass(&sg_pass{
         .action = sg_pass_action{
             .colors[0] = {
@@ -377,7 +379,7 @@ void draw_fallback() {
         },
         .swapchain = sglue_swapchain(),
     });
-    simgui_render();
+    simgui_draw();
     sg_end_pass();
     sg_commit();
 }

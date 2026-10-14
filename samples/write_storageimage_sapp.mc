@@ -102,7 +102,7 @@ state_t state = state_t{.display = {.pass_action = {.colors[0] = {.load_action =
 
 void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
-    __dbgui_setup();
+    _dbgui_setup();
     state.img = sg_make_image(&sg_image_desc{
         .usage = sg_image_usage{.storage_image = true},
         .width = 256,
@@ -144,6 +144,7 @@ void frame() {
     sg_apply_uniforms(UB_cs_params, &sg_range{&cs_params, sizeof(cs_params)});
     sg_dispatch(256 / 16, 256 / 16, 1);
     sg_end_pass();
+    _dbgui_update();
     sg_begin_pass(&sg_pass{
         .action = state.display.pass_action,
         .swapchain = sglue_swapchain(),
@@ -155,13 +156,13 @@ void frame() {
         .samplers[0] = state.display.smp,
     });
     sg_draw(0, 3, 1);
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
 
 void cleanup() {
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sg_shutdown();
 }
 }
@@ -171,7 +172,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 512,
         .height = 512,
         .window_title = "write-storageimage-sapp.mc",

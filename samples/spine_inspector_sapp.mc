@@ -204,10 +204,11 @@ void frame() {
             },
         };
     }
+    simgui_flush();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     sspine_draw_layer(0, &state.layer_transform);
     sgl_draw();
-    simgui_render();
+    simgui_draw();
     sg_end_pass();
     sg_commit();
 }

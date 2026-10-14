@@ -259,8 +259,9 @@ void frame() {
         ImGui_EndChild();
     }
     ImGui_End();
+    simgui_flush();
     sg_begin_pass(&sg_pass{.action = state.default_pass_action, .swapchain = sglue_swapchain()});
-    simgui_render();
+    simgui_draw();
     sg_end_pass();
     sg_commit();
 }

@@ -79,20 +79,23 @@ private struct state_t {
     The typical debug UI overlay useful for most sokol-app samples
 */
 private {
-void __dbgui_setup() {
+void _dbgui_setup() {
 }
 
-void __dbgui_shutdown() {
+void _dbgui_shutdown() {
 }
 
-void __dbgui_draw() {
+void _dbgui_update() {
 }
 
-void __dbgui_event(sapp_event* e) {
+void _dbgui_draw() {
+}
+
+void _dbgui_event(sapp_event* e) {
     ignore e;
 }
 
-bool __dbgui_event_with_retval(sapp_event* e) {
+bool _dbgui_event_with_retval(sapp_event* e) {
     ignore e;
     return false;
 }
@@ -107,7 +110,7 @@ state_t state = state_t{
 
 void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
-    __dbgui_setup();
+    _dbgui_setup();
     sdtx_setup(&sdtx_desc_t{
         .fonts[0] = sdtx_font_oric(),
         .logger = sdtx_logger_t{.func = slog_func},
@@ -140,6 +143,7 @@ void frame() {
     var right_vs_params = vs_params_t{.offset = {1.0f, 0.0f}};
     var dense_fs_params = dense_fs_params_t{.color = {0.0f, 1.0f, 0.0f, 1.0f}};
     var sparse_fs_params = sparse_fs_params_t{.color = {1.0f, 0.0f, 1.0f, 1.0f}};
+    _dbgui_update();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     sg_apply_pipeline(state.pip_dense);
     sg_apply_bindings(&state.bind);
@@ -152,14 +156,14 @@ void frame() {
     sg_apply_uniforms(UB_sparse_fs_params, &sg_range{&sparse_fs_params, sizeof(sparse_fs_params)});
     sg_draw(0, 3, 1);
     sdtx_draw();
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
 
 void cleanup() {
     sdtx_shutdown();
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sg_shutdown();
 }
 }
@@ -169,7 +173,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 800,
         .height = 450,
         .depth_format = SAPP_PIXELFORMAT_NONE,

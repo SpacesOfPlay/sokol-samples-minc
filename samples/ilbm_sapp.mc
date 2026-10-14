@@ -75,6 +75,7 @@ void frame() {
     if state.load.success && state.ui.allow_color_cycling && ilbm_color_cycle(&state.ilbm, sapp_frame_duration()) {
         sfb_update(state.fb, &sfb_update_desc{.palette = sg_range{&state.ilbm.colors, sizeof(state.ilbm.colors)}});
     }
+    simgui_flush();
     sg_begin_pass(&sg_pass{
         .action = sg_pass_action{
             .colors[0] = {.load_action = SG_LOADACTION_CLEAR, .clear_value = {.a = 1.0f}},
@@ -90,7 +91,7 @@ void frame() {
         sfb_render(state.fb);
         sg_apply_viewport(0, 0, sapp_width(), sapp_height(), true);
     }
-    simgui_render();
+    simgui_draw();
     sg_end_pass();
     sg_commit();
 }

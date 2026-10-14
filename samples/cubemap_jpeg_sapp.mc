@@ -194,7 +194,7 @@ u8[2048 * 2048 * 4] iobuffer;
 private {
 void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
-    __dbgui_setup();
+    _dbgui_setup();
     sdtx_setup(&sdtx_desc_t{
         .fonts[0] = sdtx_font_oric(),
         .logger = sdtx_logger_t{.func = slog_func},
@@ -312,26 +312,27 @@ void frame() {
     } else {
         sdtx_puts("LMB + move mouse to look around");
     }
+    _dbgui_update();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     sg_apply_pipeline(state.pip);
     sg_apply_bindings(&state.bind);
     sg_apply_uniforms(UB_vs_params, &sg_range{&vs_params, sizeof(vs_params)});
     sg_draw(0, 36, 1);
     sdtx_draw();
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
 
 void cleanup() {
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sfetch_shutdown();
     sdtx_shutdown();
     sg_shutdown();
 }
 
 void input(sapp_event* ev) {
-    if __dbgui_event_with_retval(ev) != 0 {
+    if _dbgui_event_with_retval(ev) != 0 {
         return;
     }
     cam_handle_event(&state.camera, ev);

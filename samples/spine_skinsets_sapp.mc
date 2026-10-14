@@ -208,7 +208,7 @@ void init() {
         .num_lanes = 1,
         .logger = sfetch_logger_t{.func = slog_func},
     });
-    __dbgui_setup();
+    _dbgui_setup();
     state.pass_action = sg_pass_action{
         .colors[0] = {.load_action = SG_LOADACTION_CLEAR, .clear_value = {0.0f, 0.5f, 0.7f, 1.0f}},
     };
@@ -286,10 +286,11 @@ void frame() {
     sdtx_printf("spine eval time:%.3fms\n", eval_time);
     sdtx_move_y(0.5f);
     sdtx_printf("vertices:%d indices:%d draws:%d", ctx_info.num_vertices, ctx_info.num_indices, ctx_info.num_commands);
+    _dbgui_update();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     sspine_draw_layer(0, &layer_transform);
     sdtx_draw();
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
@@ -297,7 +298,7 @@ void frame() {
 void cleanup() {
     sfetch_shutdown();
     sspine_shutdown();
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sdtx_shutdown();
     sg_shutdown();
 }
@@ -458,7 +459,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 1024,
         .height = 768,
         .depth_format = SAPP_PIXELFORMAT_NONE,

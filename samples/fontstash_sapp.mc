@@ -82,7 +82,7 @@ i32 round_pow2(f32 v) {
 void init() {
     state.dpi_scale = sapp_dpi_scale();
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
-    __dbgui_setup();
+    _dbgui_setup();
     sgl_setup(&sgl_desc_t{.logger = sgl_logger_t{.func = slog_func}});
     i32 atlas_dim = round_pow2(512.0f * state.dpi_scale);
     FONScontext* fons_context = sfons_create(&sfons_desc_t{
@@ -262,6 +262,7 @@ void frame() {
         fonsDrawText(fs, dx, dy, "DROP THAT SHADOW", null);
     }
     sfons_flush(fs);
+    _dbgui_update();
     sg_begin_pass(&sg_pass{
         .action = sg_pass_action{
             .colors[0] = {
@@ -272,13 +273,13 @@ void frame() {
         .swapchain = sglue_swapchain(),
     });
     sgl_draw();
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
 
 void cleanup() {
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sfetch_shutdown();
     sfons_destroy(state.fons);
     sgl_shutdown();
@@ -291,7 +292,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 800,
         .height = 600,
         .high_dpi = true,

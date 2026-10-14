@@ -27,6 +27,7 @@ fontstash_layers_sapp
 fontstash_sapp
 framebuffer_sapp
 hdr_sapp
+histogram_sapp
 icon_sapp
 ilbm_sapp
 imageblur_sapp
@@ -75,6 +76,7 @@ spine_switch_skinsets_sapp
 srgb_msaa_sapp
 srgb_offscreen_sapp
 srgb_sapp
+staging_sapp
 tex3d_sapp
 texcube_sapp
 triangle_bufferless_sapp

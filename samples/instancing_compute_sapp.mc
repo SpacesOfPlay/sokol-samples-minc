@@ -161,7 +161,7 @@ state_t state = state_t{
 private {
 void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
-    __dbgui_setup();
+    _dbgui_setup();
     state.buf = sg_make_buffer(&sg_buffer_desc{
         .size = cast(u64, 512 * 1024 * sizeof(particle_t)),
         .usage = sg_buffer_usage{.vertex_buffer = true, .storage_buffer = true},
@@ -249,6 +249,7 @@ void frame() {
     sg_dispatch((state.num_particles + 63) / 64, 1, 1);
     sg_end_pass();
     vs_params_t vs_params = compute_vsparams(dt);
+    _dbgui_update();
     sg_begin_pass(&sg_pass{
         .action = state.display.pass_action,
         .swapchain = sglue_swapchain(),
@@ -270,13 +271,13 @@ void frame() {
     });
     sg_apply_uniforms(UB_vs_params, &sg_range{&vs_params, sizeof(vs_params)});
     sg_draw(0, 24, state.num_particles);
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
 
 void cleanup() {
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sg_shutdown();
 }
 
@@ -294,7 +295,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 800,
         .height = 600,
         .sample_count = 4,

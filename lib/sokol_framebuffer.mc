@@ -349,6 +349,7 @@ struct _sfb_framebuffer_t {
     bool rotate90;
     sfb_render_pass_desc render_pass;
     struct {
+        sg_buffer staging_buf;
         sg_image img;
         sg_view tex_view;
     } update;
@@ -358,6 +359,7 @@ struct _sfb_framebuffer_t {
         sg_view att_view;
     } offscreen;
     struct {
+        sg_buffer staging_buf;
         sg_image img;
         sg_view tex_view;
     } palette;
@@ -587,12 +589,11 @@ struct _sfb_state_t {
             .pixels = SG_RANGE(pixels),
         });
 
-    The sfb_update() function will do up to two calls to the sokol-gfx
-    function sg_update_image() - once for the pixel data and once for the
-    palette data (this is why the function must only be called at most
-    once per frame), and then do an render pass into an internal color attachment
-    texture (this is why the function must be called outside any sokol-gfx
-    pass).
+    The sfb_update() function will do up to two image updates via a
+    write-transient staging buffer (e.g. sg_write_buffer_transient plus
+    sg_copy_buffer_to_image), once for the pixel data and once for the palette
+    data, and then do a render pass in into an internal color attachment texture
+    (this is why the function must be called outside any sokol-gfx pass).
 
     Finally, to render your framebuffer to the display, call sfb_render()
     *inside* a sokol-gfx render pass:
@@ -899,33 +900,43 @@ sfb_desc _sfb_desc_defaults(sfb_desc* desc) {
     return res;
 }
 
-void _sfb_destroy_update_images_and_views(_sfb_framebuffer_t* fb) {
+void _sfb_destroy_update_resources(_sfb_framebuffer_t* fb) {
     assert(cast(i64, fb));
+    sg_destroy_buffer(fb.update.staging_buf);
     sg_destroy_image(fb.update.img);
     sg_destroy_view(fb.update.tex_view);
 }
 
-void _sfb_destroy_offscreen_images_and_views(_sfb_framebuffer_t* fb) {
+void _sfb_destroy_offscreen_resources(_sfb_framebuffer_t* fb) {
     assert(cast(i64, fb));
     sg_destroy_image(fb.offscreen.img);
     sg_destroy_view(fb.offscreen.tex_view);
     sg_destroy_view(fb.offscreen.att_view);
 }
 
-void _sfb_destroy_palette_images_and_views(_sfb_framebuffer_t* fb) {
+void _sfb_destroy_palette_resources(_sfb_framebuffer_t* fb) {
     assert(cast(i64, fb));
+    sg_destroy_buffer(fb.palette.staging_buf);
     sg_destroy_image(fb.palette.img);
     sg_destroy_view(fb.palette.tex_view);
 }
 
-bool _sfb_create_update_images_and_views(_sfb_framebuffer_t* fb) {
+bool _sfb_create_update_resources(_sfb_framebuffer_t* fb) {
     assert(cast(i64, fb));
     bool valid = true;
+    sg_pixel_format fmt = fb.format == SFB_FORMAT_RGBA8 ? SG_PIXELFORMAT_RGBA8 : SG_PIXELFORMAT_R8;
+    var staging_size = cast(u64, sg_query_surface_pitch(fmt, fb.width, fb.height, 1));
+    fb.update.staging_buf = sg_make_buffer(&sg_buffer_desc{
+        .usage = sg_buffer_usage{.staging_buffer = true, .write_transient = true, .copy_src = true},
+        .size = staging_size,
+        .label = "sfb-update-staging-buffer",
+    });
+    valid &= sg_query_buffer_state(fb.update.staging_buf) == SG_RESOURCESTATE_VALID;
     fb.update.img = sg_make_image(&sg_image_desc{
-        .usage = sg_image_usage{.dynamic_update = true},
+        .usage = sg_image_usage{.copy_dst = true},
         .width = fb.width,
         .height = fb.height,
-        .pixel_format = fb.format == SFB_FORMAT_RGBA8 ? SG_PIXELFORMAT_RGBA8 : SG_PIXELFORMAT_R8,
+        .pixel_format = fmt,
         .label = "sfb-update-image",
     });
     valid &= sg_query_image_state(fb.update.img) == SG_RESOURCESTATE_VALID;
@@ -937,7 +948,7 @@ bool _sfb_create_update_images_and_views(_sfb_framebuffer_t* fb) {
     return valid;
 }
 
-bool _sfb_create_offscreen_images_and_views(_sfb_framebuffer_t* fb) {
+bool _sfb_create_offscreen_resources(_sfb_framebuffer_t* fb) {
     assert(cast(i64, fb));
     bool valid = true;
     fb.offscreen.img = sg_make_image(&sg_image_desc{
@@ -961,15 +972,27 @@ bool _sfb_create_offscreen_images_and_views(_sfb_framebuffer_t* fb) {
     return valid;
 }
 
-bool _sfb_create_palette_images_and_views(_sfb_framebuffer_t* fb) {
+bool _sfb_create_palette_resources(_sfb_framebuffer_t* fb) {
     assert(cast(i64, fb));
     bool valid = true;
     if fb.format == SFB_FORMAT_PALETTE8 {
+        sg_pixel_format fmt = SG_PIXELFORMAT_RGBA8;
+        var staging_size = cast(u64, sg_query_surface_pitch(fmt, 256, 1, 1));
+        fb.palette.staging_buf = sg_make_buffer(&sg_buffer_desc{
+            .usage = sg_buffer_usage{
+                .staging_buffer = true,
+                .write_transient = true,
+                .copy_src = true,
+            },
+            .size = staging_size,
+            .label = "sfb-palette-staging-buffer",
+        });
+        valid &= sg_query_buffer_state(fb.palette.staging_buf) == SG_RESOURCESTATE_VALID;
         fb.palette.img = sg_make_image(&sg_image_desc{
-            .usage = sg_image_usage{.dynamic_update = true},
+            .usage = sg_image_usage{.copy_dst = true},
             .width = 256,
             .height = 1,
-            .pixel_format = SG_PIXELFORMAT_RGBA8,
+            .pixel_format = fmt,
             .label = "sfb-palette-img",
         });
         valid &= sg_query_image_state(fb.palette.img) == SG_RESOURCESTATE_VALID;
@@ -1002,9 +1025,9 @@ void _sfb_init_framebuffer(_sfb_framebuffer_t* fb, sfb_framebuffer_desc* desc) {
     fb.cliprect.height = desc.cliprect.height == 0 ? fb.height : desc.cliprect.height;
     fb.rotate90 = desc.rotate90;
     fb.render_pass = desc.render_pass;
-    bool valid = _sfb_create_update_images_and_views(fb);
-    valid &= _sfb_create_offscreen_images_and_views(fb);
-    valid &= _sfb_create_palette_images_and_views(fb);
+    bool valid = _sfb_create_update_resources(fb);
+    valid &= _sfb_create_offscreen_resources(fb);
+    valid &= _sfb_create_palette_resources(fb);
     fb.offscreen_pip = sg_make_pipeline(&sg_pipeline_desc{
         .shader = fb.format == SFB_FORMAT_PALETTE8 ? _sfb.shd.palette8 : _sfb.shd.rgba8,
         .depth = sg_depth_state{.pixel_format = SG_PIXELFORMAT_NONE},
@@ -1025,9 +1048,9 @@ void _sfb_init_framebuffer(_sfb_framebuffer_t* fb, sfb_framebuffer_desc* desc) {
 
 void _sfb_uninit_framebuffer(_sfb_framebuffer_t* fb) {
     assert(fb && (fb.slot.state == SFB_RESOURCESTATE_VALID || fb.slot.state == SFB_RESOURCESTATE_FAILED));
-    _sfb_destroy_palette_images_and_views(fb);
-    _sfb_destroy_offscreen_images_and_views(fb);
-    _sfb_destroy_update_images_and_views(fb);
+    _sfb_destroy_palette_resources(fb);
+    _sfb_destroy_offscreen_resources(fb);
+    _sfb_destroy_update_resources(fb);
     sg_destroy_pipeline(fb.offscreen_pip);
     sg_destroy_pipeline(fb.render_pip);
     fb.slot.state = SFB_RESOURCESTATE_ALLOC;
@@ -1273,10 +1296,10 @@ bool sfb_resize(sfb_framebuffer fb_id, sfb_resize_desc* desc) {
     if fb != null {
         if desc.width != fb.width || desc.height != fb.height {
             retval = true;
-            _sfb_destroy_update_images_and_views(fb);
+            _sfb_destroy_update_resources(fb);
             fb.width = desc.width;
             fb.height = desc.height;
-            bool res = _sfb_create_update_images_and_views(fb);
+            bool res = _sfb_create_update_resources(fb);
             if res == 0 {
                 fb.slot.state = SFB_RESOURCESTATE_FAILED;
             }
@@ -1286,11 +1309,11 @@ bool sfb_resize(sfb_framebuffer fb_id, sfb_resize_desc* desc) {
         i32 ch = desc.cliprect.height == 0 ? fb.height : desc.cliprect.height;
         if prescale != fb.prescale || cw != fb.cliprect.width || ch != fb.cliprect.height {
             retval = true;
-            _sfb_destroy_offscreen_images_and_views(fb);
+            _sfb_destroy_offscreen_resources(fb);
             fb.prescale = prescale;
             fb.cliprect.width = cw;
             fb.cliprect.height = ch;
-            bool res = _sfb_create_offscreen_images_and_views(fb);
+            bool res = _sfb_create_offscreen_resources(fb);
             if res == 0 {
                 fb.slot.state = SFB_RESOURCESTATE_FAILED;
             }
@@ -1309,10 +1332,24 @@ void sfb_update(sfb_framebuffer fb_id, sfb_update_desc* desc) {
         return;
     }
     if desc.pixels.ptr != null {
-        sg_update_image(fb.update.img, &sg_image_data{.mip_levels[0] = desc.pixels});
+        sg_write_buffer_transient(&sg_write_buffer_desc{
+            .src = sg_write_buffer_source{.data = desc.pixels},
+            .dst = sg_buffer_location{.buffer = fb.update.staging_buf},
+        });
+        sg_copy_buffer_to_image(&sg_copy_buffer_to_image_desc{
+            .src = sg_buffer_image_location{.buffer = fb.update.staging_buf},
+            .dst = sg_image_location{.image = fb.update.img},
+        });
     }
     if fb.format == SFB_FORMAT_PALETTE8 && desc.palette.ptr {
-        sg_update_image(fb.palette.img, &sg_image_data{.mip_levels[0] = desc.palette});
+        sg_write_buffer_transient(&sg_write_buffer_desc{
+            .src = sg_write_buffer_source{.data = desc.palette},
+            .dst = sg_buffer_location{.buffer = fb.palette.staging_buf},
+        });
+        sg_copy_buffer_to_image(&sg_copy_buffer_to_image_desc{
+            .src = sg_buffer_image_location{.buffer = fb.palette.staging_buf},
+            .dst = sg_image_location{.image = fb.palette.img},
+        });
     }
     sg_begin_pass(&sg_pass{
         .action = sg_pass_action{.colors[0] = {.load_action = SG_LOADACTION_DONTCARE}},

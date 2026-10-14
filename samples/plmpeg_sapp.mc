@@ -167,7 +167,7 @@ void init() {
     });
     start_fetch();
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
-    __dbgui_setup();
+    _dbgui_setup();
     vertex_t[16] vertices = {
         vertex_t{-1.0f, -1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f},
         vertex_t{1.0f, -1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f},
@@ -280,6 +280,7 @@ void frame() {
     mat44_t model = mat44_rotation_y(vecmath_radians(state.ry));
     var vs_params = vs_params_t{.mvp = mat44_mul_mat44(model, view_proj)};
     upload_image_data();
+    _dbgui_update();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     if state.bind.views[0].id != cast(u32, SG_INVALID_ID) {
         sg_apply_pipeline(state.pip);
@@ -287,14 +288,14 @@ void frame() {
         sg_apply_uniforms(UB_vs_params, &sg_range{&vs_params, sizeof(vs_params)});
         sg_draw(0, 24, 1);
     }
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
 
 // the sokol-sapp cleanup callback
 void cleanup() {
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     if state.plm_buffer != null {
         plm_buffer_destroy(state.plm_buffer);
     }
@@ -426,7 +427,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 960,
         .height = 540,
         .sample_count = 4,

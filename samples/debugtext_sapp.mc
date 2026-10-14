@@ -27,7 +27,7 @@ state_t state = state_t{
 
 void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
-    __dbgui_setup();
+    _dbgui_setup();
     sdtx_setup(&sdtx_desc_t{
         .fonts = {
             sdtx_font_kc853(),
@@ -66,16 +66,17 @@ void frame() {
     print_font(3, "Amstrad CPC:\n", 0xff, 0xeb, 0x3b);
     print_font(4, "C64:\n", 0x79, 0x86, 0xcb);
     print_font(5, "Oric Atmos:\n", 0xff, 0x98, 0x00);
+    _dbgui_update();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     sdtx_draw();
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
 
 void cleanup() {
     sdtx_shutdown();
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sg_shutdown();
 }
 }
@@ -85,7 +86,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 1024,
         .height = 600,
         .depth_format = SAPP_PIXELFORMAT_NONE,

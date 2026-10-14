@@ -70,7 +70,7 @@ state_t state;
 
 void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
-    __dbgui_setup();
+    _dbgui_setup();
     f32[8] quad_vertices = {-1.0f, 1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f};
     state.vbuf = sg_make_buffer(&sg_buffer_desc{.data = sg_range{&quad_vertices, sizeof(quad_vertices)}});
     u32 o = 0xFF555555;
@@ -112,6 +112,7 @@ void init() {
 }
 
 void frame() {
+    _dbgui_update();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     sg_apply_pipeline(state.pip);
     for i32 i = SG_WRAP_REPEAT; i <= SG_WRAP_MIRRORED_REPEAT; i++ {
@@ -144,13 +145,13 @@ void frame() {
         sg_apply_uniforms(UB_vs_params, &sg_range{&vs_params, sizeof(vs_params)});
         sg_draw(0, 4, 1);
     }
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
 
 void cleanup() {
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sg_shutdown();
 }
 }
@@ -160,7 +161,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 800,
         .height = 600,
         .depth_format = SAPP_PIXELFORMAT_NONE,

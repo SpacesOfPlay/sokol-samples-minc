@@ -23,7 +23,7 @@ state_t state;
 
 void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
-    __dbgui_setup();
+    _dbgui_setup();
     sgl_setup(&sgl_desc_t{.logger = sgl_logger_t{.func = slog_func}});
     noinit u32:[8][8] pixels;
     for i32 y = 0; y < 8; y++ {
@@ -181,15 +181,16 @@ void frame() {
     sgl_viewport(x1, y1, ww, hh, true);
     draw_tex_cube(t);
     sgl_viewport(0, 0, dw, dh, true);
+    _dbgui_update();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     sgl_draw();
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
 
 void cleanup() {
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sgl_shutdown();
     sg_shutdown();
 }
@@ -200,7 +201,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 512,
         .height = 512,
         .sample_count = 4,
