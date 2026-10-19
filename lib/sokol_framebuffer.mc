@@ -695,8 +695,6 @@ struct _sfb_state_t {
         distribution.
 */
 /*=== IMPLEMENTATION =========================================================*/
-when !(defined(SOKOL_DEBUG)) {
-}
 private {
 _sfb_state_t _sfb;
 u8*[13] _sfb_log_messages = {

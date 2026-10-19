@@ -1494,8 +1494,6 @@ struct _sspine_t {
 // ██ ██      ██ ██      ███████ ███████ ██      ██ ███████ ██   ████    ██    ██   ██    ██    ██  ██████  ██   ████
 //
 // >>implementation
-when !(defined(SOKOL_DEBUG)) {
-}
 private { _sspine_t _sspine; }
 
 // dummy spine-c platform implementation functions

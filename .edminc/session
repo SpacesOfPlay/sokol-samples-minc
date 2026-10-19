@@ -1,0 +1,15 @@
+edminc-session 2
+buf 28 18 0 README.md
+buf 0 0 24849 lib/sokol_debugtext.mc
+preview 1
+buf 389 0 12837 lib/sokol_cmdbuf.mc
+preview 2
+buf 55 0 3630 lib/sokol_app_imgui.mc
+preview 3
+buf 7370 0 242253 lib/box3d.mc
+preview 4
+active-window 0
+window -11 -11 3862 2110 1 1 1 2
+div 0 5000 10000
+pane -1 0 0 3630 0
+pane 3 55 0 3630 0

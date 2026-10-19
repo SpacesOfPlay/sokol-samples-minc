@@ -1181,8 +1181,6 @@ struct _sfetch_t {
 // ██ ██      ██ ██      ███████ ███████ ██      ██ ███████ ██   ████    ██    ██   ██    ██    ██  ██████  ██   ████
 //
 // >>implementation
-when !(defined(SOKOL_DEBUG)) {
-}
 private {
 _sfetch_t* _sfetch;
 // ██       ██████   ██████   ██████  ██ ███    ██  ██████
@@ -3206,8 +3204,6 @@ struct _sfetch_t {
 // ██ ██      ██ ██      ███████ ███████ ██      ██ ███████ ██   ████    ██    ██   ██    ██    ██  ██████  ██   ████
 //
 // >>implementation
-when !(defined(SOKOL_DEBUG)) {
-}
 private {
 _sfetch_t* _sfetch;
 // ██       ██████   ██████   ██████  ██ ███    ██  ██████
@@ -5441,8 +5437,6 @@ struct _sfetch_t {
 // ██ ██      ██ ██      ███████ ███████ ██      ██ ███████ ██   ████    ██    ██   ██    ██    ██  ██████  ██   ████
 //
 // >>implementation
-when !(defined(SOKOL_DEBUG)) {
-}
 private {
 _sfetch_t* _sfetch;
 // ██       ██████   ██████   ██████  ██ ███    ██  ██████

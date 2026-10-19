@@ -780,8 +780,6 @@ sdtx_context SDTX_DEFAULT_CONTEXT = sdtx_context{0x00010001};
 // ██ ██      ██ ██      ███████ ███████ ██      ██ ███████ ██   ████    ██    ██   ██    ██    ██  ██████  ██   ████
 //
 // >>implementation
-when !(defined(SOKOL_DEBUG)) {
-}
 /* embedded font data */
 private {
 u8[2048] _sdtx_font_kc853 = {

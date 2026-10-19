@@ -150,8 +150,6 @@ struct slbx_viewport {
         distribution.
 */
 /*=== IMPLEMENTATION =========================================================*/
-when !(defined(SOKOL_DEBUG)) {
-}
 
 slbx_viewport slbx_letterbox(i32 width, i32 height, slbx_letterbox_desc* desc) {
     var b_top = cast(f32, desc.border.top);

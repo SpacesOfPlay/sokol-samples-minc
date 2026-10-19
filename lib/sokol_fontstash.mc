@@ -296,8 +296,6 @@ struct _sfons_t {
         distribution.
 */
 /*-- IMPLEMENTATION ----------------------------------------------------------*/
-when !(defined(SOKOL_DEBUG)) {
-}
 
 private {
 void _sfons_clear(void* ptr, u64 size) {

@@ -1025,8 +1025,6 @@ sgl_context SGL_DEFAULT_CONTEXT = sgl_context{0x00010001};
 // ██ ██      ██ ██      ███████ ███████ ██      ██ ███████ ██   ████    ██    ██   ██    ██    ██  ██████  ██   ████
 //
 // >>implementation
-when !(defined(SOKOL_DEBUG)) {
-}
 private {
 _sgl_t _sgl;
 // ██       ██████   ██████   ██████  ██ ███    ██  ██████

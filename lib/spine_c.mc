@@ -16081,37 +16081,51 @@ spShortArray* spTriangulator_triangulate(spTriangulator* self, spFloatArray* ver
         i32 nextIndex;
         i = 0;
         while 1 != 0 {
-            if isConcave[i] == 0 {
-                i32 p1 = cast(i32, indices[previous]) << 1;
-                i32 p2 = cast(i32, indices[i]) << 1;
-                i32 p3 = cast(i32, indices[next]) << 1;
-                f32 p1x = vertices[p1];
-                f32 p1y = vertices[p1 + 1];
-                f32 p2x = vertices[p2];
-                f32 p2y = vertices[p2 + 1];
-                f32 p3x = vertices[p3];
-                f32 p3y = vertices[p3 + 1];
-                for ii = (next + 1) % vertexCount; ii != previous; ii = (ii + 1) % vertexCount {
-                    i32 v;
-                    f32 vx;
-                    f32 vy;
-                    if isConcave[ii] == 0 {
-                        continue;
-                    }
-                    v = cast(i32, indices[ii]) << 1;
-                    vx = vertices[v];
-                    vy = vertices[v + 1];
-                    if _positiveArea(p3x, p3y, p1x, p1y, vx, vy) != 0 {
-                        if _positiveArea(p1x, p1y, p2x, p2y, vx, vy) != 0 {
-                            if _positiveArea(p2x, p2y, p3x, p3y, vx, vy) != 0 {
-                                // TODO transminc: goto break_outer
+            i32 __jump_break_outer = 0;
+            while true {
+                if isConcave[i] == 0 {
+                    i32 p1 = cast(i32, indices[previous]) << 1;
+                    i32 p2 = cast(i32, indices[i]) << 1;
+                    i32 p3 = cast(i32, indices[next]) << 1;
+                    f32 p1x = vertices[p1];
+                    f32 p1y = vertices[p1 + 1];
+                    f32 p2x = vertices[p2];
+                    f32 p2y = vertices[p2 + 1];
+                    f32 p3x = vertices[p3];
+                    f32 p3y = vertices[p3 + 1];
+                    for ii = (next + 1) % vertexCount; ii != previous; ii = (ii + 1) % vertexCount {
+                        i32 v;
+                        f32 vx;
+                        f32 vy;
+                        if isConcave[ii] == 0 {
+                            continue;
+                        }
+                        v = cast(i32, indices[ii]) << 1;
+                        vx = vertices[v];
+                        vy = vertices[v + 1];
+                        if _positiveArea(p3x, p3y, p1x, p1y, vx, vy) != 0 {
+                            if _positiveArea(p1x, p1y, p2x, p2y, vx, vy) != 0 {
+                                if _positiveArea(p2x, p2y, p3x, p3y, vx, vy) != 0 {
+                                    __jump_break_outer = 1;
+                                    break;
+                                }
                             }
                         }
                     }
+                    if __jump_break_outer != 0 {
+                        break;
+                    }
+                    __jump_break_outer = 2;
+                    break;
                 }
                 break;
             }
-            // TODO transminc: label break_outer:
+            if __jump_break_outer == 2 {
+                break;
+            }
+            if __jump_break_outer == 3 {
+                continue;
+            }
             if next == 0 {
                 while true {
                     if isConcave[i] == 0 {
