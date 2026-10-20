@@ -61,7 +61,7 @@ private { state_t state; }
 private {
 void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
-    __dbgui_setup();
+    _dbgui_setup();
     f32[168] vertices = {
         -1.0f, -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
         1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
@@ -110,6 +110,7 @@ void frame() {
     state.rx += 1.0f * t;
     state.ry += 2.0f * t;
     vs_params_t vs_params = compute_vsparams(state.rx, state.ry);
+    _dbgui_update();
     sg_begin_pass(&sg_pass{
         .action = sg_pass_action{
             .colors[0] = {
@@ -123,13 +124,13 @@ void frame() {
     sg_apply_bindings(&state.bind);
     sg_apply_uniforms(UB_vs_params, &sg_range{&vs_params, sizeof(vs_params)});
     sg_draw(0, 36, 1);
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
 
 void cleanup() {
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sg_shutdown();
 }
 
@@ -151,7 +152,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 800,
         .height = 600,
         .sample_count = 4,

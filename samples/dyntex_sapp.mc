@@ -74,7 +74,7 @@ private { state_t state; }
 private {
 void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
-    __dbgui_setup();
+    _dbgui_setup();
     state.img = sg_make_image(&sg_image_desc{
         .usage = sg_image_usage{.write_transient = true},
         .width = 64,
@@ -155,18 +155,19 @@ void frame() {
         .src = sg_write_image_source{.data = sg_range{&state.pixels, sizeof(state.pixels)}},
         .dst = sg_image_location{.image = state.img},
     });
+    _dbgui_update();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     sg_apply_pipeline(state.pip);
     sg_apply_bindings(&state.bind);
     sg_apply_uniforms(UB_vs_params, &sg_range{&vs_params, sizeof(vs_params)});
     sg_draw(0, 36, 1);
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
 
 void cleanup() {
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sg_shutdown();
 }
 
@@ -231,7 +232,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 800,
         .height = 600,
         .sample_count = 4,

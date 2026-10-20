@@ -106,7 +106,7 @@ u32 xorshift32() {
 
 void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
-    __dbgui_setup();
+    _dbgui_setup();
     if sg_query_features().compute == 0 {
         sdtx_setup(&sdtx_desc_t{.fonts[0] = sdtx_font_cpc()});
         return;
@@ -174,18 +174,19 @@ void frame() {
         .dst = sg_buffer_location{.buffer = state.inst_buf},
     });
     vs_params_t vs_params = compute_vsparams(frame_time);
+    _dbgui_update();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     sg_apply_pipeline(state.pip);
     sg_apply_bindings(&state.bind);
     sg_apply_uniforms(UB_vs_params, &sg_range{&vs_params, sizeof(vs_params)});
     sg_draw(0, 24, state.cur_num_particles);
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
 
 void cleanup() {
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     if sg_query_features().compute == 0 {
         sdtx_shutdown();
     }
@@ -252,7 +253,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 800,
         .height = 600,
         .sample_count = 4,

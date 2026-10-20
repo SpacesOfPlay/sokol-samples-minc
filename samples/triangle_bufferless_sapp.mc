@@ -58,7 +58,7 @@ state_t state;
 
 void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
-    __dbgui_setup();
+    _dbgui_setup();
     sg_shader shd = sokol_make_shader(&triangle_bufferless_sapp_vs_shader, &triangle_bufferless_sapp_fs_shader);
     state.pip = sg_make_pipeline(&sg_pipeline_desc{.shader = shd});
     state.pass_action = sg_pass_action{
@@ -67,16 +67,17 @@ void init() {
 }
 
 void frame() {
+    _dbgui_update();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     sg_apply_pipeline(state.pip);
     sg_draw(0, 3, 1);
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
 
 void cleanup() {
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sg_shutdown();
 }
 }
@@ -86,7 +87,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 640,
         .height = 480,
         .depth_format = SAPP_PIXELFORMAT_NONE,

@@ -162,7 +162,7 @@ f32 rnd(f32 min_val, f32 max_val) {
 
 void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
-    __dbgui_setup();
+    _dbgui_setup();
     app.cubemap = sg_make_image(&sg_image_desc{
         .type = SG_IMAGETYPE_CUBE,
         .usage = sg_image_usage{.color_attachment = true},
@@ -341,6 +341,7 @@ void frame() {
     }
     i32 w = sapp_width();
     i32 h = sapp_height();
+    _dbgui_update();
     sg_begin_pass(&sg_pass{.action = app.display_pass_action, .swapchain = sglue_swapchain()});
     vec3_t eye_pos = vec3(0.0f, 0.0f, 20.0f);
     mat44_t proj = mat44_perspective_fov_rh(vecmath_radians(45.0f), cast(f32, w) / cast(f32, h), 0.01f, 100.0f);
@@ -368,13 +369,13 @@ void frame() {
     };
     sg_apply_uniforms(UB_shape_uniforms, &sg_range{&uniforms, sizeof(uniforms)});
     sg_draw(0, app.cube.num_elements, 1);
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
 
 void cleanup() {
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sg_shutdown();
 }
 }
@@ -384,7 +385,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 800,
         .height = 600,
         .sample_count = 4,

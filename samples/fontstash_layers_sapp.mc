@@ -81,7 +81,7 @@ void font_loaded(sfetch_response_t* response) {
 
 void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
-    __dbgui_setup();
+    _dbgui_setup();
     sgl_setup(&sgl_desc_t{.logger = sgl_logger_t{.func = slog_func}});
     sfetch_setup(&sfetch_desc_t{
         .num_channels = 1,
@@ -155,19 +155,20 @@ void frame() {
         }
     }
     sfons_flush(fs);
+    _dbgui_update();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     sgl_draw_layer(0);
     sg_apply_pipeline(state.pip);
     sg_apply_bindings(&state.bind);
     sg_draw(0, 3, 1);
     sgl_draw_layer(1);
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
 
 void cleanup() {
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sfetch_shutdown();
     sfons_destroy(state.fons);
     sgl_shutdown();
@@ -180,7 +181,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 800,
         .height = 600,
         .high_dpi = true,

@@ -214,7 +214,7 @@ state_t state;
 
 void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
-    __dbgui_setup();
+    _dbgui_setup();
     f32[6] fsq_verts = {-1.0f, -3.0f, 3.0f, 1.0f, -1.0f, 1.0f};
     state.bind.vertex_buffers[0] = sg_make_buffer(&sg_buffer_desc{
         .data = sg_range{&fsq_verts, sizeof(fsq_verts)},
@@ -232,18 +232,19 @@ void frame() {
     i32 h = sapp_height();
     state.vs_params.time += cast(f32, sapp_frame_duration());
     state.vs_params.aspect = cast(f32, w) / cast(f32, h);
+    _dbgui_update();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     sg_apply_pipeline(state.pip);
     sg_apply_bindings(&state.bind);
     sg_apply_uniforms(UB_vs_params, &sg_range{&state.vs_params, sizeof(state.vs_params)});
     sg_draw(0, 3, 1);
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
 
 void cleanup() {
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sg_shutdown();
 }
 }
@@ -253,7 +254,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 512,
         .height = 512,
         .depth_format = SAPP_PIXELFORMAT_NONE,

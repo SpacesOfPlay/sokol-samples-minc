@@ -68,6 +68,7 @@ spine_switch_skinsets_sapp
 srgb_msaa_sapp
 srgb_offscreen_sapp
 srgb_sapp
+staging_sapp
 tex3d_sapp
 texcube_sapp
 triangle_bufferless_sapp

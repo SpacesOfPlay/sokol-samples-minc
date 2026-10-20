@@ -7368,9 +7368,9 @@ u64 b3FnvMixPosition(u64 hash, b3Pos p) {
     u32 fx;
     u32 fy;
     u32 fz;
-    memcpy(&fx, &p.x, cast(u64, 4));
-    memcpy(&fy, &p.y, cast(u64, 4));
-    memcpy(&fz, &p.z, cast(u64, 4));
+    fx = *cast(u32*, &p.x);
+    fy = *cast(u32*, &p.y);
+    fz = *cast(u32*, &p.z);
     u64 bx = fx;
     u64 by = fy;
     u64 bz = fz;
@@ -9440,7 +9440,7 @@ void b3BroadPhase_MoveProxy(b3BroadPhase* bp, i32 proxyKey, b3AABB aabb) {
 }
 
 void b3BroadPhase_EnlargeProxy(b3BroadPhase* bp, i32 proxyKey, b3AABB aabb) {
-    var typeIndex = cast(b3BodyType, proxyKey & 3);
+    i32 typeIndex = cast(b3BodyType, proxyKey & 3);
     i32 proxyId = proxyKey >> 2;
     b3DynamicTree_EnlargeProxy(bp.trees + typeIndex, proxyId, aabb);
     b3BufferMove(bp, proxyKey);
@@ -9636,9 +9636,9 @@ void b3UpdateBroadPhasePairs(b3World* world) {
 }
 
 bool b3BroadPhase_TestOverlap(b3BroadPhase* bp, i32 proxyKeyA, i32 proxyKeyB) {
-    var typeIndexA = cast(b3BodyType, proxyKeyA & 3);
+    i32 typeIndexA = cast(b3BodyType, proxyKeyA & 3);
     i32 proxyIdA = proxyKeyA >> 2;
-    var typeIndexB = cast(b3BodyType, proxyKeyB & 3);
+    i32 typeIndexB = cast(b3BodyType, proxyKeyB & 3);
     i32 proxyIdB = proxyKeyB >> 2;
     b3AABB aabbA = b3DynamicTree_GetAABB(bp.trees + typeIndexA, proxyIdA);
     b3AABB aabbB = b3DynamicTree_GetAABB(bp.trees + typeIndexB, proxyIdB);
@@ -9646,7 +9646,7 @@ bool b3BroadPhase_TestOverlap(b3BroadPhase* bp, i32 proxyKeyA, i32 proxyKeyB) {
 }
 
 i32 b3BroadPhase_GetShapeIndex(b3BroadPhase* bp, i32 proxyKey) {
-    var typeIndex = cast(b3BodyType, proxyKey & 3);
+    i32 typeIndex = cast(b3BodyType, proxyKey & 3);
     i32 proxyId = proxyKey >> 2;
     return cast(i32, b3DynamicTree_GetUserData(bp.trees + typeIndex, proxyId));
 }
@@ -10348,13 +10348,13 @@ u64 vt_wymix(u64 a, u64 b) {
 
 u64 vt_wyr8(u8* p) {
     u64 v;
-    memcpy(&v, p, cast(u64, 8));
+    v = *cast(u64*, p);
     return v;
 }
 
 u64 vt_wyr4(u8* p) {
     u32 v;
-    memcpy(&v, p, cast(u64, 4));
+    v = *cast(u32*, p);
     return v;
 }
 
@@ -11417,7 +11417,7 @@ bool b3MeshMap_erase(b3MeshMap* table, b3MeshData* key) {
 void b3MeshMap_fast_forward(b3MeshMap_itr* itr) {
     while true {
         u64 metadata;
-        memcpy(&metadata, itr.metadatum, sizeof(u64));
+        metadata = *cast(u64*, itr.metadatum);
         if metadata != 0 {
             i32 offset = vt_first_nonzero_uint16(metadata);
             itr.data += offset;
@@ -12345,7 +12345,7 @@ bool b3MaterialMap_erase(b3MaterialMap* table, b3SurfaceMaterial* key) {
 void b3MaterialMap_fast_forward(b3MaterialMap_itr* itr) {
     while true {
         u64 metadata;
-        memcpy(&metadata, itr.metadatum, sizeof(u64));
+        metadata = *cast(u64*, itr.metadatum);
         if metadata != 0 {
             i32 offset = vt_first_nonzero_uint16(metadata);
             itr.data += offset;
@@ -17303,13 +17303,13 @@ u64 rapid_mix(u64 A, u64 B) {
 
 u64 rapid_read64(u8* p) {
     u64 v;
-    memcpy(&v, p, sizeof(u64));
+    v = *cast(u64*, p);
     return v;
 }
 
 u64 rapid_read32(u8* p) {
     u32 v;
-    memcpy(&v, p, cast(u64, sizeof(u32)));
+    v = *cast(u32*, p);
     return v;
 }
 
@@ -23702,7 +23702,7 @@ private {
 void b3HullMap_fast_forward(b3HullMap_itr* itr) {
     while true {
         u64 metadata;
-        memcpy(&metadata, itr.metadatum, sizeof(u64));
+        metadata = *cast(u64*, itr.metadatum);
         if metadata != 0 {
             i32 offset = vt_first_nonzero_uint16(metadata);
             itr.data += offset;
@@ -27740,7 +27740,7 @@ bool b3VertexMap_erase(b3VertexMap* table, u64 key) {
 void b3VertexMap_fast_forward(b3VertexMap_itr* itr) {
     while true {
         u64 metadata;
-        memcpy(&metadata, itr.metadatum, sizeof(u64));
+        metadata = *cast(u64*, itr.metadatum);
         if metadata != 0 {
             i32 offset = vt_first_nonzero_uint16(metadata);
             itr.data += offset;
@@ -29117,7 +29117,7 @@ bool b3EdgeMap_erase(b3EdgeMap* table, u64 key) {
 void b3EdgeMap_fast_forward(b3EdgeMap_itr* itr) {
     while true {
         u64 metadata;
-        memcpy(&metadata, itr.metadatum, sizeof(u64));
+        metadata = *cast(u64*, itr.metadatum);
         if metadata != 0 {
             i32 offset = vt_first_nonzero_uint16(metadata);
             itr.data += offset;
@@ -29989,9 +29989,9 @@ b3MeshData* b3CreateMesh(b3MeshDef* def, i32* degenerateTriangleIndices, i32 deg
         if clockWise != 0 {
             while true {
                 noinit u8[sizeof(i2)] B3_SWAP_TEMP;
-                memcpy(B3_SWAP_TEMP, &i2, cast(u64, sizeof(i2)));
-                memcpy(&i2, &i3, cast(u64, sizeof(i2)));
-                memcpy(&i3, B3_SWAP_TEMP, cast(u64, sizeof(i2)));
+                *cast(i32*, &B3_SWAP_TEMP[0]) = i2;
+                i2 = i3;
+                i3 = *cast(i32*, &B3_SWAP_TEMP[0]);
                 if !(0 != 0) { break; }
             }
         }
@@ -32618,7 +32618,7 @@ bool b3NameMap_erase(b3NameMap* table, u32 key) {
 void b3NameMap_fast_forward(b3NameMap_itr* itr) {
     while true {
         u64 metadata;
-        memcpy(&metadata, itr.metadatum, sizeof(u64));
+        metadata = *cast(u64*, itr.metadatum);
         if metadata != 0 {
             i32 offset = vt_first_nonzero_uint16(metadata);
             itr.data += offset;
@@ -34347,7 +34347,7 @@ private {
 bool DrawQueryCallback(i32 proxyId, u64 userData, void* context) {
     var shapeId = cast(i32, userData);
     ignore proxyId;
-    var drawContext = cast(DrawContext*, context);
+    DrawContext* drawContext = cast(DrawContext*, context);
     b3World* world = drawContext.world;
     b3DebugDraw* draw = drawContext.draw;
     b3Shape* shape = world.shapes.data + shapeId;
@@ -36594,13 +36594,13 @@ void b3RecW_I32(b3RecBuffer* buf, i32 v) {
 
 void b3RecW_F32(b3RecBuffer* buf, f32 v) {
     u32 bits;
-    memcpy(&bits, &v, cast(u64, 4));
+    bits = *cast(u32*, &v);
     b3RecW_U32(buf, bits);
 }
 
 void b3RecW_F64(b3RecBuffer* buf, f64 v) {
     u64 bits;
-    memcpy(&bits, &v, cast(u64, 8));
+    bits = *cast(u64*, &v);
     b3RecW_U64(buf, bits);
 }
 
@@ -40220,7 +40220,7 @@ bool b3GeometryHashMap_erase(b3GeometryHashMap* table, u64 key) {
 void b3GeometryHashMap_fast_forward(b3GeometryHashMap_itr* itr) {
     while true {
         u64 metadata;
-        memcpy(&metadata, itr.metadatum, sizeof(u64));
+        metadata = *cast(u64*, itr.metadatum);
         if metadata != 0 {
             i32 offset = vt_first_nonzero_uint16(metadata);
             itr.data += offset;
@@ -41134,7 +41134,7 @@ bool b3RecTagMap_erase(b3RecTagMap* table, u64 key) {
 void b3RecTagMap_fast_forward(b3RecTagMap_itr* itr) {
     while true {
         u64 metadata;
-        memcpy(&metadata, itr.metadatum, sizeof(u64));
+        metadata = *cast(u64*, itr.metadatum);
         if metadata != 0 {
             i32 offset = vt_first_nonzero_uint16(metadata);
             itr.data += offset;
@@ -41564,27 +41564,27 @@ u64 b3HashWorldState(b3World* world) {
         b3BodySim* sim = b3GetBodySim(world, body);
         u32 bits;
         hash = b3FnvMixPosition(hash, sim.transform.p);
-        memcpy(&bits, &sim.transform.q.v.x, cast(u64, 4));
+        bits = *cast(u32*, &sim.transform.q.v.x);
         hash = (hash ^ cast(u64, bits)) * prime;
-        memcpy(&bits, &sim.transform.q.v.y, cast(u64, 4));
+        bits = *cast(u32*, &sim.transform.q.v.y);
         hash = (hash ^ cast(u64, bits)) * prime;
-        memcpy(&bits, &sim.transform.q.v.z, cast(u64, 4));
+        bits = *cast(u32*, &sim.transform.q.v.z);
         hash = (hash ^ cast(u64, bits)) * prime;
-        memcpy(&bits, &sim.transform.q.s, cast(u64, 4));
+        bits = *cast(u32*, &sim.transform.q.s);
         hash = (hash ^ cast(u64, bits)) * prime;
         b3BodyState* state = b3GetBodyState(world, body);
         if state != null {
-            memcpy(&bits, &state.linearVelocity.x, cast(u64, 4));
+            bits = *cast(u32*, &state.linearVelocity.x);
             hash = (hash ^ cast(u64, bits)) * prime;
-            memcpy(&bits, &state.linearVelocity.y, cast(u64, 4));
+            bits = *cast(u32*, &state.linearVelocity.y);
             hash = (hash ^ cast(u64, bits)) * prime;
-            memcpy(&bits, &state.linearVelocity.z, cast(u64, 4));
+            bits = *cast(u32*, &state.linearVelocity.z);
             hash = (hash ^ cast(u64, bits)) * prime;
-            memcpy(&bits, &state.angularVelocity.x, cast(u64, 4));
+            bits = *cast(u32*, &state.angularVelocity.x);
             hash = (hash ^ cast(u64, bits)) * prime;
-            memcpy(&bits, &state.angularVelocity.y, cast(u64, 4));
+            bits = *cast(u32*, &state.angularVelocity.y);
             hash = (hash ^ cast(u64, bits)) * prime;
-            memcpy(&bits, &state.angularVelocity.z, cast(u64, 4));
+            bits = *cast(u32*, &state.angularVelocity.z);
             hash = (hash ^ cast(u64, bits)) * prime;
         }
     }
@@ -41667,14 +41667,14 @@ i32 b3RecR_I32(b3RecReader* rdr) {
 f32 b3RecR_F32(b3RecReader* rdr) {
     u32 bits = b3RecR_U32(rdr);
     f32 v;
-    memcpy(&v, &bits, cast(u64, 4));
+    v = *cast(f32*, &bits);
     return v;
 }
 
 f64 b3RecR_F64(b3RecReader* rdr) {
     u64 bits = b3RecR_U64(rdr);
     f64 v;
-    memcpy(&v, &bits, cast(u64, 8));
+    v = *cast(f64*, &bits);
     return v;
 }
 
@@ -42982,8 +42982,8 @@ private {
 bool b3RecF32Differs(f32 a, f32 b) {
     u32 ua;
     u32 ub;
-    memcpy(&ua, &a, cast(u64, 4));
-    memcpy(&ub, &b, cast(u64, 4));
+    ua = *cast(u32*, &a);
+    ub = *cast(u32*, &b);
     return ua != ub;
 }
 
@@ -46139,7 +46139,7 @@ bool b3RecTagLookup_erase(b3RecTagLookup* table, u64 key) {
 void b3RecTagLookup_fast_forward(b3RecTagLookup_itr* itr) {
     while true {
         u64 metadata;
-        memcpy(&metadata, itr.metadatum, sizeof(u64));
+        metadata = *cast(u64*, itr.metadatum);
         if metadata != 0 {
             i32 offset = vt_first_nonzero_uint16(metadata);
             itr.data += offset;
@@ -46397,7 +46397,7 @@ void b3RecScanFile(b3RecPlayer* player) {
             frameCount += 1;
             if !gotStep && payloadSize >= 12 {
                 u32 dtBits = cast(u32, data[payloadStart + 4]) | cast(u32, data[payloadStart + 5]) << 8 | cast(u32, data[payloadStart + 6]) << 16 | cast(u32, data[payloadStart + 7]) << 24;
-                memcpy(&player.recordedDt, &dtBits, cast(u64, 4));
+                *cast(u32*, &player.recordedDt) = dtBits;
                 player.recordedSubStepCount = cast(i32, cast(u32, data[payloadStart + 8]) | cast(u32, data[payloadStart + 9]) << 8 | cast(u32, data[payloadStart + 10]) << 16 | cast(u32, data[payloadStart + 11]) << 24);
                 gotStep = true;
             }
@@ -52843,7 +52843,7 @@ u32 b3Hash(u32 hash, u8* data, i32 count) {
     i32 i = 0;
     while i + 8 <= count {
         u64 word;
-        memcpy(&word, data + i, cast(u64, sizeof(word)));
+        word = *cast(u64*, data + i);
         result = (result << 5) + result + cast(u32, word);
         result = (result << 5) + result + cast(u32, word >> 32);
         i += 8;

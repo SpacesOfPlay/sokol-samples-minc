@@ -46,7 +46,7 @@ private { state_t state; }
 private {
 void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
-    __dbgui_setup();
+    _dbgui_setup();
     sspine_setup(&sspine_desc{
         .max_vertices = 6 * 1024,
         .max_commands = 16,
@@ -208,9 +208,10 @@ void frame() {
     };
     sspine_update_instance(state.instance, delta_time);
     sspine_draw_instance_in_layer(state.instance, 0);
+    _dbgui_update();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     sspine_draw_layer(0, &layer_transform);
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
@@ -218,7 +219,7 @@ void frame() {
 void cleanup() {
     sfetch_shutdown();
     sspine_shutdown();
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sg_shutdown();
 }
 }
@@ -228,7 +229,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 1024,
         .height = 768,
         .depth_format = SAPP_PIXELFORMAT_NONE,

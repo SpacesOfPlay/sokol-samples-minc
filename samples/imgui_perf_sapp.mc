@@ -103,8 +103,9 @@ void frame() {
         ImGui_Begin(name, null, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoFocusOnAppearing);
         ImGui_End();
     }
+    simgui_flush();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
-    simgui_render();
+    simgui_draw();
     sg_end_pass();
     sg_commit();
 }

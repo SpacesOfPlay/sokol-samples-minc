@@ -89,7 +89,7 @@ state_t state;
 
 void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
-    __dbgui_setup();
+    _dbgui_setup();
     state.pip = sg_make_pipeline(&sg_pipeline_desc{.shader = sokol_make_shader(&mandelbrot_sapp_vs_shader, &mandelbrot_sapp_fs_shader)});
 }
 
@@ -107,6 +107,7 @@ void frame() {
         .iter_max = iter_max,
         .aspect = {aspect >= 1.0f ? aspect : 1.0f, aspect >= 1.0f ? 1.0f : 1.0f / aspect},
     };
+    _dbgui_update();
     sg_begin_pass(&sg_pass{
         .action = sg_pass_action{.colors[0] = {.load_action = SG_LOADACTION_DONTCARE}},
         .swapchain = sglue_swapchain(),
@@ -114,13 +115,13 @@ void frame() {
     sg_apply_pipeline(state.pip);
     sg_apply_uniforms(UB_fs_params, &sg_range{&fs_params, sizeof(fs_params)});
     sg_draw(0, 3, 1);
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
 
 void cleanup() {
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sg_shutdown();
 }
 }
@@ -130,7 +131,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 512,
         .height = 512,
         .depth_format = SAPP_PIXELFORMAT_NONE,

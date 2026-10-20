@@ -698,7 +698,7 @@ void init() {
         .fonts[0] = sdtx_font_oric(),
         .logger = sdtx_logger_t{.func = slog_func},
     });
-    __dbgui_setup();
+    _dbgui_setup();
     state.vs_params.scale[0] = 1.0f;
     state.vs_params.scale[1] = 1.0f;
     state.vs_params.i1 = 0;
@@ -751,6 +751,7 @@ void frame() {
         sdtx_crlf();
         sdtx_crlf();
     }
+    _dbgui_update();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     sg_apply_pipeline(state.pip);
     sg_apply_bindings(&state.bind);
@@ -767,13 +768,13 @@ void frame() {
         y0 -= 4.0f * glyph_h;
     }
     sdtx_draw();
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
 
 void cleanup() {
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sg_shutdown();
 }
 }
@@ -783,7 +784,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 800,
         .height = 600,
         .depth_format = SAPP_PIXELFORMAT_NONE,

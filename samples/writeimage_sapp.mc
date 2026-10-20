@@ -202,13 +202,14 @@ void frame() {
         .border = slbx_border{.top = 30, .bottom = 20, .left = 20, .right = 20},
         .content_aspect_ratio = 1.0f,
     });
+    simgui_flush();
     sg_begin_pass(&sg_pass{.action = action, .swapchain = sglue_swapchain()});
     sg_apply_viewport(vp.x, vp.y, vp.width, vp.height, true);
     sg_apply_pipeline(state.pip);
     sg_apply_bindings(&sg_bindings{.views[0] = state.view, .samplers[0] = state.smp});
     sg_apply_uniforms(UB_fs_params, &sg_range{&fs_params, sizeof(fs_params)});
     sg_draw(0, 3, 1);
-    simgui_render();
+    simgui_draw();
     sg_end_pass();
     sg_commit();
 }

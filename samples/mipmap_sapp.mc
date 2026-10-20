@@ -82,7 +82,7 @@ u32[9] mip_colors = {
 
 void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
-    __dbgui_setup();
+    _dbgui_setup();
     f32[20] vertices = {
         -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 0.0f, 1.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f,
         1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
@@ -157,6 +157,7 @@ void frame() {
     state.r += 0.1f * 60.0f * cast(f32, sapp_frame_duration());
     mat44_t rm = mat44_rotation_x(vecmath_radians(state.r));
     var bind = sg_bindings{.vertex_buffers[0] = state.vbuf, .views[0] = state.tex_view};
+    _dbgui_update();
     sg_begin_pass(&sg_pass{.swapchain = sglue_swapchain()});
     sg_apply_pipeline(state.pip);
     for i32 i = 0; i < 12; i++ {
@@ -169,13 +170,13 @@ void frame() {
         sg_apply_uniforms(UB_vs_params, &sg_range{&vs_params, sizeof(vs_params)});
         sg_draw(0, 4, 1);
     }
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
 
 void cleanup() {
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sg_shutdown();
 }
 }
@@ -185,7 +186,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 800,
         .height = 600,
         .sample_count = 4,

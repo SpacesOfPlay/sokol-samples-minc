@@ -293,11 +293,12 @@ void frame() {
     sg_apply_uniforms(UB_sim_params, &sg_range{&state.sim_params, sizeof(state.sim_params)});
     sg_dispatch((state.sim_params.num_particles + 63) / 64, 1, 1);
     sg_end_pass();
+    simgui_flush();
     sg_begin_pass(&sg_pass{.action = state.display.pass_action, .swapchain = sglue_swapchain()});
     sg_apply_pipeline(state.display.pip);
     sg_apply_bindings(&sg_bindings{.views[0] = out_view});
     sg_draw(0, 3, state.sim_params.num_particles);
-    simgui_render();
+    simgui_draw();
     sg_end_pass();
     sg_commit();
 }

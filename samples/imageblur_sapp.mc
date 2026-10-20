@@ -229,8 +229,9 @@ void frame() {
     sfetch_dowork();
     draw_ui();
     if state.io.succeeded == 0 {
+        simgui_flush();
         sg_begin_pass(&sg_pass{.action = state.display.pass_action, .swapchain = sglue_swapchain()});
-        simgui_render();
+        simgui_draw();
         sg_end_pass();
         sg_commit();
         return;
@@ -244,6 +245,7 @@ void frame() {
         blur(1, state.compute.storage_simg_views[1], state.compute.storage_tex_views[0]);
     }
     sg_end_pass();
+    simgui_flush();
     sg_begin_pass(&sg_pass{
         .action = state.display.pass_action,
         .swapchain = sglue_swapchain(),
@@ -255,7 +257,7 @@ void frame() {
         .samplers[0] = state.smp,
     });
     sg_draw(0, 3, 1);
-    simgui_render();
+    simgui_draw();
     sg_end_pass();
     sg_commit();
 }

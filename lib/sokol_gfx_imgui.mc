@@ -17,58 +17,57 @@ enum _sgimgui_cmd_t {
     _SGIMGUI_CMD_DESTROY_SHADER = 11,
     _SGIMGUI_CMD_DESTROY_PIPELINE = 12,
     _SGIMGUI_CMD_DESTROY_VIEW = 13,
-    _SGIMGUI_CMD_UPDATE_BUFFER = 14,
-    _SGIMGUI_CMD_UPDATE_IMAGE = 15,
-    _SGIMGUI_CMD_APPEND_BUFFER = 16,
-    _SGIMGUI_CMD_WRITE_BUFFER_TRANSIENT = 17,
-    _SGIMGUI_CMD_WRITE_IMAGE_TRANSIENT = 18,
-    _SGIMGUI_CMD_WRITE_BUFFER_UNSEALED = 19,
-    _SGIMGUI_CMD_WRITE_IMAGE_UNSEALED = 20,
-    _SGIMGUI_CMD_SEAL_BUFFER = 21,
-    _SGIMGUI_CMD_SEAL_IMAGE = 22,
-    _SGIMGUI_CMD_BEGIN_PASS = 23,
-    _SGIMGUI_CMD_APPLY_VIEWPORT = 24,
-    _SGIMGUI_CMD_APPLY_SCISSOR_RECT = 25,
-    _SGIMGUI_CMD_APPLY_PIPELINE = 26,
-    _SGIMGUI_CMD_APPLY_BINDINGS = 27,
-    _SGIMGUI_CMD_APPLY_UNIFORMS = 28,
-    _SGIMGUI_CMD_DRAW = 29,
-    _SGIMGUI_CMD_DRAW_EX = 30,
-    _SGIMGUI_CMD_DISPATCH = 31,
-    _SGIMGUI_CMD_END_PASS = 32,
-    _SGIMGUI_CMD_COMMIT = 33,
-    _SGIMGUI_CMD_ALLOC_BUFFER = 34,
-    _SGIMGUI_CMD_ALLOC_IMAGE = 35,
-    _SGIMGUI_CMD_ALLOC_SAMPLER = 36,
-    _SGIMGUI_CMD_ALLOC_SHADER = 37,
-    _SGIMGUI_CMD_ALLOC_PIPELINE = 38,
-    _SGIMGUI_CMD_ALLOC_VIEW = 39,
-    _SGIMGUI_CMD_DEALLOC_BUFFER = 40,
-    _SGIMGUI_CMD_DEALLOC_IMAGE = 41,
-    _SGIMGUI_CMD_DEALLOC_SAMPLER = 42,
-    _SGIMGUI_CMD_DEALLOC_SHADER = 43,
-    _SGIMGUI_CMD_DEALLOC_PIPELINE = 44,
-    _SGIMGUI_CMD_DEALLOC_VIEW = 45,
-    _SGIMGUI_CMD_INIT_BUFFER = 46,
-    _SGIMGUI_CMD_INIT_IMAGE = 47,
-    _SGIMGUI_CMD_INIT_SAMPLER = 48,
-    _SGIMGUI_CMD_INIT_SHADER = 49,
-    _SGIMGUI_CMD_INIT_PIPELINE = 50,
-    _SGIMGUI_CMD_INIT_VIEW = 51,
-    _SGIMGUI_CMD_UNINIT_BUFFER = 52,
-    _SGIMGUI_CMD_UNINIT_IMAGE = 53,
-    _SGIMGUI_CMD_UNINIT_SAMPLER = 54,
-    _SGIMGUI_CMD_UNINIT_SHADER = 55,
-    _SGIMGUI_CMD_UNINIT_PIPELINE = 56,
-    _SGIMGUI_CMD_UNINIT_VIEW = 57,
-    _SGIMGUI_CMD_FAIL_BUFFER = 58,
-    _SGIMGUI_CMD_FAIL_IMAGE = 59,
-    _SGIMGUI_CMD_FAIL_SAMPLER = 60,
-    _SGIMGUI_CMD_FAIL_SHADER = 61,
-    _SGIMGUI_CMD_FAIL_PIPELINE = 62,
-    _SGIMGUI_CMD_FAIL_VIEW = 63,
-    _SGIMGUI_CMD_PUSH_DEBUG_GROUP = 64,
-    _SGIMGUI_CMD_POP_DEBUG_GROUP = 65,
+    _SGIMGUI_CMD_WRITE_BUFFER_TRANSIENT = 14,
+    _SGIMGUI_CMD_WRITE_IMAGE_TRANSIENT = 15,
+    _SGIMGUI_CMD_WRITE_BUFFER_UNSEALED = 16,
+    _SGIMGUI_CMD_WRITE_IMAGE_UNSEALED = 17,
+    _SGIMGUI_CMD_SEAL_BUFFER = 18,
+    _SGIMGUI_CMD_SEAL_IMAGE = 19,
+    _SGIMGUI_CMD_COPY_BUFFER_TO_BUFFER = 20,
+    _SGIMGUI_CMD_COPY_BUFFER_TO_IMAGE = 21,
+    _SGIMGUI_CMD_BEGIN_PASS = 22,
+    _SGIMGUI_CMD_APPLY_VIEWPORT = 23,
+    _SGIMGUI_CMD_APPLY_SCISSOR_RECT = 24,
+    _SGIMGUI_CMD_APPLY_PIPELINE = 25,
+    _SGIMGUI_CMD_APPLY_BINDINGS = 26,
+    _SGIMGUI_CMD_APPLY_UNIFORMS = 27,
+    _SGIMGUI_CMD_DRAW = 28,
+    _SGIMGUI_CMD_DRAW_EX = 29,
+    _SGIMGUI_CMD_DISPATCH = 30,
+    _SGIMGUI_CMD_END_PASS = 31,
+    _SGIMGUI_CMD_COMMIT = 32,
+    _SGIMGUI_CMD_ALLOC_BUFFER = 33,
+    _SGIMGUI_CMD_ALLOC_IMAGE = 34,
+    _SGIMGUI_CMD_ALLOC_SAMPLER = 35,
+    _SGIMGUI_CMD_ALLOC_SHADER = 36,
+    _SGIMGUI_CMD_ALLOC_PIPELINE = 37,
+    _SGIMGUI_CMD_ALLOC_VIEW = 38,
+    _SGIMGUI_CMD_DEALLOC_BUFFER = 39,
+    _SGIMGUI_CMD_DEALLOC_IMAGE = 40,
+    _SGIMGUI_CMD_DEALLOC_SAMPLER = 41,
+    _SGIMGUI_CMD_DEALLOC_SHADER = 42,
+    _SGIMGUI_CMD_DEALLOC_PIPELINE = 43,
+    _SGIMGUI_CMD_DEALLOC_VIEW = 44,
+    _SGIMGUI_CMD_INIT_BUFFER = 45,
+    _SGIMGUI_CMD_INIT_IMAGE = 46,
+    _SGIMGUI_CMD_INIT_SAMPLER = 47,
+    _SGIMGUI_CMD_INIT_SHADER = 48,
+    _SGIMGUI_CMD_INIT_PIPELINE = 49,
+    _SGIMGUI_CMD_INIT_VIEW = 50,
+    _SGIMGUI_CMD_UNINIT_BUFFER = 51,
+    _SGIMGUI_CMD_UNINIT_IMAGE = 52,
+    _SGIMGUI_CMD_UNINIT_SAMPLER = 53,
+    _SGIMGUI_CMD_UNINIT_SHADER = 54,
+    _SGIMGUI_CMD_UNINIT_PIPELINE = 55,
+    _SGIMGUI_CMD_UNINIT_VIEW = 56,
+    _SGIMGUI_CMD_FAIL_BUFFER = 57,
+    _SGIMGUI_CMD_FAIL_IMAGE = 58,
+    _SGIMGUI_CMD_FAIL_SAMPLER = 59,
+    _SGIMGUI_CMD_FAIL_SHADER = 60,
+    _SGIMGUI_CMD_FAIL_PIPELINE = 61,
+    _SGIMGUI_CMD_FAIL_VIEW = 62,
+    _SGIMGUI_CMD_PUSH_DEBUG_GROUP = 63,
+    _SGIMGUI_CMD_POP_DEBUG_GROUP = 64,
 }
 
 /*
@@ -237,21 +236,6 @@ struct _sgimgui_args_destroy_view_t {
     sg_view view;
 }
 
-struct _sgimgui_args_update_buffer_t {
-    sg_buffer buffer;
-    u64 data_size;
-}
-
-struct _sgimgui_args_update_image_t {
-    sg_image image;
-}
-
-struct _sgimgui_args_append_buffer_t {
-    sg_buffer buffer;
-    u64 data_size;
-    i32 result;
-}
-
 struct _sgimgui_args_write_buffer_transient_t {
     u64 src_data_size;
     u64 src_data_offset;
@@ -290,6 +274,18 @@ struct _sgimgui_args_seal_buffer_t {
 
 struct _sgimgui_args_seal_image_t {
     sg_image image;
+}
+
+struct _sgimgui_args_copy_buffer_to_buffer_t {
+    sg_buffer_location src;
+    sg_buffer_location dst;
+    u64 size;
+}
+
+struct _sgimgui_args_copy_buffer_to_image_t {
+    sg_buffer_image_location src;
+    sg_image_location dst;
+    sg_image_extent size;
 }
 
 struct _sgimgui_args_begin_pass_t {
@@ -484,15 +480,14 @@ unsafe_union _sgimgui_args_t {
     _sgimgui_args_destroy_shader_t destroy_shader;
     _sgimgui_args_destroy_pipeline_t destroy_pipeline;
     _sgimgui_args_destroy_view_t destroy_view;
-    _sgimgui_args_update_buffer_t update_buffer;
-    _sgimgui_args_update_image_t update_image;
-    _sgimgui_args_append_buffer_t append_buffer;
     _sgimgui_args_write_buffer_transient_t write_buffer_transient;
     _sgimgui_args_write_image_transient_t write_image_transient;
     _sgimgui_args_write_buffer_unsealed_t write_buffer_unsealed;
     _sgimgui_args_write_image_unsealed_t write_image_unsealed;
     _sgimgui_args_seal_buffer_t seal_buffer;
     _sgimgui_args_seal_image_t seal_image;
+    _sgimgui_args_copy_buffer_to_buffer_t copy_buffer_to_buffer;
+    _sgimgui_args_copy_buffer_to_image_t copy_buffer_to_image;
     _sgimgui_args_begin_pass_t begin_pass;
     _sgimgui_args_apply_viewport_t apply_viewport;
     _sgimgui_args_apply_scissor_rect_t apply_scissor_rect;
@@ -2280,24 +2275,6 @@ _sgimgui_str_t _sgimgui_capture_item_string(_sgimgui_t* ctx, i32 index, _sgimgui
                 _sgimgui_snprintf(&str_var, "%d: sg_destroy_view(view=%s)", index, res_id.buf);
             }
         }
-        case _SGIMGUI_CMD_UPDATE_BUFFER: {
-            {
-                _sgimgui_str_t res_id = _sgimgui_buffer_id_string(ctx, item.args.update_buffer.buffer);
-                _sgimgui_snprintf(&str_var, "%d: sg_update_buffer(buf=%s, data.size=%d)", index, res_id.buf, item.args.update_buffer.data_size);
-            }
-        }
-        case _SGIMGUI_CMD_UPDATE_IMAGE: {
-            {
-                _sgimgui_str_t res_id = _sgimgui_image_id_string(ctx, item.args.update_image.image);
-                _sgimgui_snprintf(&str_var, "%d: sg_update_image(img=%s, data=..)", index, res_id.buf);
-            }
-        }
-        case _SGIMGUI_CMD_APPEND_BUFFER: {
-            {
-                _sgimgui_str_t res_id = _sgimgui_buffer_id_string(ctx, item.args.append_buffer.buffer);
-                _sgimgui_snprintf(&str_var, "%d: sg_append_buffer(buf=%s, data.size=%d) => %d", index, res_id.buf, item.args.append_buffer.data_size, item.args.append_buffer.result);
-            }
-        }
         case _SGIMGUI_CMD_WRITE_BUFFER_TRANSIENT: {
             _sgimgui_snprintf(&str_var, "%d: sg_write_buffer_transient(desc=...)", index);
         }
@@ -2321,6 +2298,12 @@ _sgimgui_str_t _sgimgui_capture_item_string(_sgimgui_t* ctx, i32 index, _sgimgui
                 _sgimgui_str_t res_id = _sgimgui_image_id_string(ctx, item.args.seal_image.image);
                 _sgimgui_snprintf(&str_var, "%d: sg_seal_image(img=%s)", index, res_id.buf);
             }
+        }
+        case _SGIMGUI_CMD_COPY_BUFFER_TO_BUFFER: {
+            _sgimgui_snprintf(&str_var, "%d: sg_copy_buffer_to_buffer(desc=...)", index);
+        }
+        case _SGIMGUI_CMD_COPY_BUFFER_TO_IMAGE: {
+            _sgimgui_snprintf(&str_var, "%d: sg_copy_buffer_to_image(desc=...)", index);
         }
         case _SGIMGUI_CMD_BEGIN_PASS: {
             {
@@ -2758,48 +2741,6 @@ void _sgimgui_destroy_view(sg_view view, void* user_data) {
     }
 }
 
-void _sgimgui_update_buffer(sg_buffer buf, sg_range* data, void* user_data) {
-    var ctx = cast(_sgimgui_t*, user_data);
-    _sgimgui_capture_item_t* item = _sgimgui_capture_next_write_item(ctx);
-    if item != null {
-        item.cmd = _SGIMGUI_CMD_UPDATE_BUFFER;
-        item.color = 0xFF00FFFF;
-        item.args.update_buffer.buffer = buf;
-        item.args.update_buffer.data_size = data.size;
-    }
-    if ctx.hooks.update_buffer != null {
-        ctx.hooks.update_buffer(buf, data, ctx.hooks.user_data);
-    }
-}
-
-void _sgimgui_update_image(sg_image img, sg_image_data* data, void* user_data) {
-    var ctx = cast(_sgimgui_t*, user_data);
-    _sgimgui_capture_item_t* item = _sgimgui_capture_next_write_item(ctx);
-    if item != null {
-        item.cmd = _SGIMGUI_CMD_UPDATE_IMAGE;
-        item.color = 0xFF00FFFF;
-        item.args.update_image.image = img;
-    }
-    if ctx.hooks.update_image != null {
-        ctx.hooks.update_image(img, data, ctx.hooks.user_data);
-    }
-}
-
-void _sgimgui_append_buffer(sg_buffer buf, sg_range* data, i32 result, void* user_data) {
-    var ctx = cast(_sgimgui_t*, user_data);
-    _sgimgui_capture_item_t* item = _sgimgui_capture_next_write_item(ctx);
-    if item != null {
-        item.cmd = _SGIMGUI_CMD_APPEND_BUFFER;
-        item.color = 0xFF00FFFF;
-        item.args.append_buffer.buffer = buf;
-        item.args.append_buffer.data_size = data.size;
-        item.args.append_buffer.result = result;
-    }
-    if ctx.hooks.append_buffer != null {
-        ctx.hooks.append_buffer(buf, data, result, ctx.hooks.user_data);
-    }
-}
-
 void _sgimgui_write_buffer_transient(sg_write_buffer_desc* desc, void* user_data) {
     var ctx = cast(_sgimgui_t*, user_data);
     _sgimgui_capture_item_t* item = _sgimgui_capture_next_write_item(ctx);
@@ -2891,6 +2832,36 @@ void _sgimgui_seal_image(sg_image img, void* user_data) {
     }
     if ctx.hooks.seal_image != null {
         ctx.hooks.seal_image(img, ctx.hooks.user_data);
+    }
+}
+
+void _sgimgui_copy_buffer_to_buffer(sg_copy_buffer_to_buffer_desc* desc, void* user_data) {
+    var ctx = cast(_sgimgui_t*, user_data);
+    _sgimgui_capture_item_t* item = _sgimgui_capture_next_write_item(ctx);
+    if item != null {
+        item.cmd = _SGIMGUI_CMD_COPY_BUFFER_TO_BUFFER;
+        item.color = 0xFF00FFFF;
+        item.args.copy_buffer_to_buffer.src = desc.src;
+        item.args.copy_buffer_to_buffer.dst = desc.dst;
+        item.args.copy_buffer_to_buffer.size = desc.size;
+    }
+    if ctx.hooks.copy_buffer_to_buffer != null {
+        ctx.hooks.copy_buffer_to_buffer(desc, ctx.hooks.user_data);
+    }
+}
+
+void _sgimgui_copy_buffer_to_image(sg_copy_buffer_to_image_desc* desc, void* user_data) {
+    var ctx = cast(_sgimgui_t*, user_data);
+    _sgimgui_capture_item_t* item = _sgimgui_capture_next_write_item(ctx);
+    if item != null {
+        item.cmd = _SGIMGUI_CMD_COPY_BUFFER_TO_IMAGE;
+        item.color = 0xFF00FFFF;
+        item.args.copy_buffer_to_image.src = desc.src;
+        item.args.copy_buffer_to_image.dst = desc.dst;
+        item.args.copy_buffer_to_image.size = desc.size;
+    }
+    if ctx.hooks.copy_buffer_to_image != null {
+        ctx.hooks.copy_buffer_to_image(desc, ctx.hooks.user_data);
     }
 }
 
@@ -3808,20 +3779,16 @@ void _sgimgui_draw_buffer_panel(_sgimgui_t* ctx, sg_buffer buf) {
             _sgimgui_igtext("  vertex_buffer: %s", _sgimgui_bool_string(buf_ui.desc.usage.vertex_buffer));
             _sgimgui_igtext("  index_buffer: %s", _sgimgui_bool_string(buf_ui.desc.usage.index_buffer));
             _sgimgui_igtext("  storage_buffer: %s", _sgimgui_bool_string(buf_ui.desc.usage.storage_buffer));
-            _sgimgui_igtext("  immutable: %s", _sgimgui_bool_string(buf_ui.desc.usage.immutable));
+            _sgimgui_igtext("  staging_buffer: %s", _sgimgui_bool_string(buf_ui.desc.usage.staging_buffer));
+            _sgimgui_igtext("  staging_index_buffer: %s", _sgimgui_bool_string(buf_ui.desc.usage.staging_index_buffer));
             _sgimgui_igtext("  write_unsealed: %s", _sgimgui_bool_string(buf_ui.desc.usage.write_unsealed));
             _sgimgui_igtext("  write_transient: %s", _sgimgui_bool_string(buf_ui.desc.usage.write_transient));
-            _sgimgui_igtext("  dynamic_update: %s", _sgimgui_bool_string(buf_ui.desc.usage.dynamic_update));
+            _sgimgui_igtext("  copy_src: %s", _sgimgui_bool_string(buf_ui.desc.usage.copy_src));
+            _sgimgui_igtext("  copy_dst: %s", _sgimgui_bool_string(buf_ui.desc.usage.copy_dst));
             _sgimgui_igtext("Size:  %d", cast(i32, buf_ui.desc.size));
-            if buf_ui.desc.usage.immutable == 0 {
-                _sgimgui_igseparator();
-                _sgimgui_igtext("Num Slots:     %d", info.num_slots);
-                _sgimgui_igtext("Active Slot:   %d", info.active_slot);
-                _sgimgui_igtext("Update Frame Index: %d", info.update_frame_index);
-                _sgimgui_igtext("Append Frame Index: %d", info.append_frame_index);
-                _sgimgui_igtext("Append Pos:         %d", info.append_pos);
-                _sgimgui_igtext("Append Overflow:    %s", _sgimgui_bool_string(info.append_overflow));
-            }
+            _sgimgui_igseparator();
+            _sgimgui_igtext("Num Slots:     %d", info.num_slots);
+            _sgimgui_igtext("Active Slot:   %d", info.active_slot);
         } else {
             _sgimgui_igtext("Buffer 0x%08X not valid.", buf.id);
         }
@@ -3850,7 +3817,8 @@ void _sgimgui_draw_image_panel(_sgimgui_t* ctx, sg_image img) {
             _sgimgui_igtext("  immutable: %s", _sgimgui_bool_string(desc.usage.immutable));
             _sgimgui_igtext("  write_unsealed: %s", _sgimgui_bool_string(desc.usage.write_unsealed));
             _sgimgui_igtext("  write_transient: %s", _sgimgui_bool_string(desc.usage.write_transient));
-            _sgimgui_igtext("  dynamic_update: %s", _sgimgui_bool_string(desc.usage.dynamic_update));
+            _sgimgui_igtext("  copy_src: %s", _sgimgui_bool_string(desc.usage.copy_src));
+            _sgimgui_igtext("  copy_dst: %s", _sgimgui_bool_string(desc.usage.copy_dst));
             _sgimgui_igtext("Width:          %d", desc.width);
             _sgimgui_igtext("Height:         %d", desc.height);
             _sgimgui_igtext("Num Slices:     %d", desc.num_slices);
@@ -3861,7 +3829,6 @@ void _sgimgui_draw_image_panel(_sgimgui_t* ctx, sg_image img) {
                 _sgimgui_igseparator();
                 _sgimgui_igtext("Num Slots:     %d", info.num_slots);
                 _sgimgui_igtext("Active Slot:   %d", info.active_slot);
-                _sgimgui_igtext("Update Frame Index: %d", info.upd_frame_index);
             }
         } else {
             _sgimgui_igtext("Image 0x%08X not valid.", img.id);
@@ -4699,15 +4666,6 @@ void _sgimgui_draw_capture_panel(_sgimgui_t* ctx) {
         case _SGIMGUI_CMD_DESTROY_VIEW: {
             _sgimgui_draw_view_panel(ctx, item.args.destroy_view.view);
         }
-        case _SGIMGUI_CMD_UPDATE_BUFFER: {
-            _sgimgui_draw_buffer_panel(ctx, item.args.update_buffer.buffer);
-        }
-        case _SGIMGUI_CMD_UPDATE_IMAGE: {
-            _sgimgui_draw_image_panel(ctx, item.args.update_image.image);
-        }
-        case _SGIMGUI_CMD_APPEND_BUFFER: {
-            _sgimgui_draw_buffer_panel(ctx, item.args.append_buffer.buffer);
-        }
         case _SGIMGUI_CMD_WRITE_BUFFER_TRANSIENT: {
             _sgimgui_draw_buffer_panel(ctx, item.args.write_buffer_transient.dst.buffer);
         }
@@ -4725,6 +4683,8 @@ void _sgimgui_draw_capture_panel(_sgimgui_t* ctx) {
         }
         case _SGIMGUI_CMD_SEAL_IMAGE: {
             _sgimgui_draw_image_panel(ctx, item.args.seal_image.image);
+        }
+        case _SGIMGUI_CMD_COPY_BUFFER_TO_BUFFER, _SGIMGUI_CMD_COPY_BUFFER_TO_IMAGE: {
         }
         case _SGIMGUI_CMD_BEGIN_PASS: {
             _sgimgui_draw_pass_panel(ctx, &item.args.begin_pass.pass);
@@ -4854,6 +4814,8 @@ void _sgimgui_draw_caps_panel() {
     _sgimgui_igtext("    draw_base_instance: %s", _sgimgui_bool_string(f.draw_base_instance));
     _sgimgui_igtext("    dual_source_blending: %s", _sgimgui_bool_string(f.dual_source_blending));
     _sgimgui_igtext("    vertexformat_int10_n2: %s", _sgimgui_bool_string(f.vertexformat_int10_n2));
+    _sgimgui_igtext("    copy_buffer_to_image_relaxed_buffer_type: %s", _sgimgui_bool_string(f.copy_buffer_to_image_relaxed_buffer_type));
+    _sgimgui_igtext("    copy_buffer_to_image_relaxed_bytes_per_row: %s", _sgimgui_bool_string(f.copy_buffer_to_image_relaxed_bytes_per_row));
     _sgimgui_igtext("    gl_texture_views: %s", _sgimgui_bool_string(f.gl_texture_views));
     sg_limits l = sg_query_limits();
     _sgimgui_igtext("\nLimits:\n");
@@ -4919,19 +4881,17 @@ void _sgimgui_draw_frame_stats_panel(_sgimgui_t* ctx) {
         _sgimgui_frame_add_stats_row("prev_frame . num_draw", stats.prev_frame.num_draw);
         _sgimgui_frame_add_stats_row("prev_frame . num_draw_ex", stats.prev_frame.num_draw_ex);
         _sgimgui_frame_add_stats_row("prev_frame . num_dispatch", stats.prev_frame.num_dispatch);
-        _sgimgui_frame_add_stats_row("prev_frame . num_update_buffer", stats.prev_frame.num_update_buffer);
-        _sgimgui_frame_add_stats_row("prev_frame . num_append_buffer", stats.prev_frame.num_append_buffer);
-        _sgimgui_frame_add_stats_row("prev_frame . num_update_image", stats.prev_frame.num_update_image);
         _sgimgui_frame_add_stats_row("prev_frame . num_write_buffer_transient", stats.prev_frame.num_write_buffer_transient);
         _sgimgui_frame_add_stats_row("prev_frame . num_write_image_transient", stats.prev_frame.num_write_image_transient);
         _sgimgui_frame_add_stats_row("prev_frame . num_write_buffer_unsealed", stats.prev_frame.num_write_buffer_unsealed);
         _sgimgui_frame_add_stats_row("prev_frame . num_write_image_unsealed", stats.prev_frame.num_write_image_unsealed);
         _sgimgui_frame_add_stats_row("prev_frame . num_seal_buffer", stats.prev_frame.num_seal_buffer);
         _sgimgui_frame_add_stats_row("prev_frame . num_seal_image", stats.prev_frame.num_seal_image);
+        _sgimgui_frame_add_stats_row("prev_frame . num_copy_buffer_to_buffer", stats.prev_frame.num_copy_buffer_to_buffer);
+        _sgimgui_frame_add_stats_row("prev_frame . num_copy_buffer_to_image", stats.prev_frame.num_copy_buffer_to_image);
         _sgimgui_frame_add_stats_row("prev_frame . size_apply_uniforms", stats.prev_frame.size_apply_uniforms);
-        _sgimgui_frame_add_stats_row("prev_frame . size_update_buffer", stats.prev_frame.size_update_buffer);
-        _sgimgui_frame_add_stats_row("prev_frame . size_append_buffer", stats.prev_frame.size_append_buffer);
-        _sgimgui_frame_add_stats_row("prev_frame . size_update_image", stats.prev_frame.size_update_image);
+        _sgimgui_frame_add_stats_row("prev_frame . size_copy_buffer_to_buffer", stats.prev_frame.size_copy_buffer_to_buffer);
+        _sgimgui_frame_add_stats_row("prev_frame . size_copy_buffer_to_image", stats.prev_frame.size_copy_buffer_to_image);
         _sgimgui_frame_add_stats_row("prev_frame . buffers . allocated", stats.prev_frame.buffers.allocated);
         _sgimgui_frame_add_stats_row("prev_frame . buffers . deallocated", stats.prev_frame.buffers.deallocated);
         _sgimgui_frame_add_stats_row("prev_frame . buffers . inited", stats.prev_frame.buffers.inited);
@@ -5050,6 +5010,7 @@ void _sgimgui_draw_frame_stats_panel(_sgimgui_t* ctx) {
                 _sgimgui_frame_add_stats_row("prev_frame . d3d11 . bindings . num_ps_set_samplers", stats.prev_frame.d3d11.bindings.num_ps_set_samplers);
                 _sgimgui_frame_add_stats_row("prev_frame . d3d11 . bindings . num_cs_set_samplers", stats.prev_frame.d3d11.bindings.num_cs_set_samplers);
                 _sgimgui_frame_add_stats_row("prev_frame . d3d11 . bindings . num_cs_set_unordered_access_views", stats.prev_frame.d3d11.bindings.num_cs_set_unordered_access_views);
+                _sgimgui_frame_add_stats_row("prev_frame . d3d11 . bindings . num_om_set_rts_and_uavs", stats.prev_frame.d3d11.bindings.num_om_set_rts_and_uavs);
                 _sgimgui_frame_add_stats_row("prev_frame . d3d11 . uniforms . num_update_subresource", stats.prev_frame.d3d11.uniforms.num_update_subresource);
                 _sgimgui_frame_add_stats_row("prev_frame . d3d11 . draw . num_draw_indexed_instanced", stats.prev_frame.d3d11.draw.num_draw_indexed_instanced);
                 _sgimgui_frame_add_stats_row("prev_frame . d3d11 . draw . num_draw_indexed", stats.prev_frame.d3d11.draw.num_draw_indexed);
@@ -5141,15 +5102,14 @@ void sgimgui_setup(sgimgui_desc_t* desc) {
     hooks.destroy_shader = _sgimgui_destroy_shader;
     hooks.destroy_pipeline = _sgimgui_destroy_pipeline;
     hooks.destroy_view = _sgimgui_destroy_view;
-    hooks.update_buffer = _sgimgui_update_buffer;
-    hooks.update_image = _sgimgui_update_image;
-    hooks.append_buffer = _sgimgui_append_buffer;
     hooks.write_buffer_transient = _sgimgui_write_buffer_transient;
     hooks.write_image_transient = _sgimgui_write_image_transient;
     hooks.write_buffer_unsealed = _sgimgui_write_buffer_unsealed;
     hooks.write_image_unsealed = _sgimgui_write_image_unsealed;
     hooks.seal_buffer = _sgimgui_seal_buffer;
     hooks.seal_image = _sgimgui_seal_image;
+    hooks.copy_buffer_to_buffer = _sgimgui_copy_buffer_to_buffer;
+    hooks.copy_buffer_to_image = _sgimgui_copy_buffer_to_image;
     hooks.begin_pass = _sgimgui_begin_pass;
     hooks.apply_viewport = _sgimgui_apply_viewport;
     hooks.apply_scissor_rect = _sgimgui_apply_scissor_rect;

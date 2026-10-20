@@ -416,8 +416,6 @@ struct _scb_t {
 */
 //------------------------------------------------------------------------------
 // >>implementation
-when !(defined(SOKOL_DEBUG)) {
-}
 private {
 _scb_t _scb;
 // >>logging

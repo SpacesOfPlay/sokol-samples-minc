@@ -108,7 +108,7 @@ private { state_t state; }
 private {
 void init() {
     sg_setup(&sg_desc{.environment = sglue_environment(), .logger = sg_logger{.func = slog_func}});
-    __dbgui_setup();
+    _dbgui_setup();
     state.pass_action = sg_pass_action{
         .colors[0] = {.load_action = SG_LOADACTION_CLEAR, .clear_value = {0.0f, 0.0f, 0.0f, 1.0f}},
     };
@@ -235,6 +235,7 @@ void frame() {
     f32 vpw = dw * 0.333f;
     f32 vph = vpw;
     f32 vpy = dh * 0.5f - vph * 0.5f;
+    _dbgui_update();
     sg_begin_pass(&sg_pass{.action = state.pass_action, .swapchain = sglue_swapchain()});
     for i32 i = 0; i < 3; i++ {
         f32 vpx = dw * 0.5f - 1.5f * vpw + cast(f32, i) * vpw;
@@ -244,13 +245,13 @@ void frame() {
         sg_apply_uniforms(UB_vs_params, &sg_range{&vs_params, sizeof(vs_params)});
         sg_draw(0, 36, 1);
     }
-    __dbgui_draw();
+    _dbgui_draw();
     sg_end_pass();
     sg_commit();
 }
 
 void cleanup() {
-    __dbgui_shutdown();
+    _dbgui_shutdown();
     sg_shutdown();
 }
 
@@ -269,7 +270,7 @@ sapp_desc __sapp_sample_main() {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = __dbgui_event,
+        .event_cb = _dbgui_event,
         .width = 800,
         .height = 600,
         .sample_count = 4,
